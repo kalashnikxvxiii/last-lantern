@@ -161,3 +161,96 @@ async function exportSfx() {
   }
   exporter.log('effetti esportati: ' + SFX_NAMES.length * 3);
 }
+// strati della musica: ognuno riproduce una parte di Music.playStep a intensità fissa
+const STEMS = {
+  drone: null,                                   // Music.startDrone
+  arp_lo: (s, t) => stemArp(s, t, 0),
+  arp: (s, t) => stemArp(s, t, 1),
+  arp_hi: (s, t) => stemArp(s, t, 2),
+  bass: (s, t) => { stemBass(s, t); stemKick(s, t); },
+  hats: (s, t) => stemHats(s, t),
+};
+function stemChord(s) { const tr = Music.track; if (s % 16 === 0) Music.chord = tr.chords[(s / 16 | 0) % tr.chords.length]; return Music.chord; }
+function stemArp(s, t, I) {
+  const c = Sound.ctx, ch = stemChord(s);
+  const pProb = I === 0 ? 0.3 : I === 1 ? 0.5 : 0.65;
+  if (Math.random() < pProb || (s % 8 === 0)) {
+    const tones = [0, 2, 4, 7];
+    const deg = ch + pick(tones) + (Math.random() < 0.2 ? 1 : 0);
+    const f = Music.noteFreq(deg, 2 + (Math.random() < 0.3 ? 1 : 0));
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = I >= 2 ? 'square' : 'triangle'; o.frequency.value = f;
+    const vol = I >= 2 ? 0.035 : 0.06;
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.6);
+    const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1600;
+    o.connect(lp); lp.connect(g); g.connect(Music.bus); g.connect(Music.delayIn);
+    o.start(t); o.stop(t + 0.65);
+  }
+}
+function stemBass(s, t) {
+  const c = Sound.ctx, ch = stemChord(s);
+  if (s % 4 !== 0) return;
+  const f = Music.noteFreq(ch, 0);
+  const o = c.createOscillator(), g = c.createGain(), lp = c.createBiquadFilter();
+  o.type = 'sawtooth'; o.frequency.value = f; lp.type = 'lowpass'; lp.frequency.value = 300;
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.09, t + 0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.35);
+  o.connect(lp); lp.connect(g); g.connect(Music.bus); o.start(t); o.stop(t + 0.4);
+}
+function stemKick(s, t) {
+  const c = Sound.ctx;
+  if (s % 4 !== 0) return;
+  const o = c.createOscillator(), g = c.createGain();
+  o.frequency.setValueAtTime(110, t); o.frequency.exponentialRampToValueAtTime(38, t + 0.15);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.15, t + 0.005);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.2);
+  o.connect(g); g.connect(Music.bus); o.start(t); o.stop(t + 0.25);
+}
+function stemHats(s, t) {
+  const c = Sound.ctx;
+  stemChord(s);
+  if (s % 2 !== 1) return;
+  const src = c.createBufferSource(); src.buffer = Sound.noiseBuf;
+  const f = c.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 6000;
+  const g = c.createGain();
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.03, t + 0.003);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
+  src.connect(f); f.connect(g); g.connect(Music.bus); src.start(t, Math.random() * 0.5); src.stop(t + 0.06);
+}
+
+// 32 battute (256 ottavi) per strato, con preroll per il drone e chiusura ad anello:
+// la coda delle note viene sommata all'inizio, il drone si dissolve incrociato.
+async function renderStem(name, stem, seed) {
+  const SR = 44100, PRE = 4, TAIL = 2, STEPS = 256;
+  const tr = TRACKS[name], stepDur = 60 / tr.tempo / 2;
+  const L = STEPS * stepDur;
+  const total = Math.ceil((PRE + L + TAIL) * SR);
+  const r = new RNG(seed); Math.random = () => r.next();
+  const oc = new OfflineAudioContext(1, total, SR);
+  const out = oc.createGain(); out.gain.value = 1; out.connect(oc.destination);
+  Sound.ctx = oc; Sound.musicGain = out; Sound.noiseBuf = makeNoise(oc);
+  Music.init();
+  Music.track = tr; Music.chord = 0;
+  Music.delay.delayTime.value = 60 / tr.tempo * 0.75;
+  if (stem === 'drone') Music.startDrone();
+  else for (let s = 0; s < STEPS; s++) STEMS[stem](s, PRE + s * stepDur);
+  const data = (await oc.startRendering()).getChannelData(0);
+  const a = Math.floor(PRE * SR), n = Math.floor(L * SR), x = Math.floor(TAIL * SR);
+  const loop = new Float32Array(n);
+  for (let i = 0; i < n; i++) loop[i] = data[a + i];
+  for (let i = 0; i < x; i++) {
+    const tail = data[a + n + i];
+    if (stem === 'drone') { const k = i / x; loop[i] = loop[i] * Math.sqrt(k) + tail * Math.sqrt(1 - k); }
+    else loop[i] += tail;
+  }
+  return loop;
+}
+async function exportMusic() {
+  let seed = 1;
+  for (const name of Object.keys(TRACKS)) for (const stem of Object.keys(STEMS)) {
+    const loop = await renderStem(name, stem, seed++);
+    await exporter.write('music/' + name + '_' + stem + '.wav', wavB64(loop, 44100));
+  }
+  exporter.log('strati musicali: ' + Object.keys(TRACKS).length * Object.keys(STEMS).length);
+}

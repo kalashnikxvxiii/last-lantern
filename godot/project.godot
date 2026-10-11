@@ -37,3 +37,4 @@ environment/defaults/default_clear_color=Color(0.0196, 0.0118, 0.0314, 1)
 
 Save="*res://autoload/save.gd"
 Sfx="*res://autoload/sfx.gd"
+Music="*res://autoload/music.gd"
