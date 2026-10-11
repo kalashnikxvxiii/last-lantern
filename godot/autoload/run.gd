@@ -129,3 +129,24 @@ func update_notices(dt: float) -> void:
 		banners[0].t += dt
 		if banners[0].t > banners[0].life:
 			banners.pop_front()
+
+func add_enemy(e) -> void:
+	enemies.append(e)
+	if actors != null:
+		actors.add_child(e)
+
+func clear_enemies() -> void:
+	for e in enemies:
+		if is_instance_valid(e):
+			e.queue_free() if e.is_inside_tree() else e.free()
+	enemies = []
+
+# run.enemies = run.enemies.filter(e => !e.dead), liberando i nodi
+func prune_enemies() -> void:
+	var alive: Array = []
+	for e in enemies:
+		if e.dead:
+			e.queue_free() if e.is_inside_tree() else e.free()
+		else:
+			alive.append(e)
+	enemies = alive

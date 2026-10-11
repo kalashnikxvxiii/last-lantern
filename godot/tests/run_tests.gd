@@ -13,6 +13,10 @@ class ErrorCatcher extends Logger:
 var catcher := ErrorCatcher.new()
 
 func _ready() -> void:
+	# dopo il primo frame: la radice è libera e i test possono aggiungere scene
+	_run.call_deferred()
+
+func _run() -> void:
 	OS.add_logger(catcher)
 	var only := ""
 	for a in OS.get_cmdline_user_args():

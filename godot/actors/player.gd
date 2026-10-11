@@ -168,3 +168,105 @@ func add_xp(v: float) -> void:
 		Particles.burst(x, y, 24, ["#f6cf57", "#fff2a8", "#f29c38"], 90, 0.8, {"grav": -30})
 		Sfx.play("levelup")
 		heal(6, true)
+
+# aggiornamento (updatePlayer); il resto del corpo arriva nei Task 17, 18 e 21
+func tick(dt: float) -> void:
+	var s := stats
+	anim += dt
+	if dead:
+		return
+	inv = maxf(0.0, inv - dt)
+	flare_cd = maxf(0.0, flare_cd - dt)
+	# mira
+	aim = Controls.aim_angle(x, y, aim)
+	facing = 1 if cos(aim) >= 0 else -1
+	# scatto
+	if dash_charges < s.dashCharges:
+		dash_cd -= dt
+		if dash_cd <= 0:
+			dash_charges += 1
+			dash_cd = s.dashCd
+	else:
+		dash_cd = s.dashCd
+	var mv := Controls.move()
+	if Controls.dash() and dash_charges > 0 and dash_t <= 0:
+		var dx := mv.x
+		var dy := mv.y
+		if dx == 0 and dy == 0:
+			dx = cos(aim)
+			dy = sin(aim)
+		var l := sqrt(dx * dx + dy * dy)
+		dash_dx = dx / l
+		dash_dy = dy / l
+		dash_t = 0.16 * s.dashDist
+		dash_charges -= 1
+		Sfx.play("dash")
+		Particles.burst(x, y + 4, 8, ["#8a8294", "#55505e"], 40, 0.4)
+	var mvx := 0.0
+	var mvy := 0.0
+	if dash_t > 0:
+		dash_t -= dt
+		mvx = dash_dx * 330
+		mvy = dash_dy * 330
+		if U.random() < 0.7:
+			Particles.add({"x": x + U.rnd(-2, 2), "y": y + U.rnd(-4, 4), "life": 0.3, "color": U.rgba(160, 190, 210, 0.6), "size": 2})
+	else:
+		var sp := speed()
+		mvx = mv.x * sp
+		mvy = mv.y * sp
+	moving = sqrt(mvx * mvx + mvy * mvy) > 5
+	# risucchio del Divoratore
+	if Run.pull != null:
+		mvx += Run.pull.x
+		mvy += Run.pull.y
+	var bx := Coll.move_axis(self, mvx * dt, 0, false)
+	var by := Coll.move_axis(self, mvy * dt, 1, false)
+	# scivolamento sugli spigoli (aiuta a imboccare le porte)
+	if bx and absf(mvy) < 1:
+		Coll.nudge(self, 0, mvx)
+	if by and absf(mvx) < 1:
+		Coll.nudge(self, 1, mvy)
+
+func sync() -> void:
+	position = Vector2(x, y)
+	visible = not dead
+	queue_redraw()
+
+func _process(_delta: float) -> void:
+	sync()
+
+# drawLantern (js/render.js)
+func _draw_lantern() -> void:
+	var glass := DB.lantern(lantern).glass
+	var lx := U.jround(x + cos(aim) * 7)
+	var ly := U.jround(y - 1 + sin(aim) * 4)
+	UiDraw.px_rect(self, lx - 2, ly - 4, 5, 7, "#0b0810")
+	UiDraw.px_rect(self, lx - 1, ly - 5, 3, 1, "#3b3546")
+	UiDraw.px_rect(self, lx - 1, ly - 3, 3, 4, glass)
+	UiDraw.px_rect(self, lx, ly - 2, 1, 2, "#ffffff")
+	UiDraw.px_rect(self, lx - 1, ly + 2, 3, 1, "#3b3546")
+
+# drawPlayer (js/render.js), in coordinate del mondo
+func _draw() -> void:
+	if dead or not Run.active:
+		return
+	UiDraw.set_origin(self, -position)
+	var blink := inv > 0 and int(floor(inv * 20)) % 2 == 0
+	UiDraw.shadow(self, x, y + 7, 5)
+	var a := 0.35 if statuses.has("invis") else (0.4 if blink else 1.0)
+	var frame := int(floor(anim * 8)) % 2 if moving else 0
+	var bob := -1 if moving and frame != 0 else 0
+	var behind := sin(aim) < -0.3
+	var ga := UiDraw.alpha
+	UiDraw.alpha = a
+	if behind:
+		_draw_lantern()
+	Spr.draw(self, "player", frame, x, y + bob, {"flip": facing < 0, "flash": dash_t > 0 and Fx.vis.next() < 0.3})
+	if not behind:
+		_draw_lantern()
+	UiDraw.alpha = ga
+	if guard_up:
+		UiDraw.alpha = 0.5 + 0.2 * sin(Fx.time * 6)
+		UiDraw.px_ring(self, x, y, 11, "#7fd8e6")
+		UiDraw.alpha = ga
+	UiDraw.set_origin(self, Vector2.ZERO)

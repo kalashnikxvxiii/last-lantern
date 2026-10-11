@@ -1,0 +1,139 @@
+extends Node2D
+# Disegno a terra nell'ordine di drawWorld (js/render.js): indizi dei segreti, porte,
+# tile dinamici, effetti a terra, oggetti, raccoglibili.
+
+func _process(_delta: float) -> void:
+	queue_redraw()
+
+func _draw() -> void:
+	if not Run.active or Run.room.is_empty():
+		return
+	var room := Run.room
+	_secret_hints(room)
+	_doors(room)
+	_dynamic_tiles(room)
+
+func _secret_hints(room: Dictionary) -> void:
+	for d in room.doors:
+		var n: Dictionary = room.doors[d]
+		if n.type != "secret" or n.found:
+			continue
+		var c := RoomU.door_center(d)
+		var reveal: bool = Run.player.stats.mapReveal or n.get("mapped", false)
+		var col := U.rgba(246, 207, 87, 0.55) if reveal else U.rgba(5, 3, 8, 0.6)
+		UiDraw.px_rect(self, c.x - 3, c.y - 4, 1, 4, col)
+		UiDraw.px_rect(self, c.x - 2, c.y, 2, 1, col)
+		UiDraw.px_rect(self, c.x, c.y + 1, 1, 3, col)
+		UiDraw.px_rect(self, c.x + 2, c.y - 3, 1, 3, col)
+		UiDraw.px_rect(self, c.x + 3, c.y - 1, 2, 1, col)
+
+func _door_style(room: Dictionary, d: String) -> Dictionary:
+	var n: Dictionary = room.doors[d]
+	if room.type == "boss" or n.type == "boss":
+		return {"frame": "#7e2530", "hi": "#d04b3c", "kind": "boss"}
+	if n.type == "treasure" or room.type == "treasure":
+		return {"frame": "#9a7a44", "hi": "#f6cf57", "kind": "treasure"}
+	if n.type == "shop" or room.type == "shop":
+		return {"frame": "#5a4428", "hi": "#c49a6a", "kind": "shop"}
+	if n.type == "elite" or room.type == "elite":
+		return {"frame": "#3a1020", "hi": "#e0574a", "kind": "elite"}
+	if n.type == "shrine" or room.type == "shrine":
+		return {"frame": "#4b2a5c", "hi": "#c57ae0", "kind": "shrine"}
+	if n.type == "secret" or room.type == "secret":
+		return {"frame": "#2a2430", "hi": "#55505e", "kind": "secret"}
+	return {"frame": "#2a2230", "hi": "#6b6478", "kind": "normal"}
+
+func _doors(room: Dictionary) -> void:
+	var ts := Consts.TS
+	for d in room.doors:
+		if not RoomU.door_visible(room, d):
+			continue
+		var st := _door_style(room, d)
+		var t0: Array = RoomU.DIRS[d].tiles[0]
+		var horiz: bool = d == "n" or d == "s"
+		var x: float = Consts.RX + t0[0] * ts
+		var y: float = Consts.RY + t0[1] * ts
+		var w: float = ts * 3 if horiz else ts
+		var h: float = ts if horiz else ts * 3
+		var open := RoomU.door_open(room, d)
+		var locked := RoomU.door_locked(room, d)
+		if st.kind == "secret":
+			# varco irregolare
+			UiDraw.px_rect(self, x + 2, y + 2, w - 4, h - 4, "#050308")
+			for i in 6:
+				var k := U.hash2(i, int(x), int(y))
+				var px: float = x + (k * w if horiz else (1.0 if k > 0.5 else w - 3))
+				var py: float = y + ((1.0 if k > 0.5 else h - 3) if horiz else k * h)
+				draw_rect(Rect2(px, py, 2, 2), UiDraw._a("#3b3546"))
+			continue
+		# cornice
+		UiDraw.px_rect(self, x, y, w, h, "#0b0810")
+		UiDraw.px_rect(self, x + 1, y + 1, w - 2, h - 2, st.frame)
+		UiDraw.px_rect(self, x + 4, y + 4, w - 8, h - 8, "#050308" if open else "#120c16")
+		# filo luminoso
+		if horiz:
+			UiDraw.px_rect(self, x + 2, y + 2 if d == "n" else y + h - 3, w - 4, 1, st.hi)
+		else:
+			UiDraw.px_rect(self, x + 2 if d == "w" else x + w - 3, y + 2, 1, h - 4, st.hi)
+		if not open:
+			# sbarre
+			var bc := "#c49a3a" if locked else "#6b6478"
+			for i in 6:
+				if horiz:
+					draw_rect(Rect2(x + 7 + i * 6, y + 3, 2, h - 6), UiDraw._a(bc))
+				else:
+					draw_rect(Rect2(x + 3, y + 7 + i * 6, w - 6, 2), UiDraw._a(bc))
+			if locked:
+				var lx := x + w / 2
+				var ly := y + h / 2
+				UiDraw.px_rect(self, lx - 4, ly - 2, 8, 7, "#0b0810")
+				UiDraw.px_rect(self, lx - 3, ly - 1, 6, 5, "#f6cf57")
+				UiDraw.px_rect(self, lx - 2, ly - 5, 4, 1, "#f6cf57")
+				UiDraw.px_rect(self, lx - 3, ly - 4, 1, 3, "#f6cf57")
+				UiDraw.px_rect(self, lx + 2, ly - 4, 1, 3, "#f6cf57")
+				UiDraw.px_rect(self, lx - 1, ly + 1, 2, 2, "#5a4428")
+		# simboli
+		var cx := x + w / 2
+		var cy := y + h / 2
+		var sx: float = cx if horiz else (x + w + 6 if d == "w" else x - 6)
+		var sy: float = (y + h + 6 if d == "n" else y - 6) if horiz else cy
+		match st.kind:
+			"boss": Spr.draw(self, "i_skull", 0, sx, sy, {"alpha": 0.8})
+			"treasure": Spr.draw(self, "i_crown", 0, sx, sy, {"alpha": 0.8})
+			"shop": Spr.draw(self, "i_coin", 0, sx, sy, {"alpha": 0.8})
+			"elite": Spr.draw(self, "i_blade", 0, sx, sy, {"alpha": 0.8})
+			"shrine": Spr.draw(self, "i_star", 0, sx, sy, {"alpha": 0.7})
+
+func _dynamic_tiles(room: Dictionary) -> void:
+	var up := RoomU.spikes_up(room)
+	var warn := RoomU.spikes_warn(room)
+	for ty in range(1, Consts.RH - 1):
+		for tx in range(1, Consts.RW - 1):
+			var t: int = room.grid[ty][tx]
+			if t == Consts.T.FLOOR or t == Consts.T.ROCK or t == Consts.T.CRACK:
+				continue
+			var x: float = Consts.RX + tx * Consts.TS
+			var y: float = Consts.RY + ty * Consts.TS
+			var cx := x + 8
+			var cy := y + 8
+			if t == Consts.T.SPIKE:
+				UiDraw.px_rect(self, x + 1, y + 1, 14, 14, "#16111c")
+				UiDraw.px_rect(self, x + 2, y + 2, 12, 12, "#2a2430")
+				for o in [[4, 4], [10, 4], [4, 10], [10, 10]]:
+					UiDraw.px_rect(self, x + o[0] - 1, y + o[1], 3, 1, "#0b0810")
+					if up:
+						UiDraw.px_rect(self, x + o[0], y + o[1] - 4, 1, 4, "#e8e4dc")
+						UiDraw.px_rect(self, x + o[0] - 1, y + o[1] - 2, 3, 2, "#a59fb0")
+					elif warn:
+						UiDraw.px_rect(self, x + o[0], y + o[1] - 1, 1, 1, "#a59fb0")
+			elif t == Consts.T.BARREL:
+				UiDraw.shadow(self, cx, cy + 6, 6)
+				var hp: float = room.tileHp.get(ty * Consts.RW + tx, 18)
+				Spr.draw(self, "barrel", 0, cx, cy, {"flash": hp < 18 and sin(Fx.time * 20) > 0.6})
+			elif t == Consts.T.URN:
+				UiDraw.shadow(self, cx, cy + 5, 5)
+				Spr.draw(self, "urn", 0, cx, cy)
+			elif t == Consts.T.BRAZIER:
+				UiDraw.shadow(self, cx, cy + 6, 6)
+				Spr.draw(self, "brazier", 0, cx, cy + 2)
+				UiDraw.flame(self, cx, cy - 3, 1, Fx.time)

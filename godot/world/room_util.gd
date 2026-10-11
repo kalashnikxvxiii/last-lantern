@@ -119,3 +119,10 @@ static func reach_tiles(room: Dictionary) -> Array:
 	if room.get("reach") == null:
 		room.reach = flood_from(room, 14, 7)
 	return room.reach.keys().map(func(k): return Vector2i(k % Consts.RW, k / Consts.RW))
+
+static func spikes_up(room: Dictionary) -> bool:
+	return fmod(room.spikeT, 3.0) > 2.0
+
+static func spikes_warn(room: Dictionary) -> bool:
+	var k := fmod(room.spikeT, 3.0)
+	return k > 1.6 and k <= 2.0
