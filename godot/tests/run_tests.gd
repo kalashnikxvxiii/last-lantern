@@ -54,4 +54,5 @@ func _ready() -> void:
 	for line in failed:
 		print("FAIL ", line)
 	print("\n%d superati, %d falliti" % [passed, failed.size()])
+	OS.remove_logger(catcher)
 	get_tree().quit(1 if failed.size() > 0 else 0)
