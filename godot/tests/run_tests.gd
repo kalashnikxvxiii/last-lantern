@@ -27,7 +27,14 @@ func _ready() -> void:
 	var files := Array(DirAccess.get_files_at("res://tests")).filter(func(f): return f.begins_with("test_") and f.ends_with(".gd"))
 	files.sort()
 	for f in files:
+		if only != "" and not f.contains(only) and not FileAccess.get_file_as_string("res://tests/" + f).contains(only):
+			continue
+		catcher.errors.clear()
 		var script: GDScript = load("res://tests/" + f)
+		# un file che non si compila è un fallimento, non zero test
+		if script == null or not script.can_instantiate():
+			failed.append("%s: il file non si compila\n    %s" % [f, "\n    ".join(catcher.errors)])
+			continue
 		for m in script.get_script_method_list():
 			var name: String = m.name
 			if not name.begins_with("test_"):
