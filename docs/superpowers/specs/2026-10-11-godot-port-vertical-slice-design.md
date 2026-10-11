@@ -53,52 +53,63 @@ Sconfitto il boss, la botola porta alla schermata "Fine della demo" (riepilogo d
 godot/
   project.godot
   autoload/
-    game.gd        cambio scena con dissolvenza, gestione errori
-    run.gd         stato della run corrente (piano, stanze, giocatore, contatori)
     save.gd        salvataggio in user://save.json
-    sfx.gd         effetti sonori con varianti e intervalli minimi
-    music.gd       musica a strati per bioma e intensità
-    fx.gd          shake, hitstop, flash, rallentamento
+    sfx.gd         effetti sonori con varianti e intervalli minimi, bus audio
+    music.gd       musica a strati per traccia e intensità
+    fx.gd          shake, hitstop, flash, tempo di rendering
+    controls.gd    azioni di input (tastiera, mouse, gamepad), ultimo dispositivo, input simulato per i test
+    run.gd         stato della run corrente (piano, stanza, giocatore, liste, contatori, notifiche)
+    game.gd        cambio scena, argomenti di sviluppo, screenshot, cattura errori
   core/
-    consts.gd      W, H, TS, RW, RH, RX, RY, tipi di tile (T)
+    consts.gd      VERSION, W, H, TS, RW, RH, RX, RY, tipi di tile (T)
     rng.gd         mulberry32 identico al JS
-    util.gd        clamp, lerp, angDiff, approach, hash2, fmtTime...
-    txt.gd         conversione dei codici colore ^x in BBCode
+    util.gd        dist, angoli, jround (Math.round del JS), hash2, imul, casualità globale
+    spr.gd         sprite da manifest.json, sagome bianche generate al caricamento, disegno
+    txt.gd         larghezze dei glifi, misura e a capo dei testi con codici ^x
   data/
     enemy_def.gd, boss_def.gd, biome_def.gd, lantern_def.gd   classi Resource
     enemies/*.tres, bosses/*.tres, biomes/*.tres, lanterns/*.tres
-    stats.gd       baseStats()
+    db.gd          accesso alle Resource (nemici, boss, biomi, lanterne)
+    stats.gd       baseStats(), RARITY
     perks.gd, relics.gd, curses.gd, consumables.gd, statuses.gd, elite_mods.gd
   world/
+    tile_pick.gd   scelta delle varianti dei tile con hash2
+    room_util.gd   DIRS, porte, tile, raggiungibilità
     floor_gen.gd   genFloor
-    room_builder.gd buildRoom, planWaves, makeShop, makeShrine
-    room.tscn      TileMapLayer (pavimento, muri, rocce) + decorazioni + oggetti
-    room_view.gd   istanzia la stanza dai dati generati, aggiorna i tile dinamici
-    lighting.tscn  CanvasModulate + gestione delle luci
-  actors/
-    player.tscn / player.gd
-    enemy.tscn / enemy.gd + ai/*.gd
-    boss.tscn / boss.gd + boss_patterns.gd
-    pickup.tscn, objects/*.tscn (chest, relic, shopitem, merchant, shrine, trapdoor)
+    room_builder.gd buildRoom, planWaves, makeShop, makeShrine, randomRelics
+    room_view.gd   TileMapLayer (pavimento, muri, rocce) + decorazioni + ombra dei muri
+    lights.gd      collectLights
+    lighting.gd    shader del buio, del bagliore e della vignettatura
+    flow.gd        flusso della run: stanze, ondate, porte, transizioni, ricompense
+    interact.gd    reliquie, forzieri, mercante, santuari, botola
+    draw_ground.gd, draw_air.gd, draw_overlay.gd   disegno del mondo nell'ordine del JS
+  actors/          (Node2D creati con .new(), senza scene .tscn)
+    player.gd
+    enemy.gd, ai.gd (un metodo per comportamento)
+    boss.gd, boss_patterns.gd
   combat/
-    bullet_pool.gd  proiettili del giocatore e dei nemici, disegnati in blocco
-    collision.gd    collides, moveAxis, moveActor, lineClear (griglia)
-    damage.gd       hurtPlayer, hitEnemy, killEnemy, chainLightning, esplosioni
-    status.gd       addStatus, updateStatuses, cleanse
-    effects.gd      fx a terra e in aria (fuoco, esplosioni, raggi, bombe)
+    collision.gd    collides, moveAxis, moveActor, lineClear, nudge
     flow_field.gd   updateFlow / flowAngle
+    status.gd       addStatus, updateStatuses, cleanse
+    combat.gd       hurtPlayer, morte, hitEnemy, killEnemy, fulmini, tile distruttibili
+    effects.gd      fx (esplosioni, bombe, onde, avvisi, nubi, fuoco, evocazioni, fulmini)
+    bullets.gd      proiettili del giocatore e dei nemici
+    pickups.gd      raccoglibili
+    particles.gd, floaters.gd
   ui/
-    hud.tscn, minimap.gd, full_map.gd, perk_cards.tscn, pause.tscn, build_panel.tscn,
-    title.tscn, lantern_select.tscn, options.tscn, help.tscn, records.tscn,
-    gameover.tscn, demo_end.tscn, menu.gd, notices.gd, floaters.gd
+    ui_draw.gd     primitive pixel, pannelli, barre, tasti, testo con codici colore
+    menu.gd, notices.gd, map_draw.gd, panels_draw.gd, hud.gd, panels.gd, well_bg.gd
+    screens/       title, options, select, records, help, gameover, demo_end (.tscn + .gd)
   scenes/
     play.tscn / play.gd
   shaders/
-    flash_tint.gdshader
+    darkness.gdshader, glow.gdshader, vignette.gdshader
+  tools/
+    build_tilesets.gd   genera le TileSet dagli atlas esportati
   assets/          generati dallo script di esportazione (vedi §4)
     sprites/, tiles/, font/, sfx/, music/
   tests/
-    run_tests.gd, test_*.gd, golden/*.json
+    test_main.tscn, run_tests.gd, test_*.gd, golden/*.json
 tools/
   export_assets/   esportazione asset dal codice JS (Electron)
   golden/          generazione dei dati golden dal codice JS (Node)
@@ -110,24 +121,25 @@ tools/
 - **Ordine di aggiornamento centralizzato**: `play.gd` esegue a ogni tick fisso, nell'ordine di `updateCommon` del JS: input, giocatore, orbitali, proiettili del giocatore, nemici, proiettili nemici, effetti, pickup, flusso della stanza, porte, notifiche. Gli attori espongono `tick(dt)` e non usano `_physics_process` propri. Hitstop e rallentamento agiscono saltando o scalando il tick, non tramite `Engine.time_scale`.
 - **Run separata dalle scene**: `Run` contiene i dati della run. Il piano è una struttura dati (stanze con griglia, porte, oggetti, ondate, stato). Entrare in una stanza istanzia `room.tscn` da quei dati; uscire li aggiorna e libera la scena.
 - **Statistiche**: `recalcStats()` riparte da `baseStats()` e applica lanterna, doni (`apply(stats, n)`), reliquie, maledizioni, come nel JS. Le funzioni `pDamage`, `pFireRate`, `pSpeed`, `pLight` restano funzioni.
-- **Nemici guidati dai dati**: una sola `enemy.tscn` configurata da una `EnemyDef` (hp, velocità, danno, raggio, sprite, AI, colpo, flag). Le AI sono script piccoli che implementano `tick(enemy, dt, target)`. Un nuovo nemico = un `.tres` più, se serve, una nuova AI.
+- **Nemici guidati dai dati**: una sola classe `Enemy` configurata da una `EnemyDef` (hp, velocità, danno, raggio, sprite, AI, colpo, flag). Ogni AI è un metodo statico di `ai.gd` con firma `(e, dt, tg, m)`. Un nuovo nemico = un `.tres` più, se serve, un nuovo metodo.
 - **Contenuti con effetti in codice**: doni, reliquie, maledizioni, consumabili restano dizionari GDScript con `Callable` (`apply`, `onTake`, `use`), perché i loro effetti sono codice. Testi e numeri restano identici al JS.
 - **Casualità**: generazione di piano e stanze con `RNG` a seme (mulberry32 portato bit per bit, con mascheramento a 32 bit). La casualità di gioco (colpi critici, drop) usa un RNG globale, come `Math.random` nel JS.
-- **Proiettili in pool**: `bullet_pool.gd` tiene i proiettili in array e li disegna in un unico nodo; niente nodo per proiettile.
-- **Modalità di sviluppo**: argomenti da riga di comando dopo `--` (`--test=fight|boss|shop|treasure`, `--lantern=`, `--perks=`, `--relics=`, `--lv=`, `--coins=`, `--seed=`) sostituiscono i parametri `?test=` del JS.
+- **Proiettili come dati**: i proiettili sono dizionari negli array `Run.bullets` e `Run.ebullets`, aggiornati da `bullets.gd` e disegnati in blocco da un nodo; niente nodo per proiettile. Lo stesso vale per effetti, pickup e oggetti della stanza.
+- **Attori come nodi**: `Player`, `Enemy` e `Boss` sono `Node2D` con le coordinate logiche `x`, `y` del JS; a fine tick la `position` viene allineata e il nodo si ridisegna in `_draw()`. Funzionano anche fuori dall'albero, così i test li usano senza scena.
+- **Modalità di sviluppo**: argomenti da riga di comando dopo `--` (`--test=fight|boss|shop|treasure|shrine|secret`, `--lantern=`, `--perks=`, `--relics=`, `--lv=`, `--coins=`, `--seed=`, `--spawn=`, `--sim=`, `--fire`, `--pause`, `--map`, `--scene=`, `--screenshot=` con `--shot-after=`) sostituiscono i parametri `?test=` del JS. `--screenshot` salva un PNG della finestra dopo N tick ed esce: serve per confrontare a occhio con la versione JS.
 
 ### 3.4 Rendering e luce
 
-- Pavimento, muri e rocce su `TileMapLayer`; decorazioni come sprite; ombra dei muri sul pavimento come nodo dedicato.
-- Ordinamento in profondità per Y degli attori e degli oggetti.
-- **Luce**: `CanvasModulate` che riproduce lo strato di buio del JS (colore `#050309` con opacità `amb` = `biome.dark`, più le stesse correzioni: profondità oltre la 5, stanza ripulita, olio esaurito in combattimento); il valore esatto del modulate è tarato con screenshot affiancati. Ogni sorgente di `collectLights()` diventa una `PointLight2D` con texture a gradiente radiale (stessi punti di arresto 0,12 / 0,55 / 1) e lo stesso raggio, intensità e tremolio. Il bagliore colorato additivo è una seconda texture in modalità additiva. Vignettatura come `TextureRect` sopra il mondo.
-- Le luci per oggetti numerosi (proiettili, monete) usano un pool di `PointLight2D` con lo stesso tetto del JS (120 luci).
-- Flash di colpo e tinta degli sprite tramite `flash_tint.gdshader`.
+- Pavimento, muri e rocce su `TileMapLayer`; decorazioni, porte, tile dinamici, oggetti, pickup, effetti e proiettili disegnati con `_draw()` portando le funzioni di `render.js`; ombra dei muri sul pavimento come nodo dedicato.
+- Ordinamento in profondità per Y degli attori (`y_sort_enabled`).
+- **Livelli**, nello stesso ordine di `drawWorld` del JS: mondo (con lo scuotimento), luce, sovrimpressione visibile anche al buio (telegrafi, occhi, proiettili nemici, particelle alte, numeri, prompt), effetti a schermo (braci d'olio, flash, bordo rosso), HUD, pannelli.
+- **Luce**: uno shader a schermo intero riproduce esattamente lo strato di buio del JS. Colore `#050309` con opacità `amb` (`biome.dark` più le stesse correzioni: profondità oltre la 5, stanza ripulita, olio esaurito in combattimento); ogni sorgente di `collectLights()` (al massimo 128) toglie opacità con lo stesso gradiente radiale (raggio interno 0,12·r, arresti 0 / 0,55 / 1 con alfa a / 0,6·a / 0) e le sorgenti si combinano moltiplicando come `destination-out`. Un secondo shader additivo disegna il bagliore colorato, un terzo la vignettatura. Si è scelto lo shader al posto di `CanvasModulate` + `PointLight2D` perché queste non riproducono la combinazione moltiplicativa del buio e avrebbero richiesto una taratura a occhio.
+- Flash e tinta degli sprite: si disegna la sagoma bianca dello sprite (generata al caricamento) modulata con il colore, come `silhouette()` nel JS.
 - HUD e pannelli su `CanvasLayer` separati, non influenzati dalla luce.
 
 ### 3.5 Flusso
 
-- `Game.change_scene(name)` con dissolvenza; `Play` è una scena unica che contiene il mondo e la UI.
+- `Game.set_scene(name, arg)` cambia scena subito, come `setScene` del JS; `Play` è una scena unica che contiene il mondo e la UI.
 - I pannelli (scelta dei doni, pausa, equipaggiamento, mappa, opzioni) fermano il tick del mondo e ricevono l'input; corrispondono ai `mode` di `Scenes.play`.
 - Pausa automatica quando la finestra perde il focus durante il gioco.
 - Transizioni tra stanze, introduzione di profondità e del boss, morte e vittoria con gli stessi tempi del JS (`run.trans`, `run.intro`, `run.bossIntro`, `deathT`).
@@ -140,7 +152,7 @@ tools/
 
 ### 3.7 Gestione degli errori
 
-- Un errore durante il gioco viene registrato nel log di Godot (`user://logs/`) e mostrato in una barra in basso con il messaggio, la versione e il seme della run, come oggi.
+- Un errore durante il gioco viene registrato nel log di Godot (`user://logs/`) e mostrato in una barra in basso con il messaggio, la versione e il seme della run, come oggi. La cattura usa un `Logger` registrato con `OS.add_logger` (GDScript non ha `try/catch`: un errore interrompe solo la funzione in corso).
 - La versione è una costante in `core/consts.gd` (`VERSION`), inizialmente `godot 0.1.0`.
 
 ## 4. Pipeline degli asset
@@ -151,8 +163,7 @@ Script in `tools/export_assets/`, eseguito **una volta**. Avvia Electron in una 
 
 - Un PNG per sprite in `assets/sprites/`, frame affiancati in orizzontale, outline incluso (output di `compileRows`).
 - `assets/sprites/manifest.json` con nome, larghezza e altezza del frame, numero di frame.
-- `tools/build_spriteframes.gd` (eseguito con Godot headless) genera una risorsa `SpriteFrames` per gli sprite animati; quelli a frame singolo si usano come `Texture2D`.
-- Le varianti `flash` e `tint` non si esportano: le fa lo shader.
+- `core/spr.gd` legge il manifest, carica le texture e genera al caricamento le sagome bianche per flash e tinta; `Spr.draw()` riproduce `drawSpr` del JS (centrato, flip, flash, alfa, scala, tinta). Le varianti `flash` e `tint` quindi non si esportano: modificando un PNG, le sagome seguono da sole.
 - Si esportano anche le icone (`i_*`, `s_*`) e gli sprite dei consumabili e degli oggetti.
 
 ### 4.2 Tile
@@ -162,16 +173,14 @@ Per ogni bioma (nella slice solo `crypt`, ma lo script li esporta tutti e 5) un 
 - pavimento: 3 colori × 6 varianti (giunti, crepe e granelli disegnati con semi diversi);
 - muri: parità della riga × bordo (alto, basso, sinistra, destra, angoli, interno) × con o senza crepa;
 - rocce: piena e incrinata × 2 varianti;
-- porte nei loro stati;
-- decorazioni del bioma come sprite separati.
+- `godot/tools/build_tilesets.gd` (Godot headless) genera le `TileSet` dagli atlas e da `assets/tiles/layout.json`.
 
-`room_builder.gd` sceglie colore e variante con lo stesso `hash2(tx, ty, seed)` del JS. Risultato atteso: stesso stile e stessa distribuzione, **non identico pixel per pixel** (scelta accettata).
+Porte e decorazioni del pavimento restano disegnate dal codice (porting di `drawDoors` e `drawDecal`), perché dipendono dallo stato della porta e da parametri continui. `room_view.gd` sceglie colore e variante con lo stesso `hash2(tx, ty, seed)` del JS. Risultato atteso: stesso stile e stessa distribuzione, **non identico pixel per pixel** (scelta accettata).
 
 ### 4.3 Font
 
-- Il font bitmap di `font.js` esportato come BMFont (`assets/font/lanterna.fnt` + `.png`) con larghezze variabili e altezza di riga 10.
-- `Txt.fmt()` converte i codici colore `^w ^y ^r ^g ^b ^o ^p ^d ^c ^s ^k` (`TEXT_COLORS`) in BBCode per `RichTextLabel`.
-- Ombra del testo come `shadow` del tema.
+- Il font bitmap di `font.js` esportato come atlas bianco `assets/font/lanterna.png` con `glyphs.json` (posizione e larghezza di ogni glifo), più un BMFont `lanterna.fnt` sullo stesso atlas per usarlo in futuro nei nodi `Label` dell'editor.
+- `UiDraw.text()` porta `Font.draw` del JS: codici colore `^w ^y ^r ^g ^b ^o ^p ^d ^c ^s ^k` (`TEXT_COLORS`), allineamento, ombra, scala, alfa. `Txt.width()` e `Txt.wrap()` portano misura e a capo, così l'impaginazione resta identica.
 
 ### 4.4 Effetti sonori
 
@@ -189,7 +198,7 @@ Per ogni bioma (nella slice solo `crypt`, ma lo script li esporta tutti e 5) un 
 
 ### 5.1 Test runner
 
-- `godot/tests/run_tests.gd`, avviato con `godot --headless --path godot -s tests/run_tests.gd`. Esegue tutte le funzioni `test_*` dei file `tests/test_*.gd`, stampa i risultati e termina con codice diverso da zero se un test fallisce. Nessun addon.
+- `godot/tests/test_main.tscn` con `run_tests.gd`, avviato con `godot --headless --path godot res://tests/test_main.tscn` (come scena principale, così gli autoload sono attivi). Esegue tutte le funzioni `test_*` dei file `tests/test_*.gd`, conta come fallimento anche un errore di script catturato dal `Logger`, stampa i risultati e termina con codice diverso da zero se un test fallisce. Nessun addon.
 
 ### 5.2 Dati golden dal JS
 
@@ -205,9 +214,9 @@ I test Godot riproducono gli stessi calcoli e confrontano i risultati campo per 
 
 ### 5.3 Test unitari Godot
 
-- `Txt.fmt()` su tutti i codici colore e casi limite.
-- `Save`: caricamento con campi mancanti, file corrotto, assenza del file.
-- `bullet_pool`: creazione, riuso, rimozione fuori stanza.
+- `Txt.width()` e `Txt.wrap()` con codici colore, spazi, caratteri accentati e caratteri senza glifo.
+- `Save`: caricamento con campi mancanti, file corrotto, assenza del file, scrittura impossibile.
+- `bullets.gd`: muri, rimbalzi, perforazione, schegge, uscita di scena.
 - Stati alterati: applicazione, accumulo del veleno, tre cariche di gelo che congelano, scadenza, immunità.
 
 ### 5.4 Smoke test headless
