@@ -29,3 +29,8 @@ static func ticks(n: int) -> void:
 		Flow.update_common(Consts.DT)
 		Flow.update_game(Consts.DT)
 		Controls.end_tick()
+static func spawn(type: String, x: float, y: float, mod: Variant = null) -> Enemy:
+	var e := Enemy.make(type, x, y, mod)
+	e.stun = 0.0
+	Run.add_enemy(e)
+	return e

@@ -173,6 +173,7 @@ func add_xp(v: float) -> void:
 func tick(dt: float) -> void:
 	var s := stats
 	anim += dt
+	Status.update(self, dt, true)
 	if dead:
 		return
 	inv = maxf(0.0, inv - dt)
