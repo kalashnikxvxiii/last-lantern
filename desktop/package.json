@@ -1,0 +1,14 @@
+{
+  "name": "ultima-lanterna",
+  "productName": "Ultima Lanterna",
+  "version": "0.9.0",
+  "description": "Ultima Lanterna - roguelike d'azione 2D",
+  "main": "main.js",
+  "private": true,
+  "author": "Ultima Lanterna",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "electron": "43.0.0",
+    "@electron/packager": "20.3.0"
+  }
+}

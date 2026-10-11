@@ -1,0 +1,6 @@
+dist/
+desktop/node_modules/
+desktop/game/
+desktop/build/
+node_modules/
+godot/.godot/
