@@ -1,0 +1,34 @@
+; Ultima Lanterna - porting Godot
+
+config_version=5
+
+[application]
+
+config/name="Ultima Lanterna"
+config/features=PackedStringArray("4.7")
+
+[debug]
+
+file_logging/enable_file_logging=true
+
+[display]
+
+window/size/viewport_width=480
+window/size/viewport_height=270
+window/size/window_width_override=1440
+window/size/window_height_override=810
+window/stretch/mode="viewport"
+window/stretch/aspect="keep"
+window/stretch/scale_mode="integer"
+
+[physics]
+
+common/physics_ticks_per_second=60
+common/max_physics_steps_per_frame=6
+
+[rendering]
+
+textures/canvas_textures/default_texture_filter=0
+2d/snap/snap_2d_transforms_to_pixel=true
+2d/snap/snap_2d_vertices_to_pixel=true
+environment/defaults/default_clear_color=Color(0.0196, 0.0118, 0.0314, 1)
