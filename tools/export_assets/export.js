@@ -112,3 +112,52 @@ function drawWallVariant(c, x, y, biome, edge, crack) {
   if (edge === 'right0' || edge === 'right1') c.fillRect(x, y, 2, TS);
   if (crack) { c.fillStyle = 'rgba(0,0,0,0.4)'; c.fillRect(x + 4, y + 3, 1, 5); c.fillRect(x + 5, y + 7, 2, 1); }
 }
+const SFX_NAMES = ['shoot', 'hit', 'crit', 'kill', 'hurt', 'coin', 'xp', 'pickup', 'heal', 'oil', 'levelup', 'dash', 'flare',
+  'explosion', 'door', 'lock', 'enemyShoot', 'spawn', 'roar', 'select', 'confirm', 'deny', 'chest', 'buy', 'curse', 'shield',
+  'freeze', 'thud', 'bolt', 'tick', 'descend', 'warn', 'block'];
+
+// rumore bianco come in Sound.unlock, generato con il Math.random corrente
+function makeNoise(c) {
+  const len = c.sampleRate * 1.0, b = c.createBuffer(1, len, c.sampleRate), d = b.getChannelData(0);
+  for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+  return b;
+}
+function trimTail(data, sr) {
+  let end = data.length;
+  while (end > sr * 0.05 && Math.abs(data[end - 1]) < 1e-4) end--;
+  return data.subarray(0, end);
+}
+// PCM 16 bit, codificato in base64
+function wavB64(samples, sr) {
+  const n = samples.length, buf = new ArrayBuffer(44 + n * 2), v = new DataView(buf);
+  const str = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  str(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); str(8, 'WAVE'); str(12, 'fmt ');
+  v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, sr, true);
+  v.setUint32(28, sr * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); str(36, 'data'); v.setUint32(40, n * 2, true);
+  for (let i = 0; i < n; i++) v.setInt16(44 + i * 2, Math.max(-1, Math.min(1, samples[i])) * 32767, true);
+  const bytes = new Uint8Array(buf);
+  let bin = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+  return btoa(bin);
+}
+
+// ogni effetto di Sound.play registrato offline in 3 varianti (Math.random con semi diversi)
+async function exportSfx() {
+  const SR = 44100;
+  Save.data.settings.sfx = 1;
+  for (let idx = 0; idx < SFX_NAMES.length; idx++) {
+    const name = SFX_NAMES[idx];
+    for (let v = 1; v <= 3; v++) {
+      const r = new RNG(1000 * v + idx);
+      Math.random = () => r.next();
+      const oc = new OfflineAudioContext(1, SR * 2, SR);
+      const out = oc.createGain(); out.gain.value = 1; out.connect(oc.destination);
+      Sound.ctx = oc; Sound.sfxGain = out; Sound.unlocked = true; Sound.last = Object.create(null);
+      Sound.noiseBuf = makeNoise(oc);
+      Sound.play(name);
+      const buf = await oc.startRendering();
+      await exporter.write('sfx/' + name + '_' + v + '.wav', wavB64(trimTail(buf.getChannelData(0), SR), SR));
+    }
+  }
+  exporter.log('effetti esportati: ' + SFX_NAMES.length * 3);
+}
