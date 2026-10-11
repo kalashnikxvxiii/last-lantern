@@ -29,7 +29,9 @@ func _physics_process(_delta: float) -> void:
 	Controls.end_tick()
 
 func _process(_delta: float) -> void:
-	world.position = Fx.offset()
+	var off := Fx.offset()
+	world.position = off
+	$Lighting.refresh(off)
 
 func tick(dt: float) -> void:
 	match mode:
