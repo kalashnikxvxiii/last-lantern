@@ -32,7 +32,7 @@ func _ready() -> void:
 		catcher.errors.clear()
 		var script: GDScript = load("res://tests/" + f)
 		# un file che non si compila è un fallimento, non zero test
-		if script == null or not script.can_instantiate():
+		if script == null or not script.can_instantiate() or not catcher.errors.is_empty():
 			failed.append("%s: il file non si compila\n    %s" % [f, "\n    ".join(catcher.errors)])
 			continue
 		for m in script.get_script_method_list():

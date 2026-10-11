@@ -1,0 +1,582 @@
+{
+ "player": {
+  "w": 14,
+  "h": 16,
+  "frames": 2
+ },
+ "rat": {
+  "w": 14,
+  "h": 7,
+  "frames": 2
+ },
+ "bat": {
+  "w": 16,
+  "h": 10,
+  "frames": 2
+ },
+ "skeleton": {
+  "w": 12,
+  "h": 16,
+  "frames": 2
+ },
+ "skull": {
+  "w": 12,
+  "h": 12,
+  "frames": 2
+ },
+ "ghoul": {
+  "w": 14,
+  "h": 16,
+  "frames": 2
+ },
+ "grub": {
+  "w": 14,
+  "h": 7,
+  "frames": 2
+ },
+ "grubling": {
+  "w": 10,
+  "h": 6,
+  "frames": 2
+ },
+ "spore": {
+  "w": 14,
+  "h": 14,
+  "frames": 2
+ },
+ "hopper": {
+  "w": 14,
+  "h": 14,
+  "frames": 2
+ },
+ "moth": {
+  "w": 16,
+  "h": 11,
+  "frames": 2
+ },
+ "automaton": {
+  "w": 14,
+  "h": 16,
+  "frames": 2
+ },
+ "turret": {
+  "w": 14,
+  "h": 14,
+  "frames": 2
+ },
+ "slag": {
+  "w": 14,
+  "h": 11,
+  "frames": 2
+ },
+ "smith": {
+  "w": 16,
+  "h": 16,
+  "frames": 2
+ },
+ "spark": {
+  "w": 10,
+  "h": 10,
+  "frames": 2
+ },
+ "drowned": {
+  "w": 14,
+  "h": 16,
+  "frames": 2
+ },
+ "eel": {
+  "w": 18,
+  "h": 7,
+  "frames": 2
+ },
+ "jelly": {
+  "w": 14,
+  "h": 13,
+  "frames": 2
+ },
+ "shade": {
+  "w": 14,
+  "h": 16,
+  "frames": 2
+ },
+ "cultist": {
+  "w": 14,
+  "h": 17,
+  "frames": 2
+ },
+ "wisp": {
+  "w": 10,
+  "h": 10,
+  "frames": 2
+ },
+ "knight": {
+  "w": 16,
+  "h": 16,
+  "frames": 2
+ },
+ "eye": {
+  "w": 16,
+  "h": 16,
+  "frames": 2
+ },
+ "boss_bones": {
+  "w": 26,
+  "h": 26,
+  "frames": 2
+ },
+ "boss_mycel": {
+  "w": 28,
+  "h": 24,
+  "frames": 2
+ },
+ "boss_forge": {
+  "w": 28,
+  "h": 24,
+  "frames": 2
+ },
+ "boss_abyss": {
+  "w": 28,
+  "h": 23,
+  "frames": 2
+ },
+ "boss_devourer": {
+  "w": 34,
+  "h": 31,
+  "frames": 2
+ },
+ "coin": {
+  "w": 7,
+  "h": 8,
+  "frames": 2
+ },
+ "coin5": {
+  "w": 7,
+  "h": 8,
+  "frames": 2
+ },
+ "heart": {
+  "w": 10,
+  "h": 8,
+  "frames": 1
+ },
+ "halfheart": {
+  "w": 10,
+  "h": 6,
+  "frames": 1
+ },
+ "oil": {
+  "w": 8,
+  "h": 9,
+  "frames": 1
+ },
+ "key": {
+  "w": 11,
+  "h": 6,
+  "frames": 1
+ },
+ "chest": {
+  "w": 16,
+  "h": 12,
+  "frames": 2
+ },
+ "goldchest": {
+  "w": 16,
+  "h": 12,
+  "frames": 2
+ },
+ "bomb": {
+  "w": 9,
+  "h": 12,
+  "frames": 1
+ },
+ "potion": {
+  "w": 9,
+  "h": 11,
+  "frames": 1
+ },
+ "bigpotion": {
+  "w": 9,
+  "h": 11,
+  "frames": 1
+ },
+ "oilflask": {
+  "w": 9,
+  "h": 11,
+  "frames": 1
+ },
+ "antidote": {
+  "w": 9,
+  "h": 11,
+  "frames": 1
+ },
+ "rage": {
+  "w": 9,
+  "h": 11,
+  "frames": 1
+ },
+ "frost": {
+  "w": 9,
+  "h": 11,
+  "frames": 1
+ },
+ "holy": {
+  "w": 9,
+  "h": 11,
+  "frames": 1
+ },
+ "scroll": {
+  "w": 10,
+  "h": 9,
+  "frames": 1
+ },
+ "jar": {
+  "w": 9,
+  "h": 10,
+  "frames": 2
+ },
+ "dice": {
+  "w": 9,
+  "h": 9,
+  "frames": 1
+ },
+ "pouch": {
+  "w": 9,
+  "h": 10,
+  "frames": 1
+ },
+ "feather": {
+  "w": 10,
+  "h": 11,
+  "frames": 1
+ },
+ "barrel": {
+  "w": 14,
+  "h": 15,
+  "frames": 1
+ },
+ "urn": {
+  "w": 12,
+  "h": 12,
+  "frames": 1
+ },
+ "brazier": {
+  "w": 14,
+  "h": 11,
+  "frames": 1
+ },
+ "pedestal": {
+  "w": 14,
+  "h": 9,
+  "frames": 1
+ },
+ "altar": {
+  "w": 18,
+  "h": 13,
+  "frames": 1
+ },
+ "fountain": {
+  "w": 18,
+  "h": 12,
+  "frames": 2
+ },
+ "merchant": {
+  "w": 14,
+  "h": 18,
+  "frames": 2
+ },
+ "i_blade": {
+  "w": 12,
+  "h": 12,
+  "frames": 1
+ },
+ "i_rate": {
+  "w": 12,
+  "h": 9,
+  "frames": 1
+ },
+ "i_boot": {
+  "w": 12,
+  "h": 10,
+  "frames": 1
+ },
+ "i_heart": {
+  "w": 12,
+  "h": 10,
+  "frames": 1
+ },
+ "i_shield": {
+  "w": 12,
+  "h": 12,
+  "frames": 1
+ },
+ "i_eye": {
+  "w": 12,
+  "h": 9,
+  "frames": 1
+ },
+ "i_range": {
+  "w": 12,
+  "h": 7,
+  "frames": 1
+ },
+ "i_drop": {
+  "w": 10,
+  "h": 11,
+  "frames": 1
+ },
+ "i_magnet": {
+  "w": 12,
+  "h": 10,
+  "frames": 1
+ },
+ "i_coin": {
+  "w": 12,
+  "h": 10,
+  "frames": 1
+ },
+ "i_star": {
+  "w": 12,
+  "h": 11,
+  "frames": 1
+ },
+ "i_thorn": {
+  "w": 12,
+  "h": 11,
+  "frames": 1
+ },
+ "i_flask": {
+  "w": 9,
+  "h": 10,
+  "frames": 1
+ },
+ "i_multi": {
+  "w": 12,
+  "h": 10,
+  "frames": 1
+ },
+ "i_pierce": {
+  "w": 12,
+  "h": 12,
+  "frames": 1
+ },
+ "i_bounce": {
+  "w": 12,
+  "h": 10,
+  "frames": 1
+ },
+ "i_wisp": {
+  "w": 12,
+  "h": 11,
+  "frames": 1
+ },
+ "i_flame": {
+  "w": 12,
+  "h": 11,
+  "frames": 1
+ },
+ "i_poison": {
+  "w": 10,
+  "h": 11,
+  "frames": 1
+ },
+ "i_snow": {
+  "w": 12,
+  "h": 11,
+  "frames": 1
+ },
+ "i_wing": {
+  "w": 12,
+  "h": 10,
+  "frames": 1
+ },
+ "i_bolt": {
+  "w": 9,
+  "h": 10,
+  "frames": 1
+ },
+ "i_skull": {
+  "w": 12,
+  "h": 10,
+  "frames": 1
+ },
+ "i_sun": {
+  "w": 12,
+  "h": 11,
+  "frames": 1
+ },
+ "i_crown": {
+  "w": 12,
+  "h": 8,
+  "frames": 1
+ },
+ "i_moon": {
+  "w": 11,
+  "h": 11,
+  "frames": 1
+ },
+ "i_bell": {
+  "w": 12,
+  "h": 10,
+  "frames": 1
+ },
+ "i_lens": {
+  "w": 8,
+  "h": 10,
+  "frames": 1
+ },
+ "i_tooth": {
+  "w": 12,
+  "h": 9,
+  "frames": 1
+ },
+ "i_anvil": {
+  "w": 12,
+  "h": 9,
+  "frames": 1
+ },
+ "i_clover": {
+  "w": 10,
+  "h": 8,
+  "frames": 1
+ },
+ "i_hourglass": {
+  "w": 7,
+  "h": 11,
+  "frames": 1
+ },
+ "i_mirror": {
+  "w": 12,
+  "h": 12,
+  "frames": 1
+ },
+ "i_coffin": {
+  "w": 10,
+  "h": 11,
+  "frames": 1
+ },
+ "i_urn": {
+  "w": 12,
+  "h": 11,
+  "frames": 1
+ },
+ "i_quiver": {
+  "w": 12,
+  "h": 10,
+  "frames": 1
+ },
+ "i_shell": {
+  "w": 12,
+  "h": 8,
+  "frames": 1
+ },
+ "i_storm": {
+  "w": 12,
+  "h": 10,
+  "frames": 1
+ },
+ "i_lamp": {
+  "w": 12,
+  "h": 9,
+  "frames": 1
+ },
+ "i_cup": {
+  "w": 12,
+  "h": 10,
+  "frames": 1
+ },
+ "i_key": {
+  "w": 12,
+  "h": 6,
+  "frames": 1
+ },
+ "i_orbit": {
+  "w": 10,
+  "h": 10,
+  "frames": 1
+ },
+ "i_hand": {
+  "w": 8,
+  "h": 8,
+  "frames": 1
+ },
+ "i_book": {
+  "w": 11,
+  "h": 9,
+  "frames": 1
+ },
+ "i_ice": {
+  "w": 12,
+  "h": 11,
+  "frames": 1
+ },
+ "i_lantern": {
+  "w": 12,
+  "h": 10,
+  "frames": 1
+ },
+ "i_blood": {
+  "w": 12,
+  "h": 9,
+  "frames": 1
+ },
+ "i_mask": {
+  "w": 12,
+  "h": 8,
+  "frames": 1
+ },
+ "s_burn": {
+  "w": 8,
+  "h": 7,
+  "frames": 1
+ },
+ "s_poison": {
+  "w": 8,
+  "h": 7,
+  "frames": 1
+ },
+ "s_chill": {
+  "w": 8,
+  "h": 7,
+  "frames": 1
+ },
+ "s_slow": {
+  "w": 9,
+  "h": 7,
+  "frames": 1
+ },
+ "s_weak": {
+  "w": 7,
+  "h": 9,
+  "frames": 1
+ },
+ "s_fragile": {
+  "w": 8,
+  "h": 7,
+  "frames": 1
+ },
+ "s_blind": {
+  "w": 8,
+  "h": 6,
+  "frames": 1
+ },
+ "s_curse": {
+  "w": 8,
+  "h": 7,
+  "frames": 1
+ },
+ "s_rage": {
+  "w": 7,
+  "h": 7,
+  "frames": 1
+ },
+ "s_shield": {
+  "w": 6,
+  "h": 6,
+  "frames": 1
+ },
+ "s_invis": {
+  "w": 7,
+  "h": 7,
+  "frames": 1
+ }
+}
