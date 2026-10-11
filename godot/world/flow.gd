@@ -178,8 +178,15 @@ static func update_game(dt: float) -> void:
 	if Run.flow_t <= 0:
 		FlowField.update()
 		Run.flow_t = 0.18
+	Bullets.update_player(dt)
+	Bullets.update_enemy(dt)
+	Effects.update(dt)
+	Pickups.update(dt)
 	if not Run.player.dead:
 		check_doors(dt)
+	for o in Run.oil_fx:
+		o.t += dt
+	Run.oil_fx = Run.oil_fx.filter(func(o): return o.t < 0.45)
 
 static func update_common(dt: float) -> void:
 	Particles.update(dt)

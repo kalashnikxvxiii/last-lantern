@@ -31,6 +31,7 @@ func _physics_process(_delta: float) -> void:
 func _process(_delta: float) -> void:
 	var off := Fx.offset()
 	world.position = off
+	$OverlayLayer.offset = off
 	$Lighting.refresh(off)
 
 func tick(dt: float) -> void:

@@ -203,6 +203,8 @@ func tick(dt: float) -> void:
 		dash_charges -= 1
 		Sfx.play("dash")
 		Particles.burst(x, y + 4, 8, ["#8a8294", "#55505e"], 40, 0.4)
+		if s.dashReflect:
+			reflect_bullets(x, y, 34)
 	var mvx := 0.0
 	var mvy := 0.0
 	if dash_t > 0:
@@ -211,6 +213,13 @@ func tick(dt: float) -> void:
 		mvy = dash_dy * 330
 		if U.random() < 0.7:
 			Particles.add({"x": x + U.rnd(-2, 2), "y": y + U.rnd(-4, 4), "life": 0.3, "color": U.rgba(160, 190, 210, 0.6), "size": 2})
+		if s.dashfire:
+			trail_t -= dt
+			if trail_t <= 0:
+				trail_t = 0.035
+				Effects.add({"type": "fire", "x": x, "y": y + 3, "r": 8.0, "life": 2.2, "owner": "player"})
+		if s.dashReflect:
+			reflect_bullets(x, y, 26)
 	else:
 		var sp := speed()
 		mvx = mv.x * sp
@@ -227,6 +236,157 @@ func tick(dt: float) -> void:
 		Coll.nudge(self, 0, mvx)
 	if by and absf(mvx) < 1:
 		Coll.nudge(self, 1, mvy)
+
+	# fuoco
+	fire_cd -= dt
+	if Controls.firing() and fire_cd <= 0 and not Run.lock_fire:
+		fire()
+		fire_cd = 1 / fire_rate()
+	# vampata
+	if Controls.flare():
+		try_flare()
+	if echo_t > 0:
+		echo_t -= dt
+		if echo_t <= 0:
+			fire_volley(aim, true)
+	var room := Run.room
+	# olio
+	if room.combat and not s.noOilDrain:
+		oil = maxf(0, oil - 1.05 * s.oilDrain * dt)
+	# scudo del Lume Custode
+	if s.guardian and not guard_up:
+		guard_t -= dt
+		if guard_t <= 0:
+			guard_up = true
+			Sfx.play("shield", 0.5)
+	# lucciole temporanee
+	if temp_orbit_t > 0:
+		temp_orbit_t -= dt
+		if temp_orbit_t <= 0:
+			temp_orbit = 0
+	orbit_a += dt * 3.2
+	update_orbitals(dt)
+	# piccolo sole
+	if s.sun and room.combat:
+		sun_t -= dt
+		if sun_t <= 0:
+			sun_t = 0.5
+			var R := light() * 0.45
+			for e in Run.enemies.duplicate():
+				if not e.dead and U.dist(e.x, e.y, x, y) < R:
+					Combat.hit_enemy(e, damage() * 0.35, {"dot": "burn"})
+	# bottiglia di tempesta
+	if s.storm and room.combat:
+		storm_t -= dt
+		if storm_t <= 0:
+			storm_t = 3.0
+			var targets: Array = Run.enemies.filter(func(e): return not e.dead and not e.intangible and not e.spawning)
+			if not targets.is_empty():
+				var e = U.pick(targets)
+				Effects.add({"type": "bolt", "pts": [[e.x + U.rnd(-10, 10), Consts.RY], [e.x, e.y]], "life": 0.25})
+				Combat.hit_enemy(e, damage() * 2.5, {"crit": false})
+				Sfx.play("bolt")
+	# spuntoni
+	var t := RoomU.world_to_tile(x, y + 2)
+	if RoomU.tile_at(room, t.x, t.y) == Consts.T.SPIKE and RoomU.spikes_up(room) and dash_t <= 0:
+		Combat.hurt_player(8 * Stats.depth_dmg(Run.depth), "Gli spuntoni")
+
+func fire() -> void:
+	fire_volley(aim)
+	if stats.echo and U.random() < stats.echo:
+		echo_t = 0.09
+
+func fire_volley(aim_: float, is_echo: bool = false) -> void:
+	var s := stats
+	var n: int = s.proj
+	var spread := minf(0.9, 0.13 * (n - 1)) if n > 1 else 0.0
+	var dmg := damage()
+	var lx := x + cos(aim_) * 7
+	var ly := y - 3 + sin(aim_) * 6
+	shot_count += 1
+	var comet_every := 4 if s.comet >= 2 else 6
+	var is_comet: bool = s.comet > 0 and shot_count % comet_every == 0 and not is_echo
+	for i in n:
+		var a: float = aim_ + (-spread / 2 + spread * i / (n - 1) if n > 1 else 0.0) + U.rnd(-0.035, 0.035)
+		var crit: bool = U.random() < s.crit
+		Run.bullets.append({"x": lx, "y": ly, "vx": cos(a) * s.shotSpeed, "vy": sin(a) * s.shotSpeed, "r": s.shotSize,
+			"dmg": dmg * (s.critMult if crit else 1.0), "crit": crit, "life": s["range"] / s.shotSpeed, "pierce": s.pierce,
+			"bounce": s.bounce, "hit": {}, "kind": "ember", "t": 0.0})
+	if is_comet:
+		Run.bullets.append({"x": lx, "y": ly, "vx": cos(aim_) * s.shotSpeed * 1.15, "vy": sin(aim_) * s.shotSpeed * 1.15, "r": s.shotSize + 2,
+			"dmg": dmg * 3, "crit": false, "life": (s["range"] * 1.4) / s.shotSpeed, "pierce": 99, "bounce": 0, "hit": {}, "kind": "comet", "t": 0.0})
+	Particles.burst(lx, ly, 3, ["#f6cf57", "#f29c38"], 50, 0.2, {"angle": aim_, "spread": 0.5})
+	Sfx.play("shoot")
+
+func try_flare() -> void:
+	var s := stats
+	var cost: float = s.flareCost
+	if flare_cd > 0:
+		return
+	if oil < cost:
+		Sfx.play("deny")
+		Floaters.add(x, y - 14, "Olio insufficiente", Txt.COLORS.d, {"life": 0.9})
+		flare_cd = 0.4
+		return
+	oil -= cost
+	flare_cd = 0.9
+	var R := 64.0
+	var dmg: float = damage() * 3 * s.flareMult
+	for e in Run.enemies.duplicate():
+		if e.dead or e.spawning:
+			continue
+		var d := U.dist(e.x, e.y, x, y)
+		if d < R + e.r:
+			Combat.hit_enemy(e, dmg, {"kx": e.x - x, "ky": e.y - y, "kb": 280})
+			Status.add(e, "burn", 3, damage() * 0.6 * s.burnMult)
+	for b in Run.ebullets:
+		if not b.big and U.dist(b.x, b.y, x, y) < R + 6:
+			b.dead = true
+			Particles.burst(b.x, b.y, 3, "#f6cf57", 30, 0.3)
+	Effects.add({"type": "flare", "x": x, "y": y, "r": R, "life": 0.45})
+	Run.flash_light = {"x": x, "y": y, "t": 0.5}
+	Particles.burst(x, y, 40, ["#fff2a8", "#f6cf57", "#f29c38"], 180, 0.6)
+	Fx.shake(5)
+	Sfx.play("flare")
+	inv = maxf(inv, 0.25)
+
+func reflect_bullets(px: float, py: float, R: float) -> void:
+	for b in Run.ebullets:
+		if b.get("dead", false) or b.big:
+			continue
+		if U.dist(b.x, b.y, px, py) < R:
+			b.dead = true
+			var a: float = atan2(-b.vy, -b.vx)
+			Run.bullets.append({"x": b.x, "y": b.y, "vx": cos(a) * 240, "vy": sin(a) * 240, "r": 3.0, "dmg": damage() * 1.5,
+				"crit": false, "life": 1.2, "pierce": 1, "bounce": 0, "hit": {}, "kind": "ember", "t": 0.0})
+			Particles.burst(b.x, b.y, 4, "#c8f2f5", 40, 0.3)
+
+func orbital_positions() -> Array:
+	var n: int = int(stats.orbit) + temp_orbit
+	var out: Array = []
+	for i in n:
+		var a := orbit_a + i * TAU / n
+		out.append(Vector2(x + cos(a) * 22, y - 2 + sin(a) * 22))
+	return out
+
+func update_orbitals(_dt: float) -> void:
+	var orbs := orbital_positions()
+	if orbs.is_empty():
+		return
+	var dmg := damage() * 0.8
+	for o in orbs:
+		for e in Run.enemies.duplicate():
+			if e.dead or e.intangible or e.spawning:
+				continue
+			if e.orb_cd > 0:
+				continue
+			if U.dist2(o.x, o.y, e.x, e.y) < (e.r + 4) * (e.r + 4):
+				Combat.hit_enemy(e, dmg, {"kx": e.x - x, "ky": e.y - y, "kb": 60})
+				e.orb_cd = 0.35
+		for b in Run.ebullets:
+			if not b.get("dead", false) and not b.big and U.dist2(o.x, o.y, b.x, b.y) < (b.r + 4) * (b.r + 4):
+				b.dead = true
+				Particles.burst(b.x, b.y, 4, "#f6cf57", 40, 0.3)
 
 func sync() -> void:
 	position = Vector2(x, y)
@@ -270,4 +430,7 @@ func _draw() -> void:
 		UiDraw.alpha = 0.5 + 0.2 * sin(Fx.time * 6)
 		UiDraw.px_ring(self, x, y, 11, "#7fd8e6")
 		UiDraw.alpha = ga
+	for o in orbital_positions():
+		UiDraw.px_rect(self, o.x - 2, o.y - 2, 4, 4, "#f29c38")
+		UiDraw.px_rect(self, o.x - 1, o.y - 1, 2, 2, "#fff2a8")
 	UiDraw.set_origin(self, Vector2.ZERO)

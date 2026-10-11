@@ -12,6 +12,8 @@ func _draw() -> void:
 	_secret_hints(room)
 	_doors(room)
 	_dynamic_tiles(room)
+	_ground_fx()
+	_pickups(room)
 
 func _secret_hints(room: Dictionary) -> void:
 	for d in room.doors:
@@ -137,3 +139,51 @@ func _dynamic_tiles(room: Dictionary) -> void:
 				UiDraw.shadow(self, cx, cy + 6, 6)
 				Spr.draw(self, "brazier", 0, cx, cy + 2)
 				UiDraw.flame(self, cx, cy - 3, 1, Fx.time)
+
+# drawGroundFx (js/render.js)
+func _ground_fx() -> void:
+	var ga := UiDraw.alpha
+	for f in Run.fx:
+		if f.get("delay", 0.0) > 0:
+			continue
+		var k: float = f.t / f.life
+		match f.type:
+			"cloud":
+				var r: float = f.r * minf(1, f.t * 3)
+				UiDraw.alpha = 0.35 * (1 - maxf(0, k - 0.7) / 0.3)
+				UiDraw.px_circle(self, f.x, f.y, r, "#4f8a3a")
+				UiDraw.alpha *= 0.6
+				UiDraw.px_circle(self, f.x + sin(f.t * 2) * 3, f.y - 2, r * 0.6, "#9fd05a")
+			"fire":
+				UiDraw.alpha = 0.55 * (1 - k)
+				UiDraw.px_circle(self, f.x, f.y, f.r * 0.7, "#b5571f" if f.owner == "player" else "#d04b3c")
+			"spawn":
+				var r := 4 + k * 7
+				UiDraw.alpha = 0.4 + 0.4 * sin(f.t * 20)
+				UiDraw.px_ring(self, f.x, f.y, r, "#c57ae0")
+				UiDraw.px_ring(self, f.x, f.y, r * 0.5, "#e8e4dc")
+			"bomb":
+				UiDraw.alpha = ga
+				UiDraw.shadow(self, f.x, f.y + 4, 4)
+				var blink: bool = sin(f.t * 40) > 0 if f.t > 1 else sin(f.t * 14) > 0.4
+				Spr.draw(self, "bomb", 0, f.x, f.y, {"flash": blink, "scale": 1.0})
+		UiDraw.alpha = ga
+
+# drawPickups (js/render.js)
+func _pickups(room: Dictionary) -> void:
+	var tt := Fx.time
+	for k in room.pickups:
+		var y: float = k.y - k.z
+		if k.type != "xp":
+			UiDraw.shadow(self, k.x, k.y + 3, 3)
+		match k.type:
+			"xp":
+				var c := "#c57ae0" if int(floor(tt * 8 + k.x)) % 2 != 0 else "#e0a0ff"
+				UiDraw.px_rect(self, k.x - 1, y - 1, 2, 2, c)
+				UiDraw.px_rect(self, k.x, y - 2, 1, 1, "#ffffff")
+			"coin": Spr.draw(self, "coin", int(floor(tt * 5 + k.x)) % 2, k.x, y)
+			"coin5": Spr.draw(self, "coin5", int(floor(tt * 5 + k.x)) % 2, k.x, y)
+			"heart": Spr.draw(self, "heart", 0, k.x, y + sin(tt * 4 + k.x) * 0.8)
+			"oil": Spr.draw(self, "oil", 0, k.x, y)
+			"key": Spr.draw(self, "key", 0, k.x, y)
+			"cons": Spr.draw(self, Cons.ALL[k.id].spr, 0, k.x, y - 2 + sin(tt * 3 + k.x))
