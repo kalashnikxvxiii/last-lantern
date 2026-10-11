@@ -105,3 +105,18 @@ static func apply(id: String, s: Dictionary, n: int) -> void:
 static func on_take(id: String, p) -> void:
 	match id:
 		"hp": p.heal(15, true)
+
+# scelta dei doni pesata per rarità
+static func roll_choices(n: int, min_rar: int = 0) -> Array:
+	var p = Run.player
+	var luck: float = p.stats.luck + (Run.depth - 1) * 0.25
+	var pool: Array = ALL.keys().filter(func(id): return p.perks.get(id, 0) < ALL[id]["max"] and ALL[id].rar >= min_rar)
+	var wf := func(k):
+		var r: int = ALL[k].rar
+		return Stats.RARITY[r].w * (1.0 if r == 0 else 1 + luck * (0.3 + r * 0.35))
+	var out: Array = []
+	while out.size() < n and not pool.is_empty():
+		var id: String = U.weighted_pick(pool, wf)
+		out.append(id)
+		pool.erase(id)
+	return out

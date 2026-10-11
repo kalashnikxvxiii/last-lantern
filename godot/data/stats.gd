@@ -31,3 +31,9 @@ static func depth_dmg(d: int) -> float:
 
 static func xp_need(level: int) -> float:
 	return U.jround(12 + 7 * level + 1.5 * level * level)
+
+static func ard_hp() -> float:
+	return 1.25 if Run.ardore >= 1 else 1.0
+
+static func ard_dmg() -> float:
+	return 1.2 if Run.ardore >= 2 else 1.0
