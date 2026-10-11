@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="LanternDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/lantern_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "cava"
+name = "Lanterna Cava"
+glass = "#7fd8e6"
+desc = "+^y50^w olio, Vampata ^y-40%^w costo, +^y25%^w luce, +^y1^w scatto. ^r-10%^w danno."
+unlock_stat = "bestDepth"
+unlock_min = 4
+unlock_text = "Raggiungi la quarta profondità."
+max_oil_add = 50.0
+flare_cost_mult = 0.6
+light_mult_add = 0.25
+dash_charges_add = 1
+dmg_mult_add = -0.1
+start_cons = Array[String](["oil"])

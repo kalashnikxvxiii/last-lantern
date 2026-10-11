@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="EnemyDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/enemy_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "bat"
+name = "Pipistrello"
+spr = "bat"
+hp = 10.0
+spd = 62.0
+dmg = 7.0
+r = 5.0
+ai = "erratic"
+xp = 1.0
+fly = true
+anim = 10.0

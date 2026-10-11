@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="LanternDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/lantern_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "nera"
+name = "Lanterna Nera"
+glass = "#c57ae0"
+desc = "Parti con ^ydue reliquie^w casuali e ^pdue maledizioni^w. Per chi non teme il buio."
+unlock_stat = "wins"
+unlock_min = 1
+unlock_text = "Riaccendi la Fiamma Prima almeno una volta."
+random_relics = 2
+random_curses = 2

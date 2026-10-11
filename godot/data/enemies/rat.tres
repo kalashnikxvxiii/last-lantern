@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="EnemyDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/enemy_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "rat"
+name = "Ratto di Cripta"
+spr = "rat"
+hp = 14.0
+spd = 74.0
+dmg = 8.0
+r = 5.0
+ai = "chaser"
+xp = 1.0
+side = true
+burst = true

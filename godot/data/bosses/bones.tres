@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="BossDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/boss_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "bones"
+name = "Il Custode delle Ossa"
+title = "Re delle Cripte Dimenticate"
+spr = "boss_bones"
+hp = 800.0
+r = 11.0
+spd = 34.0
+phases = [{"at": 1.0, "gap": 1.0, "pats": [{"p": "aimed", "n": 5, "spread": 0.5, "count": 3, "gap": 0.5, "spd": 115.0, "kind": "bone"}, {"p": "ring", "n": 12, "count": 2, "gap": 0.7, "spd": 75.0, "kind": "bone"}, {"p": "summon", "type": "skeleton", "count": 2, "cap": 4}, {"p": "charge", "count": 2, "spd": 210.0}]}, {"at": 0.5, "gap": 0.6, "pats": [{"p": "spiral", "arms": 3, "rate": 9.0, "rot": 2.2, "dur": 3.2, "spd": 85.0, "kind": "bone"}, {"p": "aimed", "n": 7, "spread": 0.8, "count": 3, "gap": 0.45, "spd": 125.0, "kind": "bone"}, {"p": "summon", "type": "rat", "count": 3, "cap": 6}, {"p": "charge", "count": 3, "spd": 245.0, "ring": 8, "kind": "bone"}, {"p": "ring", "n": 16, "count": 3, "gap": 0.55, "spd": 80.0, "kind": "bone"}]}]

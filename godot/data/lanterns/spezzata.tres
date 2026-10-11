@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="LanternDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/lantern_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "spezzata"
+name = "Lanterna Spezzata"
+glass = "#e0574a"
+desc = "+^y35%^w danno, +^y10%^w critico, ^r-35%^w vita massima. Parti con il dono ^oTizzone^w."
+unlock_stat = "bestDepth"
+unlock_min = 3
+unlock_text = "Raggiungi la terza profondità."
+dmg_mult_add = 0.35
+crit_add = 0.1
+max_hp_mult = 0.65
+start_perks = Array[String](["burn"])

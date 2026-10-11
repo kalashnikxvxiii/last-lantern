@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="LanternDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/lantern_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "pellegrino"
+name = "Lanterna del Pellegrino"
+glass = "#8fd35a"
+desc = "+^y25^w vita, +^y2^w armatura, ^r-8%^w velocità e cadenza. Parti con due ^yBombe^w e una ^yPozione^w."
+unlock_stat = "bossKills"
+unlock_min = 1
+unlock_text = "Sconfiggi un guardiano di profondità."
+max_hp_add = 25.0
+armor_add = 2.0
+speed_mult_add = -0.08
+rate_mult_add = -0.08
+start_cons = Array[String](["bomb", "bomb", "potion"])

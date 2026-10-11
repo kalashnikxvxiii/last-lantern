@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="EnemyDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/enemy_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "ghoul"
+name = "Ghoul"
+spr = "ghoul"
+hp = 46.0
+spd = 36.0
+dmg = 12.0
+r = 7.0
+ai = "charger"
+xp = 3.0
+charge_spd = 225.0

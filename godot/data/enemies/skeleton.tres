@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="EnemyDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/enemy_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "skeleton"
+name = "Scheletro"
+spr = "skeleton"
+hp = 28.0
+spd = 30.0
+dmg = 10.0
+r = 6.0
+ai = "shooter"
+xp = 2.0
+shot = {"kind": "bone", "spd": 110.0, "cd": 2.4, "n": 1}

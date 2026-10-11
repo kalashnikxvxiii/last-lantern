@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EnemyDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/enemy_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "skull"
+name = "Teschio Fatuo"
+spr = "skull"
+hp = 24.0
+spd = 26.0
+dmg = 8.0
+r = 6.0
+ai = "caster"
+xp = 3.0
+fly = true
+keep = 90.0
+shot = {"kind": "orb", "col": "violet", "spd": 68.0, "cd": 3.2, "ring": 6}

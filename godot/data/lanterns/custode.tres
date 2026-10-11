@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="LanternDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/lantern_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "custode"
+name = "Lanterna del Custode"
+glass = "#f6cf57"
+desc = "Equilibrata e affidabile. Parti con una ^yPozione Rossa^w e una ^yBomba^w."
+start_cons = Array[String](["potion", "bomb"])
