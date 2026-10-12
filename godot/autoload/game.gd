@@ -10,7 +10,7 @@ var SCENES := {
 	"help": "res://ui/screens/help.tscn",
 	"play": "res://scenes/play.tscn",
 	"gameover": "res://ui/screens/gameover.tscn",
-	"demo_end": "res://ui/screens/demo_end.tscn",
+	"victory": "res://ui/screens/victory.tscn",
 }
 var scene_name := ""
 var scene_arg: Variant = null
@@ -107,6 +107,9 @@ func dev_start() -> void:
 	if seed >= 0:
 		U.seed_random(seed)
 	Flow.start_run(str(dev.get("lantern", "warden")), int(dev.get("ardor", 0)), seed)
+	if dev.has("depth"):
+		Run.depth = int(dev.depth)
+		Flow.new_floor()
 	var mode := str(dev.get("test", ""))
 	if mode in ["boss", "shop", "treasure", "elite", "shrine", "secret"]:
 		var rs: Array = Run.floor.rooms.filter(func(x): return x.type == mode)

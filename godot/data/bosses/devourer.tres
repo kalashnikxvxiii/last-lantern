@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="BossDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/boss_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "devourer"
+name = "The Light Devourer"
+title = "He Who Put Out the Sun"
+spr = "boss_devourer"
+hp = 4600.0
+r = 15.0
+spd = 22.0
+phases = [{"at": 1.0, "gap": 0.8, "pats": [{"p": "spiral", "arms": 4, "rate": 10.0, "rot": 1.8, "dur": 3.2, "spd": 80.0, "kind": "void"}, {"p": "aimed", "n": 9, "spread": 1.0, "count": 3, "gap": 0.5, "spd": 120.0, "kind": "void"}, {"p": "summon", "type": "wisp", "count": 4, "cap": 8}, {"p": "ring", "n": 24, "count": 3, "gap": 0.6, "spd": 70.0, "kind": "void"}]}, {"at": 0.66, "gap": 0.6, "pats": [{"p": "beam", "count": 4, "warm": 0.9, "dur": 3.0, "rot": 0.8}, {"p": "drain", "dur": 4.0}, {"p": "rain", "n": 16, "dur": 2.6, "hit": "blast"}, {"p": "charge", "count": 3, "spd": 270.0, "ring": 14, "kind": "void"}, {"p": "spiral", "arms": 6, "rate": 12.0, "rot": -1.5, "dur": 3.2, "spd": 75.0, "kind": "void"}]}, {"at": 0.33, "gap": 0.4, "pats": [{"p": "beam", "count": 2, "warm": 0.7, "dur": 3.5, "rot": 1.7}, {"p": "darkpulse"}, {"p": "slam", "count": 3, "ring": 20, "kind": "void"}, {"p": "spiral", "arms": 8, "rate": 12.0, "rot": 2.2, "dur": 3.5, "spd": 85.0, "kind": "void"}, {"p": "summon", "type": "cultist", "count": 2, "cap": 4}, {"p": "drain", "dur": 3.5}]}]

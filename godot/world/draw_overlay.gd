@@ -35,6 +35,9 @@ func _telegraphs() -> void:
 	var ga := UiDraw.alpha
 	var t := Fx.time
 	for f in Run.fx:
+		if f.type == "beam":
+			_beam(f)
+			continue
 		if f.type != "warn":
 			continue
 		var k: float = f.t / f.life
@@ -58,11 +61,30 @@ func _telegraphs() -> void:
 			UiDraw.alpha = 0.35
 			draw_dashed_line(Vector2(e.x, e.y), Vector2(e.x + cos(e.charge_a) * 120, e.y + sin(e.charge_a) * 120), UiDraw._a("#e0574a"), 2, 3)
 			UiDraw.alpha = ga
+		if e.ai == "dasher" and e.state == "aim":
+			UiDraw.alpha = 0.35
+			draw_dashed_line(Vector2(e.x, e.y), Vector2(e.x + cos(e.dash_a) * 110, e.y + sin(e.dash_a) * 110), UiDraw._a("#7fd8e6"), 2, 3)
+			UiDraw.alpha = ga
 		# attack warning: spark above the head
 		if e.wind > 0 and not e.dead and e.alpha > 0.3:
 			if sin(t * 40) > 0:
 				UiDraw.px_rect(self, e.x - 1, e.y - e.r - 9 - e.z, 2, 4, "#f6cf57")
 				UiDraw.px_rect(self, e.x - 1, e.y - e.r - 4 - e.z, 2, 1, "#f6cf57")
+
+func _beam(f: Dictionary) -> void:
+	var a := Vector2(f.x, f.y)
+	var b := Vector2(f.x + cos(f.ang) * f.len, f.y + sin(f.ang) * f.len)
+	var ga := UiDraw.alpha
+	if f.t < f.warm:
+		UiDraw.alpha = 0.4 + 0.3 * sin(f.t * 25)
+		draw_dashed_line(a, b, UiDraw._a("#e0574a"), 1, 4)
+	else:
+		UiDraw.alpha = 0.5
+		draw_line(a, b, UiDraw._a("#7a3a9a"), f.w + 4)
+		UiDraw.alpha = 1.0
+		draw_line(a, b, UiDraw._a("#e0a0ff"), f.w)
+		draw_line(a, b, UiDraw._a("#ffffff"), 2)
+	UiDraw.alpha = ga
 
 # drawEyes (js/render.js): enemy eyes in the darkness
 func _eyes() -> void:

@@ -33,13 +33,17 @@ Items already checked were verified during development with automated tests (`to
 - [x] Shrines: blood, fortune, fountain, idol
 - [x] Secret room opened with a bomb (cracks in the wall)
 - [ ] Cracked rocks, exploding barrels, urns, spikes
-- [ ] Rat, bat, skeleton, skull, ghoul; elite champions with a colored outline
+- [ ] The 23 enemies of the five depths (each depth has its own biome look); elite champions with a colored outline
+- [ ] Fungal Caves, Sunken Foundry, Flooded Abyss, Heart of the Well: floors, walls, decorations, music
 
 ## Progression
 - [x] Level-ups: perk choice in a safe room, reroll with R
 - [x] Perks, relics and curses applied (stats panel in the pause menu)
 - [x] The Bone Warden: two phases, patterns, death, trapdoor
-- [ ] End of the demo with the summary
+- [ ] Mother Mycelium, The Forger, The Voice of the Abyss (beams, wall of shots, teleport), The Light Devourer (three phases, drain, dark pulse)
+- [ ] Descending through all five depths; depth 6 and beyond (Infinite Abyss) with the cycle of biomes and growing difficulty
+- [ ] Ardor levels 1-5 after a victory
+- [ ] Victory screen with the summary, Ardor unlocked, Infinite Abyss after the last warden
 - [x] Pilgrim's Lantern unlocked after the warden
 - [ ] Death, game over with "Killed by", abandoning from the pause menu
 
@@ -49,5 +53,5 @@ Items already checked were verified during development with automated tests (`to
 - [ ] Auto-pause when the window loses focus
 
 ## Audio
-- [ ] Title and Crypt music, intensity rising in combat and at the boss
+- [ ] Title music and the music of each depth, intensity rising in combat and at the boss
 - [ ] All sound effects present and recognizable

@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="BiomeDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/biome_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "abyss"
+name = "The Flooded Abyss"
+music = "abyss"
+boss = "abyss"
+dark = 0.8
+lore = "The black water swallowed the prayers. Something down there still sings."
+floor = ["#18242c", "#152028", "#1c2a32"]
+floor_d = "#0e161c"
+wall = "#22343e"
+wall_d = "#121e24"
+wall_l = "#355260"
+accent = "#5aa0aa"
+pool = [["drowned", 3.0, 2.5], ["eel", 3.0, 2.5], ["jelly", 3.5, 2.0], ["shade", 3.5, 2.0], ["spark", 1.5, 1.0], ["smith", 4.0, 0.8], ["skull", 3.0, 1.0]]
+deco = "puddles"

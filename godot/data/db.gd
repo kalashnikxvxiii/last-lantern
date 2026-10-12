@@ -3,7 +3,7 @@ extends RefCounted
 # Access to the game data Resources.
 
 const LANTERN_IDS := ["warden", "pilgrim", "broken", "hollow", "black"]
-const BIOME_IDS := ["crypt"]   # the other depths will arrive with the next sub-projects
+const BIOME_IDS := ["crypt", "fungus", "forge", "abyss", "heart"]
 static var _cache: Dictionary = {}
 
 static func _res(path: String) -> Resource:

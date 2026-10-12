@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="BossDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/boss_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "mycel"
+name = "Mother Mycelium"
+title = "Rotten Heart of the Fungal Caves"
+spr = "boss_mycel"
+hp = 1350.0
+r = 13.0
+spd = 16.0
+phases = [{"at": 1.0, "gap": 1.0, "pats": [{"p": "ring", "n": 14, "count": 3, "gap": 0.7, "spd": 58.0, "kind": "spore", "status": "poison"}, {"p": "rain", "n": 8, "dur": 2.4, "hit": "cloud"}, {"p": "summon", "type": "grub", "count": 2, "cap": 5}, {"p": "aimed", "n": 3, "spread": 0.3, "count": 4, "gap": 0.35, "spd": 135.0, "kind": "spore", "status": "poison"}]}, {"at": 0.5, "gap": 0.6, "pats": [{"p": "spiral", "arms": 4, "rate": 11.0, "rot": 1.6, "dur": 3.5, "spd": 66.0, "kind": "spore", "status": "poison"}, {"p": "rain", "n": 14, "dur": 2.8, "hit": "cloud"}, {"p": "summon", "type": "hopper", "count": 2, "cap": 4}, {"p": "ring", "n": 20, "count": 4, "gap": 0.6, "spd": 62.0, "kind": "spore", "status": "poison"}]}]

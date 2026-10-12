@@ -6,7 +6,7 @@ config_version=5
 
 config/name="Last Lantern"
 run/main_scene="res://ui/screens/boot.tscn"
-config/version="godot 0.1.0"
+config/version="godot 0.2.0"
 config/icon="res://icon.png"
 config/windows_native_icon="res://icon.ico"
 config/use_custom_user_dir=true

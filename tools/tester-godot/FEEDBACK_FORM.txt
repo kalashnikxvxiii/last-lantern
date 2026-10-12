@@ -13,7 +13,7 @@ Did you use keyboard and mouse or a gamepad (which one)?:
 YOUR RUNS
 ------------------------------------------------------------
 How many runs you played:
-Did you reach the end of the demo?:
+Deepest depth you reached (and whether you won):
 Did you also play the previous version? Differences you noticed:
 What killed you most often:
 
@@ -21,7 +21,7 @@ What killed you most often:
 DIFFICULTY (from 1 = too easy to 5 = frustrating)
 ------------------------------------------------------------
 Normal rooms:
-The Bone Warden (warden):
+Wardens (which ones you met, and how hard each one was):
 A moment when you felt treated unfairly:
 
 ------------------------------------------------------------

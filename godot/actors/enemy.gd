@@ -59,6 +59,17 @@ var burst_t := 0.0
 var charge_line: Variant = null
 var slam_target: Variant = null
 var dying: Variant = null
+var ha: Variant = null
+var ph := 0
+var jx0 := 0.0
+var jy0 := 0.0
+var jx1 := 0.0
+var jy1 := 0.0
+var lunge_a := 0.0
+var dash_a := 0.0
+var sum_t: Variant = null
+var spin_a := 0.0
+var fire_acc := 0.0
 var invuln := 0.0
 
 static func make(type_: String, x_: float, y_: float, mod_: Variant = null, o: Dictionary = {}) -> Enemy:

@@ -1,5 +1,5 @@
 extends TestCase
-# The Bone Warden: stats, phases, patterns, death and trapdoor.
+# The Bone Warden (and the stats of all the wardens): stats, phases, patterns, death and trapdoor.
 
 var b: Boss
 
@@ -16,7 +16,8 @@ func after() -> void:
 func test_stats_like_the_js() -> void:
 	for c in TestCase.golden("enemies").bosses:
 		Run.depth = int(c.depth)
-		var x := Boss.make_boss("bones", 0, 0)
+		Run.ardor = int(c.ardor)
+		var x := Boss.make_boss(c.id, 0, 0)
 		eq({"hp": x.hp, "maxHp": x.max_hp, "spd": x.spd, "dmg": x.dmg, "xp": x.xp, "r": x.r}, c.fields)
 		x.free()
 

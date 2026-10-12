@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="EnemyDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/enemy_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "eel"
+name = "Eel"
+spr = "eel"
+hp = 42.0
+spd = 0.0
+dmg = 13.0
+r = 6.0
+ai = "dasher"
+xp = 3.0
+side = true

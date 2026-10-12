@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="EnemyDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/enemy_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "turret"
+name = "Turret"
+spr = "turret"
+hp = 48.0
+spd = 0.0
+dmg = 10.0
+r = 7.0
+ai = "turret"
+xp = 3.0
+shot = {"kind": "orb", "col": "red", "spd": 125.0, "cd": 2.2, "n": 1, "burst": 3, "aimed": true}

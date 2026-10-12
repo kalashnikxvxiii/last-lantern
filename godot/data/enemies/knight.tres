@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="EnemyDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/enemy_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "knight"
+name = "Hollow Knight"
+spr = "knight"
+hp = 150.0
+spd = 34.0
+dmg = 18.0
+r = 7.0
+ai = "shielder"
+shield = true
+xp = 7.0
+slam = true

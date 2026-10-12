@@ -5,7 +5,7 @@ Thanks for wanting to help. This guide explains how to set up your environment, 
 ## The two versions of the game
 
 - **`js/`**: the original JavaScript version (beta 0.9.0, five depths). It is the **reference for behavior**: when in doubt about how something should work, the JS code is authoritative.
-- **`godot/`**: the Godot 4.7 port, where development continues. For now it contains the first depth up to the first warden.
+- **`godot/`**: the Godot 4.7 port, where development continues. It contains the whole game: five depths, five wardens and the Infinite Abyss.
 
 New features go into Godot. In the JS only beta bugs are fixed.
 
@@ -42,7 +42,7 @@ godot --path godot -- --seed=7 --lv=2 --coins=50     # perk choice right away
 godot --path godot -- --scene=title --screenshot=/tmp/title.png --shot-after=40
 ```
 
-`--test` values: `fight`, `boss`, `shop`, `treasure`, `shrine`, `secret`. Other arguments: `--lantern=`, `--ardor=`, `--sim=N` (simulated ticks), `--fire` (shoot the first enemy during `--sim`), `--pause`, `--map`. These runs write to the local save, like a real game.
+`--test` values: `fight`, `boss`, `shop`, `treasure`, `elite`, `shrine`, `secret`. Other arguments: `--depth=N` (start from that depth), `--lantern=`, `--ardor=`, `--sim=N` (simulated ticks), `--fire` (shoot the first enemy during `--sim`), `--pause`, `--map`. These runs write to the local save, like a real game.
 
 ## Structure of `godot/`
 

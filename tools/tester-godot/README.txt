@@ -6,10 +6,9 @@ Thank you for agreeing to try the game!
 Last Lantern is an action roguelike: you descend into the Well with a lantern,
 cross randomly generated rooms and face a warden at the end.
 
-This is the new version of the game, rebuilt with the Godot engine. For now
-it only contains the first depth, the Crypts, up to the first warden: after
-defeating it and taking the trapdoor the "End of the demo" screen appears.
-A run takes about 10-15 minutes.
+This is the new version of the game, rebuilt with the Godot engine. It is
+meant to play exactly like the previous one: five depths, five wardens and,
+after the victory, the Infinite Abyss. A full run takes about 40-60 minutes.
 
 
 STARTING THE GAME

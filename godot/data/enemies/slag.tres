@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="EnemyDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/enemy_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "slag"
+name = "Molten Slag"
+spr = "slag"
+hp = 38.0
+spd = 30.0
+dmg = 11.0
+r = 6.0
+ai = "chaser"
+xp = 3.0
+trail = true
