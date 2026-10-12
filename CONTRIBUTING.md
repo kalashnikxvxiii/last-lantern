@@ -103,7 +103,8 @@ The assets in `godot/assets/` were generated once from the JS code and are now *
    - `tools/test.sh` must pass;
    - try the situation in the game with the development arguments;
    - if something visible changes, attach a screenshot.
-4. Open a pull request explaining why the change is needed, how you tried it and any intended differences from the JS.
+4. Open a pull request and fill in the template: why the change is needed, how you tried it and any intended differences from the JS.
+5. The CI checks (tests, golden data, scripts) and the PR title check must pass before merging. `master` is protected: no force pushes, linear history, changes go through pull requests (see `.github/rulesets/master.json`).
 
 ## Tester packages
 
@@ -112,7 +113,7 @@ The assets in `godot/assets/` were generated once from the JS code and are now *
 
 ## Reporting a bug
 
-Open an issue with:
+Open an issue with the bug report form and include:
 - what happened and what you expected;
 - the game seed (shown in the pause menu);
 - a screenshot;
@@ -120,7 +121,7 @@ Open an issue with:
 
 ## Conduct
 
-Be kind and constructive in issues and reviews. Criticize the code, not the people.
+See [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md). In short: be kind and constructive, criticize the code, not the people. Security problems go through [SECURITY.md](SECURITY.md).
 
 ## License
 

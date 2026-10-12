@@ -1,0 +1,102 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  GODOT_VERSION: 4.7.2
+
+jobs:
+  godot-tests:
+    name: Godot tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Godot
+        id: godot-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/godot-bin
+          key: godot-${{ env.GODOT_VERSION }}-linux
+
+      - name: Download Godot
+        if: steps.godot-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/godot-bin
+          curl -fsSL -o /tmp/godot.zip \
+            "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          unzip -q /tmp/godot.zip -d ~/godot-bin
+          mv ~/godot-bin/Godot_v${GODOT_VERSION}-stable_linux.x86_64 ~/godot-bin/godot
+          chmod +x ~/godot-bin/godot
+
+      - name: Add Godot to PATH
+        run: echo "$HOME/godot-bin" >> "$GITHUB_PATH"
+
+      - name: Run tests
+        run: tools/test.sh
+
+  reference-data:
+    name: JS reference data
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Check the JS syntax
+        run: |
+          for f in js/*.js desktop/*.js tools/golden/gen.js tools/export_assets/*.js; do
+            node --check "$f"
+          done
+
+      - name: Golden data matches the JS code
+        run: |
+          node tools/golden/gen.js
+          # status --porcelain also reports new, untracked fixtures (git diff would not)
+          if [ -n "$(git status --porcelain -- godot/tests/golden)" ]; then
+            git status --short -- godot/tests/golden
+            echo "::error::Golden data is out of date: run 'node tools/golden/gen.js' and commit the result"
+            exit 1
+          fi
+
+  tooling:
+    name: Scripts and repo hygiene
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Python scripts compile
+        run: python3 -m py_compile tools/*.py
+
+      - name: Shell scripts
+        run: |
+          shellcheck -S error tools/test.sh tools/tester/*.sh
+
+      - name: Every .gd file has its .uid
+        run: |
+          missing=0
+          for f in $(git ls-files 'godot/*.gd'); do
+            [ -f "$f.uid" ] || { echo "::error file=$f::missing $f.uid (open the project in Godot once and commit it)"; missing=1; }
+          done
+          exit $missing
+
+      - name: No leftover merge markers or CRLF in sources
+        run: |
+          if git grep -nE '^(<<<<<<<|>>>>>>>) ' -- '*.gd' '*.js' '*.py' '*.yml'; then exit 1; fi
+          if git grep -lI $'\r' -- '*.gd' '*.js' '*.py' '*.sh' '*.yml' ':!tools/tester*'; then
+            echo "::error::CRLF line endings found"; exit 1
+          fi
