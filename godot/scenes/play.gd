@@ -23,6 +23,7 @@ func _exit_tree() -> void:
 		if is_instance_valid(e) and e.get_parent() == actors:
 			actors.remove_child(e)
 	Run.actors = null
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 func _physics_process(_delta: float) -> void:
 	tick(Consts.DT)
@@ -33,6 +34,10 @@ func _process(_delta: float) -> void:
 	world.position = off
 	$OverlayLayer.offset = off
 	$Lighting.refresh(off)
+	Input.mouse_mode = Input.MOUSE_MODE_HIDDEN if cursor_hidden(mode) else Input.MOUSE_MODE_VISIBLE
+
+static func cursor_hidden(m: String) -> bool:
+	return m == "play"
 
 func tick(dt: float) -> void:
 	match mode:

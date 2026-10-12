@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scenes/play.gd" id="1"]
 [ext_resource type="Script" path="res://world/room_view.gd" id="2"]
@@ -6,6 +6,7 @@
 [ext_resource type="Script" path="res://world/lighting.gd" id="4"]
 [ext_resource type="Script" path="res://world/draw_air.gd" id="5"]
 [ext_resource type="Script" path="res://world/draw_overlay.gd" id="6"]
+[ext_resource type="Script" path="res://ui/hud.gd" id="7"]
 
 [node name="Play" type="Node"]
 script = ExtResource("1")
@@ -32,3 +33,9 @@ layer = 2
 
 [node name="Overlay" type="Node2D" parent="OverlayLayer"]
 script = ExtResource("6")
+
+[node name="HudLayer" type="CanvasLayer" parent="."]
+layer = 3
+
+[node name="Hud" type="Node2D" parent="HudLayer"]
+script = ExtResource("7")
