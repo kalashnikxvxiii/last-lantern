@@ -1,0 +1,74 @@
+name: Claude review
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review]
+
+# A new push replaces the review still running for the previous one
+concurrency:
+  group: claude-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  review:
+    name: Claude review
+    # Fork and Dependabot PRs do not receive secrets, so there is nothing to run
+    if: >-
+      !github.event.pull_request.draft &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # Sonnet at medium effort: enough for a diff review, far cheaper than the top tier.
+          # Read-only tools plus gh to read the PR and post ONE comment: no inline threads, no edits.
+          claude_args: |
+            --model sonnet
+            --effort medium
+            --max-turns 12
+            --max-budget-usd 1.50
+            --allowedTools "Read,Grep,Glob,Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr comment:*)"
+          prompt: |
+            Review pull request #${{ github.event.pull_request.number }} of ${{ github.repository }}.
+
+            Context: Last Lantern, a 2D roguelike. `js/` is the original version and the reference
+            for behavior; `godot/` is the Godot 4.7 port where new work goes. Rules are in CONTRIBUTING.md
+            and docs/porting-conventions.md; read them only if the diff touches what they cover.
+
+            How to work (keep it cheap):
+            - Start with `gh pr diff`. Open other files only to confirm a suspected problem.
+            - Review only what the PR changes. Skip anything CI already checks (tests, golden data,
+              syntax, .uid files, line endings, PR title) and pure style or naming taste.
+
+            Look for, in this order:
+            1. Bugs: wrong logic, crashes, off-by-one, null or empty cases, broken save compatibility.
+            2. Port fidelity: behavior that differs from the JS without the PR saying it is intended.
+            3. Project rules: game logic using randf()/randi() instead of U.random()/RNG (drawing must
+               use Fx.vrnd()); integer division between stats instead of float(a) / b; lists that grow
+               in a loop not iterated by index; dictionary == used to test identity; untyped Variant
+               inference; new behavior without a test; user-visible text not in English.
+            4. For CI, scripts or workflows: security (untrusted input in `run:`, broad permissions,
+               unpinned third-party actions) and steps that cannot work.
+
+            Output: post exactly ONE PR comment, and no inline review comments or threads, with
+            `gh pr comment ${{ github.event.pull_request.number }} --edit-last --create-if-none --body "<text>"`
+            so a new push updates the same comment instead of adding another.
+            Format, in English:
+            - First line: `**Claude review** - ` and a verdict: `no blocking issues`, `minor issues` or `needs changes`.
+            - Then a short summary of what the PR does, 1-2 sentences.
+            - Then only real findings, most severe first, as a numbered list. Each one: `path:line`,
+              what is wrong, why it matters (the concrete failing case), and the fix in one line.
+              Mark each as `bug`, `risk` or `nit`; at most 3 nits.
+            - If there is nothing to report, say so in one line after the summary and stop.
+            Be concise and specific. No praise, no restating the diff, no speculative findings: if you
+            are not sure, check the code or leave it out.
