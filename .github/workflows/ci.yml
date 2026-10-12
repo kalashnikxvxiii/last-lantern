@@ -65,8 +65,12 @@ jobs:
       - name: Golden data matches the JS code
         run: |
           node tools/golden/gen.js
-          git diff --exit-code -- godot/tests/golden \
-            || { echo "::error::Golden data is out of date: run 'node tools/golden/gen.js' and commit the result"; exit 1; }
+          # status --porcelain also reports new, untracked fixtures (git diff would not)
+          if [ -n "$(git status --porcelain -- godot/tests/golden)" ]; then
+            git status --short -- godot/tests/golden
+            echo "::error::Golden data is out of date: run 'node tools/golden/gen.js' and commit the result"
+            exit 1
+          fi
 
   tooling:
     name: Scripts and repo hygiene
