@@ -245,6 +245,10 @@ func tick(dt: float) -> void:
 	# vampata
 	if Controls.flare():
 		try_flare()
+	# consumabili
+	var sl := Controls.slot()
+	if sl >= 0:
+		use_cons(sl)
 	if echo_t > 0:
 		echo_t -= dt
 		if echo_t <= 0:
@@ -434,3 +438,19 @@ func _draw() -> void:
 		UiDraw.px_rect(self, o.x - 2, o.y - 2, 4, 4, "#f29c38")
 		UiDraw.px_rect(self, o.x - 1, o.y - 1, 2, 2, "#fff2a8")
 	UiDraw.set_origin(self, Vector2.ZERO)
+
+func use_cons(i: int) -> void:
+	var sl: Variant = cons[i]
+	if sl == null:
+		return
+	var C: Dictionary = Cons.ALL[sl.id]
+	if C.get("passive", false):
+		Run.toast(C.name + ": effetto passivo", "#8a8294")
+		Sfx.play("deny")
+		return
+	if not Cons.use(sl.id, self):
+		Sfx.play("deny")
+		return
+	sl.n -= 1
+	if sl.n <= 0:
+		cons[i] = null

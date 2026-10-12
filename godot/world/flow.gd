@@ -184,6 +184,9 @@ static func update_game(dt: float) -> void:
 	Effects.update(dt)
 	Pickups.update(dt)
 	update_room_flow(dt)
+	Run.focus = null if Run.player.dead else Interact.nearest_object()
+	if Run.focus != null and Controls.interact():
+		Interact.interact(Run.focus)
 	if not Run.player.dead:
 		check_doors(dt)
 	for o in Run.oil_fx:
@@ -280,3 +283,31 @@ static func room_cleared(room: Dictionary) -> void:
 			"key": pk.append(Pickups.make("key", rx, ry))
 			_: room.objects.append({"type": "chest", "gold": U.random() < 0.3, "x": rx, "y": ry})
 		Particles.burst(rx, ry, 16, ["#f6cf57", "#fff2a8"], 60, 0.6)
+
+static func reveal_map() -> void:
+	for r in Run.floor.rooms:
+		r.seen = true
+		if r.type == "secret":
+			r.mapped = true
+	Run.toast("La mappa si rivela", "#d8c49a")
+	Sfx.play("pickup")
+
+static func roll_dice() -> void:
+	var p := Run.player
+	var ch := Perks.roll_choices(1, 0)
+	if not ch.is_empty():
+		var id: String = ch[0]
+		p.perks[id] = p.perks.get(id, 0) + 1
+		p.recalc_stats()
+		if Perks.ALL[id].get("onTake", false):
+			Perks.on_take(id, p)
+		Run.banner(Perks.ALL[id].name, Perks.ALL[id].desc, Stats.RARITY[Perks.ALL[id].rar].col, Perks.ALL[id].icon)
+	if U.random() < 0.3:
+		var avail: Array = Curses.ALL.keys().filter(func(c): return not p.curses.has(c))
+		if not avail.is_empty():
+			var c: String = U.pick(avail)
+			p.curses.append(c)
+			p.recalc_stats()
+			U.later(0.7, func(): Run.toast("Maledizione: " + Curses.ALL[c].name, "#c57ae0", Curses.ALL[c].desc))
+			Sfx.play("curse")
+	Sfx.play("pickup")

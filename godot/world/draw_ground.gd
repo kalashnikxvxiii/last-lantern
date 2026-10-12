@@ -13,6 +13,7 @@ func _draw() -> void:
 	_doors(room)
 	_dynamic_tiles(room)
 	_ground_fx()
+	_objects(room)
 	_pickups(room)
 
 func _secret_hints(room: Dictionary) -> void:
@@ -187,3 +188,68 @@ func _pickups(room: Dictionary) -> void:
 			"oil": Spr.draw(self, "oil", 0, k.x, y)
 			"key": Spr.draw(self, "key", 0, k.x, y)
 			"cons": Spr.draw(self, Cons.ALL[k.id].spr, 0, k.x, y - 2 + sin(tt * 3 + k.x))
+
+# drawObjects (js/render.js)
+func _objects(room: Dictionary) -> void:
+	var tt := Fx.time
+	var ga := UiDraw.alpha
+	for o in room.objects:
+		if o.get("gone", false):
+			continue
+		match o.type:
+			"relic":
+				UiDraw.shadow(self, o.x, o.y + 8, 7)
+				Spr.draw(self, "pedestal", 0, o.x, o.y + 4)
+				var by: float = o.y - 9 + sin(tt * 2.5 + o.x) * 2
+				UiDraw.glow(self, o.x, by, 18, "#f6cf57", 0.25)
+				Spr.draw(self, Relics.ALL[o.id].icon, 0, o.x, by)
+			"shopitem":
+				UiDraw.shadow(self, o.x, o.y + 8, 7)
+				Spr.draw(self, "pedestal", 0, o.x, o.y + 4)
+				var by: float = o.y - 8 + sin(tt * 2 + o.x) * 1.5
+				var it: Dictionary = o.item
+				match it.kind:
+					"cons": Spr.draw(self, Cons.ALL[it.id].spr, 0, o.x, by)
+					"heal": Spr.draw(self, "heart", 0, o.x, by)
+					"key": Spr.draw(self, "key", 0, o.x, by)
+					"relic":
+						UiDraw.glow(self, o.x, by, 16, "#f6cf57", 0.2)
+						Spr.draw(self, Relics.ALL[it.id].icon, 0, o.x, by)
+				var price := Interact.price_of(o)
+				var can := Run.player.coins >= price
+				Spr.draw(self, "coin", 0, o.x - Txt.width(str(price)) / 2 - 3, o.y + 16)
+				UiDraw.text(self, str(price), o.x + 3, o.y + 13, {"align": "center", "color": Txt.COLORS.y if can else Txt.COLORS.r})
+			"chest":
+				UiDraw.shadow(self, o.x, o.y + 6, 8)
+				Spr.draw(self, "goldchest" if o.gold else "chest", 1 if o.get("open", false) else 0, o.x, o.y)
+				if o.gold and not o.get("open", false):
+					UiDraw.glow(self, o.x, o.y, 16, "#f6cf57", 0.15)
+			"shrine":
+				var used: bool = o.uses <= 0
+				UiDraw.shadow(self, o.x, o.y + 10, 12)
+				if o.kind == "fortune" or o.kind == "fountain":
+					Spr.draw(self, "fountain", int(floor(tt * 3)) % 2, o.x, o.y, {"alpha": 0.6 if used else 1.0})
+				else:
+					Spr.draw(self, "altar", 0, o.x, o.y, {"alpha": 0.6 if used else 1.0})
+					if not used:
+						UiDraw.flame(self, o.x, o.y - 10, 1, tt)
+			"merchant":
+				UiDraw.shadow(self, o.x, o.y + 8, 7)
+				Spr.draw(self, "merchant", 1 if int(floor(tt * 1.5)) % 4 == 0 else 0, o.x, o.y)
+				# lanterna del mercante
+				UiDraw.px_rect(self, o.x + 8, o.y - 2, 3, 4, "#f6cf57")
+				UiDraw.px_rect(self, o.x + 8, o.y - 3, 3, 1, "#3b3546")
+				if U.dist(o.x, o.y, Run.player.x, Run.player.y) < 70:
+					var w := minf(200, Txt.width(o.line) + 12)
+					UiDraw.panel(self, o.x - w / 2, o.y - 34, w, 16, {"alpha": 0.9})
+					UiDraw.text(self, o.line, o.x, o.y - 30, {"align": "center", "color": "#e8dcc0"})
+			"trapdoor":
+				var x: float = o.x - 12
+				var y: float = o.y - 12
+				UiDraw.px_rect(self, x - 1, y - 1, 26, 26, "#0b0810")
+				UiDraw.px_rect(self, x, y, 24, 24, "#5a3a24")
+				UiDraw.px_rect(self, x + 2, y + 2, 20, 20, "#050308")
+				for i in 4:
+					UiDraw.px_rect(self, x + 5, y + 4 + i * 5, 14, 1, "#4a3020")
+				UiDraw.glow(self, o.x, o.y, 26, "#c57ae0", 0.15 + 0.08 * sin(tt * 3))
+	UiDraw.alpha = ga

@@ -17,3 +17,56 @@ static var ALL := {
 	"holy": {"name": "Acqua Santa", "spr": "holy", "w": 2, "price": 28, "desc": "Rimuove una ^pmaledizione^w. Senza maledizioni cura 30 vita."},
 	"feather": {"name": "Piuma di Fenice", "spr": "feather", "w": 1.5, "price": 35, "desc": "Passiva: se muori, ^yrinasci^w con metà vita (si consuma).", "passive": true},
 }
+
+# use() dei consumabili; vero se il consumabile è stato usato
+static func use(id: String, p) -> bool:
+	match id:
+		"potion":
+			if p.hp >= p.stats.maxHp:
+				return false
+			p.heal(30)
+		"bigpotion":
+			if p.hp >= p.stats.maxHp:
+				return false
+			p.heal(999)
+		"oil":
+			if p.oil >= p.stats.maxOil:
+				return false
+			p.add_oil(60)
+			Sfx.play("oil")
+		"bomb":
+			Effects.place_bomb(p.x, p.y + 3, "player")
+		"antidote":
+			Status.cleanse(p)
+			Status.add(p, "immune", 6)
+			Sfx.play("heal")
+		"rage":
+			Status.add(p, "rage", 10)
+			Sfx.play("flare", 0.5)
+		"frost":
+			Combat.freeze_all(3)
+		"map":
+			Flow.reveal_map()
+		"firefly":
+			p.temp_orbit_t = 25.0
+			p.temp_orbit = 3
+			Sfx.play("pickup")
+		"dice":
+			Flow.roll_dice()
+		"smoke":
+			Status.add(p, "invis", 4)
+			Particles.burst(p.x, p.y, 30, ["#4a4068", "#8a80b0", "#2a2440"], 60, 0.8)
+			Sfx.play("dash")
+		"holy":
+			if not p.curses.is_empty():
+				var c: String = p.curses.pop_back()
+				Run.toast("Maledizione spezzata: " + Curses.ALL[c].name, "#c57ae0")
+				p.recalc_stats()
+				Sfx.play("heal")
+			else:
+				if p.hp >= p.stats.maxHp:
+					return false
+				p.heal(30)
+		"feather":
+			return false
+	return true
