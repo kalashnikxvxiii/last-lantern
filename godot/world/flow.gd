@@ -183,6 +183,7 @@ static func update_game(dt: float) -> void:
 	Bullets.update_enemy(dt)
 	Effects.update(dt)
 	Pickups.update(dt)
+	update_room_flow(dt)
 	if not Run.player.dead:
 		check_doors(dt)
 	for o in Run.oil_fx:
@@ -206,3 +207,76 @@ static func update_common(dt: float) -> void:
 		Run.boss_intro.t += dt
 		if Run.boss_intro.t > 2.8:
 			Run.boss_intro = null
+
+static func update_room_flow(dt: float) -> void:
+	var room := Run.room
+	if not room.combat:
+		return
+	var pending := Run.fx.any(func(f): return f.type == "spawn")
+	if Run.enemies.is_empty() and not pending:
+		room.waveDelay -= dt
+		if room.waveDelay <= 0:
+			if room.waveIdx < room.waves.size():
+				spawn_wave(room, room.waves[room.waveIdx])
+				room.waveIdx += 1
+				room.waveDelay = 0.6
+			elif room.type != "boss":
+				room_cleared(room)
+
+static func spawn_wave(room: Dictionary, wave: Array) -> void:
+	var p := Run.player
+	if wave[0].type == "BOSS":
+		var c := RoomU.tile_center(14, 7)
+		var y := c.y + 30 if p.y < c.y else c.y - 30
+		Effects.add({"type": "spawn", "x": c.x, "y": y, "life": 1.0, "spec": {"type": "BOSS", "boss": wave[0].boss}})
+		return
+	var all: Array = RoomU.reach_tiles(room).filter(func(t): return room.grid[t.y][t.x] == Consts.T.FLOOR)
+	var tiles: Array = all.filter(func(t):
+		var c := RoomU.tile_center(t.x, t.y)
+		return U.dist(c.x, c.y, p.x, p.y) > 100)
+	if tiles.size() < wave.size():
+		tiles = all.filter(func(t):
+			var c := RoomU.tile_center(t.x, t.y)
+			return U.dist(c.x, c.y, p.x, p.y) > 50)
+	U.shuffle(tiles)
+	for i in wave.size():
+		var spec: Dictionary = wave[i]
+		var t: Vector2i = tiles[i % tiles.size()]
+		var c := RoomU.tile_center(t.x, t.y)
+		Effects.add({"type": "spawn", "x": c.x + U.rnd(-2, 2), "y": c.y + U.rnd(-2, 2), "life": 0.75 + i * 0.05, "spec": {"type": spec.type, "mod": spec.mod}})
+	Sfx.play("spawn")
+
+static func room_cleared(room: Dictionary) -> void:
+	room.cleared = true
+	room.combat = false
+	Run.rooms_cleared += 1
+	Sfx.play("door")
+	Music.set_intensity(0)
+	var c := RoomU.tile_center(14, 7)
+	var rx := c.x
+	var ry := c.y
+	if room.grid[7][14] != Consts.T.FLOOR:
+		rx = Run.player.x
+		ry = Run.player.y - 20
+	if room.type == "elite":
+		room.objects.append({"type": "chest", "gold": true, "free": true, "x": rx - 20, "y": ry})
+		var r: Array = RoomBuilder.random_relics(1)
+		if not r.is_empty():
+			room.objects.append({"type": "relic", "id": r[0], "x": rx + 20, "y": ry})
+		Run.toast("Sfida superata!", "#f6cf57")
+		return
+	if U.random() < 0.5:
+		var kind: String = U.weighted_pick([["coins", 30], ["heart", 18], ["oil", 18], ["cons", 14], ["key", 9], ["chest", 11]], func(k): return k[1])[0]
+		var pk: Array = room.pickups
+		match kind:
+			"coins":
+				var i := 0
+				while i < U.rndi(2, 4):
+					pk.append(Pickups.make("coin", rx, ry))
+					i += 1
+			"heart": pk.append(Pickups.make("heart", rx, ry))
+			"oil": pk.append(Pickups.make("oil", rx, ry, {"value": 30}))
+			"cons": pk.append(Pickups.make("cons", rx, ry, {"id": Pickups.random_cons()}))
+			"key": pk.append(Pickups.make("key", rx, ry))
+			_: room.objects.append({"type": "chest", "gold": U.random() < 0.3, "x": rx, "y": ry})
+		Particles.burst(rx, ry, 16, ["#f6cf57", "#fff2a8"], 60, 0.6)

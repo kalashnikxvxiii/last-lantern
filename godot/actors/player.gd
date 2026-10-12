@@ -310,7 +310,7 @@ func fire_volley(aim_: float, is_echo: bool = false) -> void:
 		var a: float = aim_ + (-spread / 2 + spread * i / (n - 1) if n > 1 else 0.0) + U.rnd(-0.035, 0.035)
 		var crit: bool = U.random() < s.crit
 		Run.bullets.append({"x": lx, "y": ly, "vx": cos(a) * s.shotSpeed, "vy": sin(a) * s.shotSpeed, "r": s.shotSize,
-			"dmg": dmg * (s.critMult if crit else 1.0), "crit": crit, "life": s["range"] / s.shotSpeed, "pierce": s.pierce,
+			"dmg": dmg * (s.critMult if crit else 1.0), "crit": crit, "life": float(s["range"]) / s.shotSpeed, "pierce": s.pierce,
 			"bounce": s.bounce, "hit": {}, "kind": "ember", "t": 0.0})
 	if is_comet:
 		Run.bullets.append({"x": lx, "y": ly, "vx": cos(aim_) * s.shotSpeed * 1.15, "vy": sin(aim_) * s.shotSpeed * 1.15, "r": s.shotSize + 2,

@@ -111,3 +111,13 @@ func test_scatto_riflettente() -> void:
 	check(Run.ebullets[0].get("dead", false))
 	eq(Run.bullets.size(), 1)
 	check(Run.bullets[0].vx > 0, "rimandato indietro")
+
+func test_gittata_in_virgola_mobile() -> void:
+	# range e shotSpeed sono interi nelle statistiche base: la durata non deve diventare 0
+	p.fire_volley(0.0)
+	near(Run.bullets[0].life, 200.0 / 230.0)
+	p.stats.comet = 1
+	for i in 5:
+		p.fire_volley(0.0)
+	var c: Dictionary = Run.bullets.filter(func(b): return b.kind == "comet")[0]
+	near(c.life, 200.0 * 1.4 / 230.0)
