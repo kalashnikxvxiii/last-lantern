@@ -1,7 +1,7 @@
 class_name Bullets
 extends RefCounted
-# Proiettili del giocatore e dei nemici (js/entities.js). Sono dizionari in
-# Run.bullets e Run.ebullets.
+# Player and enemy projectiles (js/entities.js). They are dictionaries in
+# Run.bullets and Run.ebullets.
 
 static func e_shoot(e, ang: float, spd: float, o: Dictionary = {}) -> void:
 	var ox: float = e.x + cos(ang) * (e.r * 0.8)
@@ -52,7 +52,7 @@ static func update_player(dt: float) -> void:
 				var sp := sqrt(b.vx * b.vx + b.vy * b.vy)
 				b.vx = cos(na) * sp
 				b.vy = sin(na) * sp
-		# movimento con rimbalzi
+		# movement with bounces
 		var nx: float = b.x + b.vx * dt
 		var ny: float = b.y + b.vy * dt
 		var t := RoomU.world_to_tile(nx, b.y)
@@ -84,7 +84,7 @@ static func update_player(dt: float) -> void:
 			continue
 		if b.kind == "comet" and U.random() < 0.6:
 			Particles.add({"x": b.x, "y": b.y, "life": 0.35, "color": U.pick(["#c8f2f5", "#f6cf57"]), "size": 2})
-		# collisione con i nemici
+		# collision with enemies
 		var j := 0
 		while j < Run.enemies.size():
 			var e = Run.enemies[j]
@@ -96,7 +96,7 @@ static func update_player(dt: float) -> void:
 			var rr: float = b.r + e.r
 			if U.dist2(b.x, b.y, e.x, e.y) > rr * rr:
 				continue
-			# scudo frontale
+			# front shield
 			if e.def != null and e.def.shield and not (e.frozen > 0) and not e.shield_down:
 				var ab := U.ang_to(e.x, e.y, b.x, b.y)
 				if absf(U.ang_diff(e.facing, ab)) < 1.0:

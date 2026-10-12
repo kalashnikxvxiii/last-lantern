@@ -1,5 +1,5 @@
 extends TestCase
-# Prove di gioco simulate: si spara al nemico più vicino finché la stanza è ripulita.
+# Simulated playtests: shoot the nearest enemy until the room is cleared.
 
 func after() -> void:
 	Controls.sim.clear()
@@ -34,7 +34,7 @@ static func fight(max_ticks: int, done: Callable) -> bool:
 			return true
 	return false
 
-func test_stanza_di_combattimento_ripulita() -> void:
+func test_combat_room_cleared() -> void:
 	TH.new_run(17)
 	var room := TH.room_of("normal")
 	RoomBuilder.build_room(room, Run.floor)
@@ -43,13 +43,13 @@ func test_stanza_di_combattimento_ripulita() -> void:
 			if room.grid[ty][tx] != Consts.T.FLOOR:
 				room.grid[ty][tx] = Consts.T.FLOOR
 	Flow.enter_room(room, null)
-	check(fight(5400, func(): return room.cleared), "stanza ripulita entro 90 s simulati")
+	check(fight(5400, func(): return room.cleared), "room cleared within 90 simulated s")
 	check(Run.kills > 0)
-func test_guardiano_sconfitto() -> void:
+func test_warden_defeated() -> void:
 	TH.new_run(23)
 	var p := Run.player
 	p.perks = {"multishot": 3, "dmg": 5, "rate": 5}
 	p.relics = ["r_anvil"]
 	p.recalc_stats()
 	TH.enter("boss")
-	check(fight(20000, func(): return Run.room.objects.any(func(o): return o.type == "trapdoor")), "guardiano sconfitto")
+	check(fight(20000, func(): return Run.room.objects.any(func(o): return o.type == "trapdoor")), "warden defeated")

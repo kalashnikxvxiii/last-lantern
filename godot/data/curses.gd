@@ -1,16 +1,16 @@
 class_name Curses
 extends RefCounted
-# Maledizioni (CURSES in js/data.js). L'ordine conta: non riordinare.
+# Curses (CURSES in js/data.js). Order matters: do not reorder.
 
 static var ALL := {
-	"c_dark": {"name": "Buio Pesto", "desc": "^r-25%^w raggio di luce."},
-	"c_frail": {"name": "Fragilità", "desc": "^r+20%^w danni subiti."},
-	"c_greed": {"name": "Avarizia", "desc": "Prezzi dei mercanti ^r+40%^w."},
-	"c_haste": {"name": "Fretta", "desc": "I nemici sono più veloci del ^r12%^w."},
-	"c_blood": {"name": "Sangue Amaro", "desc": "Le cure sono ^r40%^w meno efficaci."},
-	"c_fog": {"name": "Nebbia", "desc": "La minimappa è nascosta."},
-	"c_weak": {"name": "Debolezza", "desc": "^r-12%^w danno."},
-	"c_rust": {"name": "Ruggine", "desc": "^r-1^w armatura e ^r-10%^w cadenza."},
+	"c_dark": {"name": "Pitch Dark", "desc": "^r-25%^w light radius."},
+	"c_frail": {"name": "Frailty", "desc": "^r+20%^w damage taken."},
+	"c_greed": {"name": "Greed", "desc": "Merchant prices ^r+40%^w."},
+	"c_haste": {"name": "Haste", "desc": "Enemies are ^r12%^w faster."},
+	"c_blood": {"name": "Bitter Blood", "desc": "Healing is ^r40%^w less effective."},
+	"c_fog": {"name": "Fog", "desc": "The minimap is hidden."},
+	"c_weak": {"name": "Weakness", "desc": "^r-12%^w damage."},
+	"c_rust": {"name": "Rust", "desc": "^r-1^w armor and ^r-10%^w fire rate."},
 }
 
 static func apply(id: String, s: Dictionary) -> void:

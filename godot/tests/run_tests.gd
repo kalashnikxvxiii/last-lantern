@@ -1,7 +1,7 @@
 extends Node
-# Esegue le funzioni test_* dei file tests/test_*.gd.
-# Un test fallisce se registra un fallimento o se durante la sua esecuzione
-# compare un errore di script (catturato dal Logger), salvo allow_errors().
+# Runs the test_* functions of the tests/test_*.gd files.
+# A test fails if it records a failure or if a script error appears
+# during its execution (caught by the Logger), unless allow_errors().
 
 class ErrorCatcher extends Logger:
 	var errors: Array[String] = []
@@ -13,7 +13,7 @@ class ErrorCatcher extends Logger:
 var catcher := ErrorCatcher.new()
 
 func _ready() -> void:
-	# dopo il primo frame: la radice è libera e i test possono aggiungere scene
+	# after the first frame: the root is free and tests can add scenes
 	_run.call_deferred()
 
 func _run() -> void:
@@ -35,9 +35,9 @@ func _run() -> void:
 			continue
 		catcher.errors.clear()
 		var script: GDScript = load("res://tests/" + f)
-		# un file che non si compila è un fallimento, non zero test
+		# a file that does not compile is a failure, not zero tests
 		if script == null or not script.can_instantiate() or not catcher.errors.is_empty():
-			failed.append("%s: il file non si compila\n    %s" % [f, "\n    ".join(catcher.errors)])
+			failed.append("%s: the file does not compile\n    %s" % [f, "\n    ".join(catcher.errors)])
 			continue
 		for m in script.get_script_method_list():
 			var name: String = m.name
@@ -57,6 +57,6 @@ func _run() -> void:
 				failed.append("%s::%s\n    %s" % [f, name, "\n    ".join(t.failures + errs)])
 	for line in failed:
 		print("FAIL ", line)
-	print("\n%d superati, %d falliti" % [passed, failed.size()])
+	print("\n%d passed, %d failed" % [passed, failed.size()])
 	OS.remove_logger(catcher)
 	get_tree().quit(1 if failed.size() > 0 else 0)

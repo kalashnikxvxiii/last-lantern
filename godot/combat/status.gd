@@ -1,6 +1,6 @@
 class_name Status
 extends RefCounted
-# Stati alterati (addStatus, updateStatuses, cleanse in js/entities.js).
+# Status effects (addStatus, updateStatuses, cleanse in js/entities.js).
 
 static func cleanse(a) -> void:
 	for k in a.statuses.keys():
@@ -47,7 +47,7 @@ static func update(a, dt: float, is_p: bool) -> void:
 				s.tick -= 0.5
 				if is_p:
 					var v: float = (2.0 if k == "burn" else 0.8 * s.stacks) * (1 + 0.15 * (Run.depth - 1))
-					Combat.hurt_player(v, "Le fiamme" if k == "burn" else "Il veleno", {"dot": true})
+					Combat.hurt_player(v, "The flames" if k == "burn" else "The poison", {"dot": true})
 				elif not a.dead:
 					var v: float = s.power * 0.5 * (s.stacks if k == "poison" else 1)
 					Combat.hit_enemy(a, v, {"dot": k})

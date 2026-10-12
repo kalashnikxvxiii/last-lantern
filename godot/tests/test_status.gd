@@ -1,5 +1,5 @@
 extends TestCase
-# Stati alterati (addStatus, updateStatuses, cleanse).
+# Status effects (addStatus, updateStatuses, cleanse).
 
 func before() -> void:
 	TH.new_run(3)
@@ -8,17 +8,17 @@ func before() -> void:
 func after() -> void:
 	Run.reset()
 
-func test_veleno_si_accumula_con_limiti() -> void:
+func test_poison_stacks_with_limits() -> void:
 	var p := Run.player
 	for i in 6:
 		Status.add(p, "poison", 3)
-	eq(p.statuses.poison.stacks, 3, "giocatore: massimo 3")
+	eq(p.statuses.poison.stacks, 3, "player: maximum 3")
 	var e := TH.spawn("ghoul", 200, 120)
 	for i in 7:
 		Status.add(e, "poison", 3, 2.0)
-	eq(e.statuses.poison.stacks, 5, "nemico: massimo 5")
+	eq(e.statuses.poison.stacks, 5, "enemy: maximum 5")
 
-func test_tre_cariche_di_gelo_congelano() -> void:
+func test_three_frost_stacks_freeze() -> void:
 	var e := TH.spawn("ghoul", 200, 120)
 	Status.add(e, "chill", 2.2)
 	Status.add(e, "chill", 2.2)
@@ -27,7 +27,7 @@ func test_tre_cariche_di_gelo_congelano() -> void:
 	eq(e.frozen, 1.6)
 	check(not e.statuses.has("chill"))
 
-func test_immunita() -> void:
+func test_immunity() -> void:
 	var p := Run.player
 	Status.add(p, "immune", 6)
 	Status.add(p, "burn", 3)
@@ -41,7 +41,7 @@ func test_immunita() -> void:
 	Status.cleanse(p)
 	eq(p.statuses.keys(), ["rage"])
 
-func test_bruciatura_ferisce_ogni_mezzo_secondo() -> void:
+func test_burn_hurts_every_half_second() -> void:
 	var p := Run.player
 	var hp := p.hp
 	Status.add(p, "burn", 2)

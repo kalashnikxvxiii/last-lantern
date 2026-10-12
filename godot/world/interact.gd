@@ -1,7 +1,7 @@
 class_name Interact
 extends RefCounted
-# Interazioni con gli oggetti della stanza (js/entities.js): reliquie, forzieri,
-# mercante, santuari, botola.
+# Interactions with room objects (js/entities.js): relics, chests,
+# merchant, shrines, trapdoor.
 
 static func nearest_object() -> Variant:
 	var p := Run.player
@@ -53,7 +53,7 @@ static func open_chest(o: Dictionary) -> void:
 	if o.gold and not o.get("free", false):
 		if p.keys <= 0:
 			Sfx.play("deny")
-			Run.toast("Serve una chiave", "#8a8294")
+			Run.toast("A key is needed", "#8a8294")
 			return
 		p.keys -= 1
 	o.open = true
@@ -98,16 +98,16 @@ static func buy_item(o: Dictionary) -> void:
 	var price := price_of(o)
 	if p.coins < price:
 		Sfx.play("deny")
-		Run.toast("Non hai abbastanza monete", "#8a8294")
+		Run.toast("Not enough coins", "#8a8294")
 		return
 	var it: Dictionary = o.item
 	if it.kind == "cons" and not p.can_take_cons(it.id):
 		Sfx.play("deny")
-		Run.toast("Borsa piena", "#8a8294")
+		Run.toast("Bag full", "#8a8294")
 		return
 	if it.kind == "heal" and p.hp >= p.stats.maxHp:
 		Sfx.play("deny")
-		Run.toast("Sei già in forze", "#8a8294")
+		Run.toast("You are already at full strength", "#8a8294")
 		return
 	p.coins -= price
 	o.gone = true
@@ -119,7 +119,7 @@ static func buy_item(o: Dictionary) -> void:
 		"relic": take_relic({"id": it.id, "x": o.x, "y": o.y})
 	for m in Run.room.objects:
 		if m.type == "merchant":
-			m.line = U.pick(["Affare fatto.", "Ottima scelta.", "Torna quando vuoi.", "Che la luce ti accompagni."])
+			m.line = U.pick(["Deal done.", "Excellent choice.", "Come back anytime.", "May the light go with you."])
 			break
 
 static func use_shrine(o: Dictionary) -> void:
@@ -130,7 +130,7 @@ static func use_shrine(o: Dictionary) -> void:
 		"blood":
 			if p.stats.maxHp <= 30:
 				Sfx.play("deny")
-				Run.toast("Sei troppo debole per offrire altro", "#8a8294")
+				Run.toast("You are too weak to offer more", "#8a8294")
 				return
 			o.uses -= 1
 			Run.blood_paid += 15
@@ -147,24 +147,24 @@ static func use_shrine(o: Dictionary) -> void:
 		"fortune":
 			if p.coins < 5:
 				Sfx.play("deny")
-				Run.toast("Servono 5 monete", "#8a8294")
+				Run.toast("5 coins needed", "#8a8294")
 				return
 			p.coins -= 5
 			o.uses -= 1
 			Sfx.play("coin")
 			var r := U.random()
 			if r < 0.35:
-				Run.toast("Le monete affondano nel silenzio.", "#8a8294")
+				Run.toast("The coins sink into silence.", "#8a8294")
 			elif r < 0.65:
 				for i in 8:
 					Run.room.pickups.append(Pickups.make("coin", o.x, o.y))
-				Run.toast("La fontana restituisce il doppio!", "#f6cf57")
+				Run.toast("The fountain returns double!", "#f6cf57")
 			elif r < 0.88:
 				Run.room.pickups.append(Pickups.make("cons", o.x, o.y, {"id": Pickups.random_cons()}))
-				Run.toast("Qualcosa riaffiora dall'acqua.", "#ece6d8")
+				Run.toast("Something resurfaces from the water.", "#ece6d8")
 			else:
 				Run.pending_levels += 1
-				Run.toast("Un dono dalla fontana!", "#c57ae0")
+				Run.toast("A gift from the fountain!", "#c57ae0")
 		"fountain":
 			if not p.curses.is_empty() and p.coins >= 20:
 				p.coins -= 20
@@ -172,16 +172,16 @@ static func use_shrine(o: Dictionary) -> void:
 				var c: String = p.curses[U.rndi(0, p.curses.size() - 1)]
 				p.curses.erase(c)
 				p.recalc_stats()
-				Run.toast("Maledizione purificata: " + Curses.ALL[c].name, "#7fd8e6")
+				Run.toast("Curse purified: " + Curses.ALL[c].name, "#7fd8e6")
 				Sfx.play("heal")
 			elif p.curses.is_empty():
 				o.uses -= 1
 				p.heal(999, true)
 				p.add_oil(999)
-				Run.toast("L'acqua pura ti ristora.", "#7fd8e6")
+				Run.toast("The pure water restores you.", "#7fd8e6")
 			else:
 				Sfx.play("deny")
-				Run.toast("Servono 20 monete", "#8a8294")
+				Run.toast("20 coins needed", "#8a8294")
 				return
 		"pact":
 			o.uses -= 1
@@ -194,4 +194,4 @@ static func use_shrine(o: Dictionary) -> void:
 				take_relic({"id": r[0], "x": o.x, "y": o.y})
 			Sfx.play("curse")
 			Fx.screen_flash("#4b2a5c", 0.5)
-			Run.toast("Il patto è stretto.", "#c57ae0", "Nuova maledizione: " + Curses.ALL[p.curses.back()].name if not avail.is_empty() else "")
+			Run.toast("The pact is sealed.", "#c57ae0", "New curse: " + Curses.ALL[p.curses.back()].name if not avail.is_empty() else "")

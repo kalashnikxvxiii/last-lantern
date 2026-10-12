@@ -1,6 +1,6 @@
 class_name Coll
 extends RefCounted
-# Collisioni con la griglia della stanza (js/entities.js:192-223 e 373-383).
+# Collisions with the room grid (js/entities.js:192-223 and 373-383).
 
 static func collides(room: Dictionary, x: float, y: float, r: float, fly: bool) -> bool:
 	var x0 := int(floor((x - r - Consts.RX) / Consts.TS))
@@ -46,7 +46,7 @@ static func line_clear(x0: float, y0: float, x1: float, y1: float) -> bool:
 			return false
 	return true
 
-# scivolamento sugli spigoli: se il passo è bloccato prova a spostarti di lato
+# corner sliding: if the step is blocked, try moving sideways
 static func nudge(p, axis: int, d: float) -> void:
 	var room := Run.room
 	var fx := signf(d) if axis == 0 else 0.0

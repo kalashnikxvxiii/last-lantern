@@ -1,5 +1,5 @@
 extends TestCase
-# Movimento ad assi separati, scivolamento sugli spigoli, campo di flusso e linea di tiro: come il JS.
+# Separate-axis movement, corner sliding, flow field and line of sight: like the JS.
 
 func after() -> void:
 	Run.reset()
@@ -17,7 +17,7 @@ func _room(seed: int) -> Dictionary:
 	Run.room = room
 	return room
 
-func test_tracce_di_movimento() -> void:
+func test_movement_tracks() -> void:
 	for tr in TestCase.golden("movement").traces:
 		var room := _room(int(tr.seed))
 		room.cleared = tr.open
@@ -34,10 +34,10 @@ func test_tracce_di_movimento() -> void:
 			if by and absf(dx) < 1:
 				Coll.nudge(a, 1, dy)
 			if absf(a.x - st[2]) > 1e-9 or absf(a.y - st[3]) > 1e-9 or (bx or by) != st[4]:
-				fail("seme %d porte %s passo %d: (%s, %s) != (%s, %s)" % [tr.seed, tr.open, i, a.x, a.y, st[2], st[3]])
+				fail("seed %d doors %s step %d: (%s, %s) != (%s, %s)" % [tr.seed, tr.open, i, a.x, a.y, st[2], st[3]])
 				return
 
-func test_campo_di_flusso() -> void:
+func test_flow_field() -> void:
 	for fl in TestCase.golden("movement").flow:
 		var room := _room(int(fl.seed))
 		room.cleared = false
@@ -46,12 +46,12 @@ func test_campo_di_flusso() -> void:
 		Run.player.y = fl.player[1]
 		FlowField.update()
 		for pr in fl.probes:
-			near(FlowField.angle({"x": pr[0], "y": pr[1]}, Run.player.x, Run.player.y), pr[2], 1e-9, "seme %d %s" % [fl.seed, pr])
+			near(FlowField.angle({"x": pr[0], "y": pr[1]}, Run.player.x, Run.player.y), pr[2], 1e-9, "seed %d %s" % [fl.seed, pr])
 
-func test_linea_di_tiro() -> void:
+func test_line_of_sight() -> void:
 	for ln in TestCase.golden("movement").lines:
 		var room := _room(int(ln.seed))
 		room.cleared = false
 		room.combat = true
 		for c in ln.cases:
-			eq(Coll.line_clear(c[0], c[1], c[2], c[3]), c[4], "seme %d %s" % [ln.seed, c])
+			eq(Coll.line_clear(c[0], c[1], c[2], c[3]), c[4], "seed %d %s" % [ln.seed, c])

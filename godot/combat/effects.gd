@@ -1,7 +1,7 @@
 class_name Effects
 extends RefCounted
-# Effetti (addFx, placeBomb, updateFx, explosionHit in js/entities.js):
-# esplosioni, bombe, onde d'urto, avvisi, nubi, fuoco, evocazioni, fulmini, vampate.
+# Effects (addFx, placeBomb, updateFx, explosionHit in js/entities.js):
+# explosions, bombs, shockwaves, warnings, clouds, fire, summons, lightning, flares.
 
 static func add(f: Dictionary) -> Dictionary:
 	f.t = 0.0
@@ -46,7 +46,7 @@ static func update(dt: float) -> void:
 					var d := U.dist(f.x, f.y, p.x, p.y)
 					if absf(d - f.r) < 7:
 						f.hitP = true
-						Combat.hurt_player(f.dmg, f.get("src", "Un'onda d'urto"))
+						Combat.hurt_player(f.dmg, f.get("src", "A shockwave"))
 				elif f.owner == "player":
 					var j := 0
 					while j < Run.enemies.size():
@@ -136,8 +136,8 @@ static func explosion_hit(f: Dictionary) -> void:
 				Combat.hit_enemy(e, f.dmg, {"kx": e.x - f.x, "ky": e.y - f.y, "kb": 220, "force": true})
 	if f.owner != "player" and not p.dead:
 		if U.dist(f.x, f.y, p.x, p.y) < f.r + 2:
-			Combat.hurt_player(minf(14, f.dmg * 0.3) if f.owner == "neutral" else f.dmg, f.get("src", "Un'esplosione"))
-	# tile coinvolti
+			Combat.hurt_player(minf(14, f.dmg * 0.3) if f.owner == "neutral" else f.dmg, f.get("src", "An explosion"))
+	# tiles involved
 	if not small or f.owner == "neutral":
 		var ct := RoomU.world_to_tile(f.x, f.y)
 		var R := int(ceilf(f.r / Consts.TS))
@@ -159,7 +159,7 @@ static func explosion_hit(f: Dictionary) -> void:
 					Particles.burst(c.x, c.y, 12, ["#55505e", "#3b3546", "#8a8294"], 80, 0.6, {"grav": 100})
 					if t == Consts.T.CRACK and U.random() < 0.6:
 						room.pickups.append(Pickups.make("coin" if U.random() < 0.7 else "cons", c.x, c.y, {"id": "bomb"}))
-	# passaggi segreti
+	# secret passages
 	if f.get("reveal", false):
 		for d in room.doors:
 			var n: Dictionary = room.doors[d]
@@ -171,5 +171,5 @@ static func explosion_hit(f: Dictionary) -> void:
 				for tt in RoomU.DIRS[d].tiles:
 					room.grid[tt[1]][tt[0]] = Consts.T.DOOR
 				room.bgDirty = true
-				Run.toast("Un passaggio segreto!", "#f6cf57")
+				Run.toast("A secret passage!", "#f6cf57")
 				Sfx.play("chest")

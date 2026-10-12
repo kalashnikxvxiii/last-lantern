@@ -1,6 +1,6 @@
 class_name BiomeDef
 extends Resource
-# Profondità e suo aspetto (BIOMES in js/data.js).
+# Depth and its look (BIOMES in js/data.js).
 
 @export var id := ""
 @export var name := ""
@@ -8,13 +8,13 @@ extends Resource
 @export var boss := ""
 @export var dark := 0.7
 @export_multiline var lore := ""
-@export var floor: Array = []       # tre colori del pavimento
+@export var floor: Array = []       # three floor colors
 @export var floor_d := ""
 @export var wall := ""
 @export var wall_d := ""
 @export var wall_l := ""
 @export var accent := ""
-@export var pool: Array = []        # [tipo, costo, peso]
+@export var pool: Array = []        # [type, cost, weight]
 @export var deco := ""
 @export var urns := false
 @export var barrels := false

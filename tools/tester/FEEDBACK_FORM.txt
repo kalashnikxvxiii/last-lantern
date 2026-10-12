@@ -1,0 +1,55 @@
+LAST LANTERN - feedback form ({VERSION})
+Write under each question. Answering only some of them is fine.
+
+------------------------------------------------------------
+YOUR COMPUTER
+------------------------------------------------------------
+System (Windows 10/11, Linux + distribution):
+Version used (desktop or browser, and which browser):
+Did the game run smoothly? (yes / occasional stutter / slow):
+Did you use keyboard and mouse or a gamepad (which one)?:
+
+------------------------------------------------------------
+YOUR RUNS
+------------------------------------------------------------
+How many runs you played:
+Deepest depth reached (1-5):
+Did you defeat any wardens? Which ones?:
+What killed you most often:
+
+------------------------------------------------------------
+DIFFICULTY (from 1 = too easy to 5 = frustrating)
+------------------------------------------------------------
+First depth (The Crypts):
+Later depths:
+Wardens:
+A moment when you felt treated unfairly:
+
+------------------------------------------------------------
+CLARITY
+------------------------------------------------------------
+Did you understand right away what the lantern's oil is for?:
+Did you use the Flare? Did it feel useful?:
+Perks, relics or consumables that were unclear or useless:
+Did you find a secret room?:
+
+------------------------------------------------------------
+PROBLEMS AND BUGS
+------------------------------------------------------------
+Describe what happened and what you were doing.
+If you can, give the game seed (pause menu, bottom left)
+and attach screenshots or the error-log.txt file.
+
+1.
+
+2.
+
+3.
+
+------------------------------------------------------------
+IN GENERAL
+------------------------------------------------------------
+What you liked most:
+What you liked least:
+Would you play it again? Why?:
+Other:

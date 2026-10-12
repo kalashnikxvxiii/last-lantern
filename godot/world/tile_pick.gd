@@ -1,6 +1,6 @@
 class_name TilePick
 extends RefCounted
-# Sceglie le varianti dei tile con lo stesso hash2 di renderRoomBg (js/dungeon.js).
+# Picks tile variants with the same hash2 as renderRoomBg (js/dungeon.js).
 
 static var _layout: Dictionary = {}
 static var _sets: Dictionary = {}

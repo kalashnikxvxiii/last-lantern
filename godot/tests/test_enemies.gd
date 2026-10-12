@@ -1,5 +1,5 @@
 extends TestCase
-# IA delle Cripte, separazione, contatto, rimozione dei morti.
+# Crypt AI, separation, contact, removal of the dead.
 
 func before() -> void:
 	TH.new_run(31)
@@ -16,7 +16,7 @@ func _run(seconds: float) -> void:
 	for i in int(seconds / Consts.DT):
 		Enemy.update_all(Consts.DT)
 
-func test_il_ratto_insegue() -> void:
+func test_the_rat_chases() -> void:
 	var p := Run.player
 	var e := TH.spawn("rat", p.x + 150, p.y)
 	var d0 := U.dist(e.x, e.y, p.x, p.y)
@@ -24,7 +24,7 @@ func test_il_ratto_insegue() -> void:
 	_run(1.0)
 	check(U.dist(e.x, e.y, p.x, p.y) < d0 - 40)
 
-func test_il_ghoul_carica() -> void:
+func test_the_ghoul_charges() -> void:
 	var p := Run.player
 	p.inv = 99.0
 	var e := TH.spawn("ghoul", p.x + 100, p.y)
@@ -33,9 +33,9 @@ func test_il_ghoul_carica() -> void:
 		Enemy.update_all(Consts.DT)
 		seen[e.state] = true
 	for s in ["approach", "wind", "charge", "recover"]:
-		check(seen.has(s), "stato " + s)
+		check(seen.has(s), "state " + s)
 
-func test_lo_scheletro_tira_ossa() -> void:
+func test_the_skeleton_throws_bones() -> void:
 	var p := Run.player
 	p.inv = 99.0
 	var e := TH.spawn("skeleton", p.x + 120, p.y)
@@ -44,7 +44,7 @@ func test_lo_scheletro_tira_ossa() -> void:
 	var bones := Run.ebullets.filter(func(b): return b.kind == "bone")
 	eq(bones.size(), 1)
 
-func test_il_teschio_spara_ad_anello() -> void:
+func test_the_skull_shoots_a_ring() -> void:
 	var p := Run.player
 	p.inv = 99.0
 	var e := TH.spawn("skull", p.x + 100, p.y)
@@ -52,7 +52,7 @@ func test_il_teschio_spara_ad_anello() -> void:
 	_run(0.6)
 	eq(Run.ebullets.size(), 6)
 
-func test_separazione() -> void:
+func test_separation() -> void:
 	var a := TH.spawn("rat", 200, 100)
 	var b := TH.spawn("rat", 200.5, 100)
 	a.stun = 1.0
@@ -60,7 +60,7 @@ func test_separazione() -> void:
 	Enemy.update_all(Consts.DT)
 	check(U.dist(a.x, a.y, b.x, b.y) > 1.0)
 
-func test_contatto_e_morti_rimossi() -> void:
+func test_contact_and_dead_removed() -> void:
 	var p := Run.player
 	p.inv = 0.0
 	var e := TH.spawn("rat", p.x + 3, p.y)

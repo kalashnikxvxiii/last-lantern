@@ -4,12 +4,12 @@
 
 [resource]
 script = ExtResource("1")
-id = "nera"
-name = "Lanterna Nera"
+id = "black"
+name = "Black Lantern"
 glass = "#c57ae0"
-desc = "Parti con ^ydue reliquie^w casuali e ^pdue maledizioni^w. Per chi non teme il buio."
+desc = "Start with ^ytwo random relics^w and ^ptwo curses^w. For those who do not fear the dark."
 unlock_stat = "wins"
 unlock_min = 1
-unlock_text = "Riaccendi la Fiamma Prima almeno una volta."
+unlock_text = "Rekindle the First Flame at least once."
 random_relics = 2
 random_curses = 2

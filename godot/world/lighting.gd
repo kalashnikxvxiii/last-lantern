@@ -1,6 +1,6 @@
 class_name Lighting
 extends CanvasLayer
-# Buio, bagliore e vignettatura (drawLighting in js/render.js) come shader a schermo intero.
+# Darkness, glow and vignette (drawLighting in js/render.js) as a fullscreen shader.
 
 const MAX_LIGHTS := 128
 var dark := ColorRect.new()

@@ -1,6 +1,6 @@
 class_name Pickups
 extends RefCounted
-# Raccoglibili (makePickup, randomCons, updatePickups, collectPickup in js/entities.js).
+# Pickups (makePickup, randomCons, updatePickups, collectPickup in js/entities.js).
 
 static func make(type: String, x: float, y: float, o: Dictionary = {}) -> Dictionary:
 	var a := U.rnd(TAU)
@@ -28,7 +28,7 @@ static func update(dt: float) -> void:
 		var auto: bool = k.type == "xp" or ((k.type == "coin" or k.type == "coin5") and not room.combat)
 		if not p.dead and k.t > 0.35 and (d < pr or (auto and not room.combat and k.t > 0.6) or k.magnet):
 			if k.type == "heart" and p.hp >= p.stats.maxHp:
-				pass   # resta a terra
+				pass   # stays on the ground
 			elif k.type == "cons" and not p.can_take_cons(k.id):
 				pass
 			else:
@@ -80,7 +80,7 @@ static func collect(k: Dictionary) -> void:
 		"key":
 			p.keys += 1
 			Sfx.play("pickup")
-			Floaters.add(p.x, p.y - 12, "+1 chiave", Txt.COLORS.y, {"life": 0.8})
+			Floaters.add(p.x, p.y - 12, "+1 key", Txt.COLORS.y, {"life": 0.8})
 		"cons":
 			if not p.give_cons(k.id):
 				return

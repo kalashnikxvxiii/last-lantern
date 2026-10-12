@@ -1,6 +1,6 @@
 'use strict';
 // =====================================================================
-//  Entita': giocatore, nemici, boss, proiettili, effetti, raccoglibili
+// Entities: player, enemies, bosses, projectiles, effects, pickups
 // =====================================================================
 
 let run = null;
@@ -10,15 +10,15 @@ function shake(v) { if (Save.data.settings.shake) FX.shake = Math.max(FX.shake, 
 function hitstop(t) { FX.hitstop = Math.max(FX.hitstop, t); }
 function screenFlash(col, a) { FX.flashCol = col; FX.flash = Math.max(FX.flash, a); }
 
-// scalature per profondita'
+// per-depth scaling
 const depthHp = d => 1 + 0.6 * (d - 1) + 0.08 * (d - 1) * (d - 1);
 const depthDmg = d => 1 + 0.2 * (d - 1);
-const ardHp = () => run.ardore >= 1 ? 1.25 : 1;
-const ardDmg = () => run.ardore >= 2 ? 1.2 : 1;
+const ardHp = () => run.ardor >= 1 ? 1.25 : 1;
+const ardDmg = () => run.ardor >= 2 ? 1.2 : 1;
 const xpNeed = L => Math.round(12 + 7 * L + 1.5 * L * L);
 
 // ---------------------------------------------------------------------
-//  Giocatore
+// Player
 // ---------------------------------------------------------------------
 function newPlayer(lanternId) {
   return {
@@ -39,8 +39,8 @@ function recalcStats() {
   for (const id of p.relics) RELICS[id].apply(s);
   for (const id of p.curses) CURSES[id].apply(s);
   s.maxHp += p.baseHpMod || 0;
-  if (run.ardore >= 4) s.healMult -= 0.3;
-  if (run.ardore >= 5) s.oilDrain *= 1.5;
+  if (run.ardor >= 4) s.healMult -= 0.3;
+  if (run.ardor >= 5) s.oilDrain *= 1.5;
   s.dmgMult = Math.max(0.2, s.dmgMult);
   s.rateMult = Math.max(0.3, s.rateMult);
   s.speedMult = Math.max(0.5, s.speedMult);
@@ -119,7 +119,7 @@ function useCons(i) {
   const p = run.player, s = p.cons[i];
   if (!s) return;
   const C = CONS[s.id];
-  if (C.passive) { toast(C.name + ': effetto passivo', '#8a8294'); Sound.play('deny'); return; }
+  if (C.passive) { toast(C.name + ': passive effect', '#8a8294'); Sound.play('deny'); return; }
   if (!C.use(p)) { Sound.play('deny'); return; }
   s.n--;
   if (s.n <= 0) p.cons[i] = null;
@@ -135,7 +135,7 @@ function addXP(v) {
     p.xp -= xpNeed(p.level);
     p.level++;
     run.pendingLevels++;
-    Floaters.add(p.x, p.y - 16, 'LIVELLO ' + p.level, TEXT_COLORS.y, { life: 1.4, vy: -20 });
+    Floaters.add(p.x, p.y - 16, 'LEVEL ' + p.level, TEXT_COLORS.y, { life: 1.4, vy: -20 });
     Particles.burst(p.x, p.y, 24, ['#f6cf57', '#fff2a8', '#f29c38'], 90, 0.8, { grav: -30 });
     Sound.play('levelup');
     healPlayer(6, true);
@@ -143,7 +143,7 @@ function addXP(v) {
 }
 
 // ---------------------------------------------------------------------
-//  Stati alterati
+// Status effects
 // ---------------------------------------------------------------------
 function addStatus(a, name, dur, power = 0) {
   const isP = run && a === run.player;
@@ -174,7 +174,7 @@ function updateStatuses(a, dt, isP) {
         s.tick -= 0.5;
         if (isP) {
           const v = (k === 'burn' ? 2 : 0.8 * s.stacks) * (1 + 0.15 * (run.depth - 1));
-          hurtPlayer(v, k === 'burn' ? 'Le fiamme' : 'Il veleno', { dot: true });
+          hurtPlayer(v, k === 'burn' ? 'The flames' : 'The poison', { dot: true });
         } else if (!a.dead) {
           const v = s.power * 0.5 * (k === 'poison' ? s.stacks : 1);
           hitEnemy(a, v, { dot: k });
@@ -187,7 +187,7 @@ function updateStatuses(a, dt, isP) {
 }
 
 // ---------------------------------------------------------------------
-//  Collisioni con la mappa
+// Collisions with the map
 // ---------------------------------------------------------------------
 function collides(room, x, y, r, fly) {
   const x0 = Math.floor((x - r - RX) / TS), x1 = Math.floor((x + r - 0.01 - RX) / TS);
@@ -222,7 +222,7 @@ function lineClear(x0, y0, x1, y1) {
   return true;
 }
 
-// campo di flusso verso il giocatore (inseguimento attorno agli ostacoli)
+// flow field toward the player (pathing around obstacles)
 function updateFlow() {
   const room = run.room, p = run.player;
   if (!run.flow) run.flow = new Int16Array(RW * RH);
@@ -266,7 +266,7 @@ function flowAngle(e, tx, ty) {
 }
 
 // ---------------------------------------------------------------------
-//  Aggiornamento del giocatore
+// Player update
 // ---------------------------------------------------------------------
 function updatePlayer(dt) {
   const p = run.player, s = p.stats, room = run.room;
@@ -276,13 +276,13 @@ function updatePlayer(dt) {
   p.inv = Math.max(0, p.inv - dt);
   p.flareCd = Math.max(0, p.flareCd - dt);
 
-  // mira
+  // aim
   const ka = Act.arrowAim();
   if (ka !== null) p.aim = ka;
   else if (Input.lastDevice === 'mouse' || Input.mL) p.aim = angTo(p.x, p.y - 4, Input.mx, Input.my);
   p.facing = Math.cos(p.aim) >= 0 ? 1 : -1;
 
-  // scatto
+  // dash
   if (p.dashCharges < s.dashCharges) {
     p.dashCd -= dt;
     if (p.dashCd <= 0) { p.dashCharges++; p.dashCd = s.dashCd; }
@@ -311,38 +311,38 @@ function updatePlayer(dt) {
     vx = mv.x * sp; vy = mv.y * sp;
   }
   p.moving = Math.hypot(vx, vy) > 5;
-  // risucchio del Divoratore
+  // Devourer's suction
   if (run.pull) { vx += run.pull.x; vy += run.pull.y; }
   const bx = moveAxis(p, vx * dt, 0, false);
   const by = moveAxis(p, vy * dt, 1, false);
-  // scivolamento sugli spigoli (aiuta a imboccare le porte)
+  // corner sliding (helps line up with doors)
   if (bx && Math.abs(vy) < 1) nudge(p, 0, vx);
   if (by && Math.abs(vx) < 1) nudge(p, 1, vy);
 
-  // fuoco
+  // fire
   p.fireCd -= dt;
   if (Act.firing() && p.fireCd <= 0 && !run.lockFire) {
     playerFire(p);
     p.fireCd = 1 / pFireRate(p);
   }
-  // vampata
+  // flare
   if (Act.flare()) tryFlare(p);
-  // consumabili
+  // consumables
   const sl = Act.slot();
   if (sl >= 0) useCons(sl);
   if (p.echoT > 0) { p.echoT -= dt; if (p.echoT <= 0) fireVolley(p, p.aim, true); }
 
-  // olio
+  // oil
   if (room.combat && !s.noOilDrain) {
     p.oil = Math.max(0, p.oil - 1.05 * s.oilDrain * dt);
   }
-  // scudo del Lume Custode
+  // Warden Light shield
   if (s.guardian && !p.guardUp) { p.guardT -= dt; if (p.guardT <= 0) { p.guardUp = true; Sound.play('shield', 0.5); } }
-  // lucciole temporanee
+  // temporary fireflies
   if (p.tempOrbitT > 0) { p.tempOrbitT -= dt; if (p.tempOrbitT <= 0) p.tempOrbit = 0; }
   p.orbitA += dt * 3.2;
   updateOrbitals(p, dt);
-  // piccolo sole
+  // little sun
   if (s.sun && room.combat) {
     p.sunT -= dt;
     if (p.sunT <= 0) {
@@ -351,7 +351,7 @@ function updatePlayer(dt) {
       for (const e of run.enemies) if (!e.dead && dist(e.x, e.y, p.x, p.y) < R) { hitEnemy(e, pDamage(p) * 0.35, { dot: 'burn' }); }
     }
   }
-  // bottiglia di tempesta
+  // storm bottle
   if (s.storm && room.combat) {
     p.stormT -= dt;
     if (p.stormT <= 0) {
@@ -365,11 +365,11 @@ function updatePlayer(dt) {
       }
     }
   }
-  // spuntoni
+  // spikes
   const [tx, ty] = worldToTile(p.x, p.y + 2);
-  if (tileAt(room, tx, ty) === T.SPIKE && spikesUp(room) && p.dashT <= 0) hurtPlayer(8 * depthDmg(run.depth), 'Gli spuntoni');
+  if (tileAt(room, tx, ty) === T.SPIKE && spikesUp(room) && p.dashT <= 0) hurtPlayer(8 * depthDmg(run.depth), 'The spikes');
 }
-// scivolamento sugli spigoli: se il passo e' bloccato prova a spostarti di lato
+// corner sliding: if the step is blocked, try moving sideways
 function nudge(p, axis, d) {
   const room = run.room;
   const fx = axis === 0 ? sign(d) : 0, fy = axis === 1 ? sign(d) : 0;
@@ -418,7 +418,7 @@ function tryFlare(p) {
   const s = p.stats;
   const cost = s.flareCost;
   if (p.flareCd > 0) return;
-  if (p.oil < cost) { Sound.play('deny'); Floaters.add(p.x, p.y - 14, 'Olio insufficiente', TEXT_COLORS.d, { life: 0.9 }); p.flareCd = 0.4; return; }
+  if (p.oil < cost) { Sound.play('deny'); Floaters.add(p.x, p.y - 14, 'Not enough oil', TEXT_COLORS.d, { life: 0.9 }); p.flareCd = 0.4; return; }
   p.oil -= cost;
   p.flareCd = 0.9;
   const R = 64;
@@ -484,7 +484,7 @@ function hurtPlayer(amount, src, o = {}) {
   if (!o.dot) {
     if (p.inv > 0 || p.dashT > 0) return false;
     if (Math.random() < p.stats.dodge) {
-      Floaters.add(p.x, p.y - 14, 'Schivato', TEXT_COLORS.c); p.inv = 0.35; return false;
+      Floaters.add(p.x, p.y - 14, 'Dodged', TEXT_COLORS.c); p.inv = 0.35; return false;
     }
     if (p.guardUp) {
       p.guardUp = false; p.guardT = 10; p.inv = 0.7;
@@ -498,7 +498,7 @@ function hurtPlayer(amount, src, o = {}) {
   dmg = Math.max(1, Math.round(dmg));
   p.hp -= dmg;
   run.dmgTaken += dmg;
-  p.lastHit = src || 'Il buio';
+  p.lastHit = src || 'The dark';
   if (!o.dot) {
     p.inv = p.stats.iframes;
     shake(5); hitstop(0.06); screenFlash('#c02020', 0.35);
@@ -509,7 +509,7 @@ function hurtPlayer(amount, src, o = {}) {
       addFx({ type: 'shockwave', x: p.x, y: p.y, r: 4, maxR: 70, spd: 220, owner: 'player', dmg: pDamage(p) * 2, hit: new Set() });
     }
   } else if (Save.data.settings.numbers) {
-    Floaters.add(p.x, p.y - 12, '-' + dmg, src === 'Il veleno' ? TEXT_COLORS.g : TEXT_COLORS.o, { life: 0.5 });
+    Floaters.add(p.x, p.y - 12, '-' + dmg, src === 'The poison' ? TEXT_COLORS.g : TEXT_COLORS.o, { life: 0.5 });
   }
   if (p.hp <= 0) playerDeath();
   return true;
@@ -519,19 +519,19 @@ function playerDeath() {
   const p = run.player;
   if (p.stats.secondwind && !p.secondwindUsed) {
     p.secondwindUsed = true; p.hp = 1; p.inv = 2;
-    toast('Ultimo Respiro', '#f6cf57', 'Sei sopravvissuto per un soffio.');
+    toast('Last Breath', '#f6cf57', 'You survived by a breath.');
     Sound.play('shield'); return;
   }
   if (p.stats.revive && !p.coffinUsed) {
     p.coffinUsed = true; p.hp = Math.round(p.stats.maxHp / 2); p.inv = 2.5;
-    toast('Chiodo di Bara', '#f6cf57', 'La morte ti rifiuta. Per ora.');
+    toast('Coffin Nail', '#f6cf57', 'Death refuses you. For now.');
     reviveBurst(p); return;
   }
   const fi = p.cons.findIndex(s => s && s.id === 'feather');
   if (fi >= 0) {
     p.cons[fi].n--; if (p.cons[fi].n <= 0) p.cons[fi] = null;
     p.hp = Math.round(p.stats.maxHp / 2); p.inv = 2.5;
-    toast('Piuma di Fenice', '#f29c38', 'Rinasci dalle tue ceneri.');
+    toast('Phoenix Feather', '#f29c38', 'Rise from your ashes.');
     reviveBurst(p); return;
   }
   p.hp = 0; p.dead = true;
@@ -549,7 +549,7 @@ function reviveBurst(p) {
 }
 
 // ---------------------------------------------------------------------
-//  Proiettili del giocatore
+// Player projectiles
 // ---------------------------------------------------------------------
 function updateBullets(dt) {
   const room = run.room, p = run.player, s = p.stats;
@@ -571,7 +571,7 @@ function updateBullets(dt) {
         b.vx = Math.cos(na) * sp; b.vy = Math.sin(na) * sp;
       }
     }
-    // movimento con rimbalzi
+    // movement with bounces
     const nx = b.x + b.vx * dt, ny = b.y + b.vy * dt;
     let [tx, ty] = worldToTile(nx, b.y);
     let hitWall = false;
@@ -591,13 +591,13 @@ function updateBullets(dt) {
       continue;
     }
     if (b.kind === 'comet' && Math.random() < 0.6) Particles.add({ x: b.x, y: b.y, life: 0.35, color: pick(['#c8f2f5', '#f6cf57']), size: 2 });
-    // collisione con i nemici
+    // collision with enemies
     for (const e of run.enemies) {
       if (e.dead || e.intangible || e.spawning || b.hit.has(e)) continue;
       if (e.z > 10) continue;
       const rr = b.r + e.r;
       if (dist2(b.x, b.y, e.x, e.y) > rr * rr) continue;
-      // scudo frontale
+      // front shield
       if (e.D && e.D.shield && !(e.frozen > 0) && !e.shieldDown) {
         const ab = angTo(e.x, e.y, b.x, b.y);
         if (Math.abs(angDiff(e.facing, ab)) < 1.0) {
@@ -651,7 +651,7 @@ function chainLightning(from, dmg) {
 }
 
 // ---------------------------------------------------------------------
-//  Tile distruttibili
+// Destructible tiles
 // ---------------------------------------------------------------------
 function damageTile(tx, ty, dmg) {
   const room = run.room;
@@ -682,7 +682,7 @@ function breakUrn(tx, ty) {
 }
 
 // ---------------------------------------------------------------------
-//  Nemici
+// Enemies
 // ---------------------------------------------------------------------
 function makeEnemy(type, x, y, mod, o = {}) {
   const D = ENEMIES[type];
@@ -838,7 +838,7 @@ const AI = {
     e.st += dt;
     const d = dist(e.x, e.y, tg.x, tg.y);
     if (e.state === 'wind') {
-      // carica il colpo: lo scudo si abbassa
+      // charges the shot: the shield drops
       e.vx = e.vy = 0; e.wind = 0.6 - e.st; e.shieldDown = true;
       if (e.st > 0.6) {
         e.st = 0;
@@ -1044,13 +1044,13 @@ function updateEnemies(dt) {
       if (e.boss) bossUpdate(e, dt, tg, m);
       else AI[e.ai](e, dt, tg, m);
     }
-    // movimento + spinta
+    // movement + knockback
     const kx = e.kbx * dt, ky = e.kby * dt;
     e.kbx *= Math.max(0, 1 - 9 * dt); e.kby *= Math.max(0, 1 - 9 * dt);
     const hit = moveActor(e, e.vx * dt + kx, e.vy * dt + ky, e.fly || e.z > 4);
     if (hit) e.hitWall = true;
     if (!e.boss && Math.abs(e.vx) > 1 && e.ai !== 'shielder') e.facing = Math.atan2(e.vy, e.vx);
-    // contatto
+    // contact
     if (!e.intangible && e.z < 6 && !e.spawning && !p.dead && e.frozen <= 0) {
       const rr = e.r + p.r;
       if (dist2(e.x, e.y, p.x, p.y) < rr * rr) {
@@ -1063,7 +1063,7 @@ function updateEnemies(dt) {
       }
     }
   }
-  // separazione
+  // separation
   const en = run.enemies;
   for (let i = 0; i < en.length; i++) {
     const a = en[i];
@@ -1121,25 +1121,25 @@ function killEnemy(e, o = {}) {
   if (!o.silent) Sound.play('kill');
   shake(e.elite ? 3 : 1.5);
   if (!e.summoned || chance(0.5)) {
-    // esperienza
+    // experience
     const n = Math.min(8, Math.max(1, Math.round(e.xp / 2)));
     for (let i = 0; i < n; i++) run.room.pickups.push(makePickup('xp', e.x, e.y, { value: e.xp / n }));
-    // olio
+    // oil
     addOil(2.5 + (e.elite ? 4 : 0));
     run.oilFx.push({ x: e.x, y: e.y, t: 0 });
-    // monete e cuori
+    // coins and hearts
     const cc = e.elite ? 0.8 : 0.13;
     if (Math.random() < cc) run.room.pickups.push(makePickup(Math.random() < 0.12 ? 'coin5' : 'coin', e.x, e.y));
-    const hc = run.ardore >= 4 ? 0.02 : 0.035;
+    const hc = run.ardor >= 4 ? 0.02 : 0.035;
     if (Math.random() < hc + (e.elite ? 0.1 : 0)) run.room.pickups.push(makePickup('heart', e.x, e.y));
     if (e.elite && Math.random() < 0.25) run.room.pickups.push(makePickup('cons', e.x, e.y, { id: randomCons() }));
   }
-  // effetti dei doni
+  // perk effects
   if (s.leech) healPlayer(s.leech, true);
   if (s.fury) addStatus(p, 'fury', 2.5);
   if (s.explode) addFx({ type: 'explosion', x: e.x, y: e.y, r: 26 + 6 * s.explode, dmg: pDamage(p) * (0.9 + 0.5 * s.explode), owner: 'player', life: 0.3, small: true });
   if (s.ashTrail) addFx({ type: 'fire', x: e.x, y: e.y, r: 12, life: 3, owner: 'player' });
-  // effetti del nemico
+  // enemy effects
   if (e.D.split && !e.noSplit) {
     for (let i = 0; i < e.D.splitN; i++) {
       const ne = makeEnemy(e.D.split, e.x + rnd(-5, 5), e.y + rnd(-5, 5), null, { summoned: true });
@@ -1181,7 +1181,7 @@ function enemyColors(e) {
 }
 
 // ---------------------------------------------------------------------
-//  Boss
+// Boss
 // ---------------------------------------------------------------------
 function makeBoss(id, x, y) {
   const B = BOSSES[id];
@@ -1288,7 +1288,7 @@ const PATTERNS = {
       e.z = Math.max(0, 50 * (1 - P.st / 0.14));
       if (P.st > 0.14) {
         e.z = 0; e.intangible = false; e.slamTarget = null;
-        // riposiziona fuori da eventuali ostacoli
+        // reposition out of any obstacles
         if (collides(run.room, e.x, e.y, e.r, true)) { const c = tileCenter(14, 7); e.x = c.x; e.y = c.y; }
         addFx({ type: 'shockwave', x: e.x, y: e.y, r: 6, maxR: 130, spd: 170, owner: 'enemy', dmg: e.dmg, src: e.name });
         if (s.ring) { const off = rnd(TAU); for (let i = 0; i < s.ring; i++) bossShoot(e, off + i * TAU / s.ring, { spd: 80, kind: s.kind, status: s.status }); }
@@ -1418,14 +1418,14 @@ function bossUpdate(e, dt, tg, m) {
     Sound.play('roar'); shake(8); screenFlash('#ffffff', 0.3);
     const off = rnd(TAU);
     for (let i = 0; i < 20; i++) bossShoot(e, off + i * TAU / 20, { spd: 70, kind: ph[0].pats[0].kind || 'orb' });
-    toast(e.name + ' si infuria!', '#e0574a');
+    toast(e.name + ' is enraged!', '#e0574a');
   }
   if (e.invuln > 0) { e.invuln -= dt; e.vx = e.vy = 0; return; }
-  const rate = (run.ardore >= 5 ? 1.25 : 1) * (1 + 0.04 * Math.max(0, run.depth - 5));
+  const rate = (run.ardor >= 5 ? 1.25 : 1) * (1 + 0.04 * Math.max(0, run.depth - 5));
   const cur = ph[e.phase];
   if (!e.pat) {
     e.gapT -= dt * rate;
-    // movimento tra un attacco e l'altro
+    // movement between attacks
     const p = run.player;
     const d = dist(e.x, e.y, tg.x, tg.y);
     let a = angTo(e.x, e.y, tg.x, tg.y);
@@ -1480,7 +1480,7 @@ function bossDying(e, dt) {
 }
 
 // ---------------------------------------------------------------------
-//  Proiettili nemici
+// Enemy projectiles
 // ---------------------------------------------------------------------
 function updateEnemyBullets(dt) {
   const p = run.player, room = run.room;
@@ -1520,7 +1520,7 @@ function bulletColor(b) {
 }
 
 // ---------------------------------------------------------------------
-//  Effetti (esplosioni, onde, nubi, fuoco, raggi, evocazioni, bombe)
+// Effects (explosions, waves, clouds, fire, beams, summons, bombs)
 // ---------------------------------------------------------------------
 function addFx(f) { f.t = 0; if (f.life === undefined) f.life = 1; run.fx.push(f); return f; }
 
@@ -1551,7 +1551,7 @@ function updateFx(dt) {
         f.r += f.spd * dt;
         if (f.owner === 'enemy' && !f.hitP && !p.dead) {
           const d = dist(f.x, f.y, p.x, p.y);
-          if (Math.abs(d - f.r) < 7) { f.hitP = true; hurtPlayer(f.dmg, f.src || 'Un\'onda d\'urto'); }
+          if (Math.abs(d - f.r) < 7) { f.hitP = true; hurtPlayer(f.dmg, f.src || 'A shockwave'); }
         } else if (f.owner === 'player') {
           for (const e of run.enemies) {
             if (e.dead || f.hit.has(e)) continue;
@@ -1591,13 +1591,13 @@ function updateFx(dt) {
         f.x = e.x; f.y = e.y;
         if (f.t > f.warm) {
           f.ang += f.rot * dt;
-          // collisione con il giocatore: distanza punto-segmento
+          // collision with the player: point-segment distance
           const ex = f.x + Math.cos(f.ang) * f.len, ey = f.y + Math.sin(f.ang) * f.len;
           const d = pointSegDist(p.x, p.y, f.x, f.y, ex, ey);
           if (d < f.w / 2 + 2) hurtPlayer(f.dmg, f.src);
           if (Math.random() < 0.5) { const k = rnd(0.1, 1); Particles.add({ x: lerp(f.x, ex, k), y: lerp(f.y, ey, k), vx: rnd(-20, 20), vy: rnd(-20, 20), life: 0.3, color: '#e0a0ff', above: true }); }
         } else {
-          // durante il preavviso il raggio segue lentamente il giocatore
+          // during the warning the beam slowly follows the player
           f.ang += f.rot * dt * 0.15;
         }
         break;
@@ -1645,9 +1645,9 @@ function explosionHit(f) {
     }
   }
   if (f.owner !== 'player' && !p.dead) {
-    if (dist(f.x, f.y, p.x, p.y) < f.r + 2) hurtPlayer(f.owner === 'neutral' ? Math.min(14, f.dmg * 0.3) : f.dmg, f.src || 'Un\'esplosione');
+    if (dist(f.x, f.y, p.x, p.y) < f.r + 2) hurtPlayer(f.owner === 'neutral' ? Math.min(14, f.dmg * 0.3) : f.dmg, f.src || 'An explosion');
   }
-  // tile coinvolti
+  // tiles involved
   if (!f.small || f.owner === 'neutral') {
     const [cx, cy] = worldToTile(f.x, f.y);
     const R = Math.ceil(f.r / TS);
@@ -1665,7 +1665,7 @@ function explosionHit(f) {
       }
     }
   }
-  // passaggi segreti
+  // secret passages
   if (f.reveal) {
     for (const d in room.doors) {
       const n = room.doors[d];
@@ -1675,7 +1675,7 @@ function explosionHit(f) {
         n.found = true;
         for (const [tx, ty] of DIRS[d].tiles) room.grid[ty][tx] = T.DOOR;
         room.bgDirty = true;
-        toast('Un passaggio segreto!', '#f6cf57');
+        toast('A secret passage!', '#f6cf57');
         Sound.play('chest');
       }
     }
@@ -1689,7 +1689,7 @@ function freezeAll(t) {
 }
 
 // ---------------------------------------------------------------------
-//  Raccoglibili
+// Pickups
 // ---------------------------------------------------------------------
 function makePickup(type, x, y, o = {}) {
   const a = rnd(TAU), s = rnd(20, 70);
@@ -1741,7 +1741,7 @@ function collectPickup(k) {
     case 'coin5': { const n = addCoins(5); Floaters.add(p.x, p.y - 12, '+' + n, TEXT_COLORS.y, { life: 0.6 }); Sound.play('coin'); break; }
     case 'heart': if (p.hp >= p.stats.maxHp) return; healPlayer(12 + 2 * run.depth); break;
     case 'oil': addOil(k.value || 25); Sound.play('oil'); Floaters.add(p.x, p.y - 12, '+olio', TEXT_COLORS.o, { life: 0.6 }); break;
-    case 'key': p.keys++; Sound.play('pickup'); Floaters.add(p.x, p.y - 12, '+1 chiave', TEXT_COLORS.y, { life: 0.8 }); break;
+    case 'key': p.keys++; Sound.play('pickup'); Floaters.add(p.x, p.y - 12, '+1 key', TEXT_COLORS.y, { life: 0.8 }); break;
     case 'cons':
       if (!giveCons(k.id)) return;
       Sound.play('pickup'); toast(CONS[k.id].name, '#ece6d8', CONS[k.id].desc);
@@ -1751,7 +1751,7 @@ function collectPickup(k) {
 }
 
 // ---------------------------------------------------------------------
-//  Interazioni con gli oggetti della stanza
+// Interactions with room objects
 // ---------------------------------------------------------------------
 function nearestObject() {
   const p = run.player, room = run.room;
@@ -1795,7 +1795,7 @@ function takeRelic(o) {
 function openChest(o) {
   const p = run.player, room = run.room;
   if (o.gold && !o.free) {
-    if (p.keys <= 0) { Sound.play('deny'); toast('Serve una chiave', '#8a8294'); return; }
+    if (p.keys <= 0) { Sound.play('deny'); toast('A key is needed', '#8a8294'); return; }
     p.keys--;
   }
   o.open = true;
@@ -1830,10 +1830,10 @@ function priceOf(o) { return Math.max(1, Math.round(o.price * run.player.stats.p
 function buyItem(o) {
   const p = run.player;
   const price = priceOf(o);
-  if (p.coins < price) { Sound.play('deny'); toast('Non hai abbastanza monete', '#8a8294'); return; }
+  if (p.coins < price) { Sound.play('deny'); toast('Not enough coins', '#8a8294'); return; }
   const it = o.item;
-  if (it.kind === 'cons' && !canTakeCons(it.id)) { Sound.play('deny'); toast('Borsa piena', '#8a8294'); return; }
-  if (it.kind === 'heal' && p.hp >= p.stats.maxHp) { Sound.play('deny'); toast('Sei già in forze', '#8a8294'); return; }
+  if (it.kind === 'cons' && !canTakeCons(it.id)) { Sound.play('deny'); toast('Bag full', '#8a8294'); return; }
+  if (it.kind === 'heal' && p.hp >= p.stats.maxHp) { Sound.play('deny'); toast('You are already at full strength', '#8a8294'); return; }
   p.coins -= price;
   o.gone = true;
   Sound.play('buy');
@@ -1842,7 +1842,7 @@ function buyItem(o) {
   else if (it.kind === 'key') { p.keys++; }
   else if (it.kind === 'relic') takeRelic({ id: it.id, x: o.x, y: o.y });
   const m = run.room.objects.find(x => x.type === 'merchant');
-  if (m) m.line = pick(['Affare fatto.', 'Ottima scelta.', 'Torna quando vuoi.', 'Che la luce ti accompagni.']);
+  if (m) m.line = pick(['Deal done.', 'Excellent choice.', 'Come back anytime.', 'May the light go with you.']);
 }
 
 function useShrine(o) {
@@ -1850,7 +1850,7 @@ function useShrine(o) {
   if (o.uses <= 0) return;
   switch (o.kind) {
     case 'blood': {
-      if (p.stats.maxHp <= 30) { Sound.play('deny'); toast('Sei troppo debole per offrire altro', '#8a8294'); return; }
+      if (p.stats.maxHp <= 30) { Sound.play('deny'); toast('You are too weak to offer more', '#8a8294'); return; }
       o.uses--;
       run.bloodPaid = (run.bloodPaid || 0) + 15;
       p.baseHpMod = (p.baseHpMod || 0) - 15;
@@ -1863,14 +1863,14 @@ function useShrine(o) {
       break;
     }
     case 'fortune': {
-      if (p.coins < 5) { Sound.play('deny'); toast('Servono 5 monete', '#8a8294'); return; }
+      if (p.coins < 5) { Sound.play('deny'); toast('5 coins needed', '#8a8294'); return; }
       p.coins -= 5; o.uses--;
       Sound.play('coin');
       const r = Math.random();
-      if (r < 0.35) toast('Le monete affondano nel silenzio.', '#8a8294');
-      else if (r < 0.65) { for (let i = 0; i < 8; i++) run.room.pickups.push(makePickup('coin', o.x, o.y)); toast('La fontana restituisce il doppio!', '#f6cf57'); }
-      else if (r < 0.88) { run.room.pickups.push(makePickup('cons', o.x, o.y, { id: randomCons() })); toast('Qualcosa riaffiora dall\'acqua.', '#ece6d8'); }
-      else { run.pendingLevels++; toast('Un dono dalla fontana!', '#c57ae0'); }
+      if (r < 0.35) toast('The coins sink into silence.', '#8a8294');
+      else if (r < 0.65) { for (let i = 0; i < 8; i++) run.room.pickups.push(makePickup('coin', o.x, o.y)); toast('The fountain returns double!', '#f6cf57'); }
+      else if (r < 0.88) { run.room.pickups.push(makePickup('cons', o.x, o.y, { id: randomCons() })); toast('Something resurfaces from the water.', '#ece6d8'); }
+      else { run.pendingLevels++; toast('A gift from the fountain!', '#c57ae0'); }
       break;
     }
     case 'fountain': {
@@ -1878,13 +1878,13 @@ function useShrine(o) {
         p.coins -= 20; o.uses--;
         const c = p.curses.splice(rndi(0, p.curses.length - 1), 1)[0];
         recalcStats();
-        toast('Maledizione purificata: ' + CURSES[c].name, '#7fd8e6');
+        toast('Curse purified: ' + CURSES[c].name, '#7fd8e6');
         Sound.play('heal');
       } else if (!p.curses.length) {
         o.uses--;
         healPlayer(999, true); addOil(999);
-        toast('L\'acqua pura ti ristora.', '#7fd8e6');
-      } else { Sound.play('deny'); toast('Servono 20 monete', '#8a8294'); return; }
+        toast('The pure water restores you.', '#7fd8e6');
+      } else { Sound.play('deny'); toast('20 coins needed', '#8a8294'); return; }
       break;
     }
     case 'pact': {
@@ -1895,7 +1895,7 @@ function useShrine(o) {
       recalcStats();
       if (r) takeRelic({ id: r, x: o.x, y: o.y });
       Sound.play('curse'); screenFlash('#4b2a5c', 0.5);
-      toast('Il patto è stretto.', '#c57ae0', avail.length ? 'Nuova maledizione: ' + CURSES[p.curses[p.curses.length - 1]].name : '');
+      toast('The pact is sealed.', '#c57ae0', avail.length ? 'New curse: ' + CURSES[p.curses[p.curses.length - 1]].name : '');
       break;
     }
   }
@@ -1903,7 +1903,7 @@ function useShrine(o) {
 
 function revealMap() {
   for (const r of run.floor.rooms) { r.seen = true; if (r.type === 'secret') r.mapped = true; }
-  toast('La mappa si rivela', '#d8c49a');
+  toast('The map is revealed', '#d8c49a');
   Sound.play('pickup');
 }
 function rollDice() {
@@ -1918,12 +1918,12 @@ function rollDice() {
   }
   if (Math.random() < 0.3) {
     const avail = Object.keys(CURSES).filter(c => !p.curses.includes(c));
-    if (avail.length) { const c = pick(avail); p.curses.push(c); recalcStats(); setTimeout(() => toast('Maledizione: ' + CURSES[c].name, '#c57ae0', CURSES[c].desc), 700); Sound.play('curse'); }
+    if (avail.length) { const c = pick(avail); p.curses.push(c); recalcStats(); setTimeout(() => toast('Curse: ' + CURSES[c].name, '#c57ae0', CURSES[c].desc), 700); Sound.play('curse'); }
   }
   Sound.play('pickup');
 }
 
-// scelta dei doni (pesata per rarita')
+// perk choice (weighted by rarity)
 function rollPerkChoices(n, minRar = 0) {
   const p = run.player;
   const luck = p.stats.luck + (run.depth - 1) * 0.25;

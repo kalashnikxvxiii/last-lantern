@@ -1,18 +1,18 @@
 extends TestCase
-# Ondate, stanza ripulita, porte che si aprono, ricompense.
+# Waves, cleared room, opening doors, rewards.
 
 func after() -> void:
 	Run.reset()
 
-func test_ondata_compare_e_la_stanza_si_ripulisce() -> void:
+func test_wave_appears_and_the_room_clears() -> void:
 	TH.new_run(41)
 	var room := TH.enter("normal")
 	check(room.combat)
 	for i in 70:
 		Run.player.inv = 99.0
 		Flow.update_game(Consts.DT)
-	check(not Run.enemies.is_empty(), "prima ondata comparsa")
-	room.waveIdx = room.waves.size()   # niente altre ondate
+	check(not Run.enemies.is_empty(), "first wave appeared")
+	room.waveIdx = room.waves.size()   # no more waves
 	for i in 180:
 		Run.player.inv = 99.0
 		for e in Run.enemies.duplicate():

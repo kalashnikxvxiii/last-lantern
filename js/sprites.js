@@ -1,11 +1,11 @@
 'use strict';
 // =====================================================================
-//  Sprite pixel-art (disegnati come stringhe; "sym" = meta' sinistra
-//  specchiata). L'outline scuro viene aggiunto in automatico.
+// Pixel-art sprites (drawn as strings; "sym" = left half
+// mirrored). The dark outline is added automatically.
 // =====================================================================
 
 function buildSprites() {
-  // ------------------------------------------------------------ giocatore
+  // ------------------------------------------------------------ player
   defSprite('player', {
     sym: true, frames: [[
       '....aa', '...aAA', '..aAhA', '..aAAA', '..aKKK', '..aKyK', '..aKKK',
@@ -16,7 +16,7 @@ function buildSprites() {
     ]]
   });
 
-  // ------------------------------------------------------------ cripte
+  // ------------------------------------------------------------ crypts
   const ratPal = { G: '#6e5a4e', g: '#4a3a32', s: '#d48f8f', p: '#e0a0a0', r: '#a06868' };
   defSprite('rat', {
     pal: ratPal, frames: [[
@@ -55,7 +55,7 @@ function buildSprites() {
     ]]
   });
 
-  // ------------------------------------------------------------ fungaie
+  // ------------------------------------------------------------ fungal caves
   const grubPal = { t: '#c9b28a', Y: '#e9dcb0' };
   defSprite('grub', {
     pal: grubPal, frames: [[
@@ -93,7 +93,7 @@ function buildSprites() {
     ]]
   });
 
-  // ------------------------------------------------------------ fonderia
+  // ------------------------------------------------------------ foundry
   defSprite('automaton', {
     sym: true, frames: [[
       '...uuu', '..uUUU', '..uOOO', '..uUUU', '...gg.', '.uuUUU', 'uUUuUU', 'uU.uUU', 'gg.uUU', '...uUU', '...gg.', '..gG..', '..gG..', '.uu...'
@@ -130,7 +130,7 @@ function buildSprites() {
     ]]
   });
 
-  // ------------------------------------------------------------ abisso
+  // ------------------------------------------------------------ abyss
   defSprite('drowned', {
     sym: true, pal: { c: '#5aa0aa', C: '#9ad8dc', b: '#1e3a44' }, frames: [[
       '....cc', '...cCC', '..cCCC', '..cbkb', '..cCCC', '..cCbC', '.cCCCC', 'cCcCCC', 'cC.cCC', 'c..cCC', '...cCC', '..cCcC', '..c.c.', '.c..c.'
@@ -160,7 +160,7 @@ function buildSprites() {
     ]]
   });
 
-  // ------------------------------------------------------------ cuore del pozzo
+  // ------------------------------------------------------------ heart of the well
   defSprite('cultist', {
     sym: true, pal: { r: '#5c1f2a', R: '#9a2f3a' }, frames: [[
       '....rr', '...rRR', '..rRRR', '..rkkk', '..rkyk', '..rkkk', '.rrRRR', 'rRRrRR', 'rRwrRR', 'rR.rRR', '...rRR', '..rRRR', '..rRRR', '.rRRRR', '.rrrrr'
@@ -190,7 +190,7 @@ function buildSprites() {
     ]]
   });
 
-  // ------------------------------------------------------------ boss
+  // ------------------------------------------------------------ bosses
   defSprite('boss_bones', {
     sym: true, pal: { v: '#2a1838', V: '#4b2a5c' }, frames: [[
       '..........y.', '......y..yy.', '........yyyy', '.......wwwww', '......wwwwww', '......wkkkww', '......wkRkww', '......wkkkww',
@@ -251,7 +251,7 @@ function buildSprites() {
     ]]
   });
 
-  // ------------------------------------------------------------ raccoglibili
+  // ------------------------------------------------------------ pickups
   defSprite('coin', { frames: [['.yyy.', 'yYYyo', 'yYyyo', 'yYyyo', 'yyyyo', '.ooo.'], ['..y..', '.yYo.', '.yyo.', '.yyo.', '.yyo.', '..o..']] });
   defSprite('coin5', { pal: { y: '#c8d0dc', Y: '#ffffff', o: '#6a7484' }, frames: [['.yyy.', 'yYYyo', 'yYyyo', 'yYyyo', 'yyyyo', '.ooo.'], ['..y..', '.yYo.', '.yyo.', '.yyo.', '.yyo.', '..o..']] });
   defSprite('heart', { sym: true, frames: [['.RR.', 'RWRR', 'RRRR', '.RRR', '..RR', '...R']] });
@@ -269,7 +269,7 @@ function buildSprites() {
   defSprite('chest', { frames: [chestRowsClosed, chestRowsOpen] });
   defSprite('goldchest', { pal: { n: '#7a5a20', N: '#c89a3a', t: '#fff2a8', u: '#5a4428', y: '#e0e0e0', k: '#2a1d18' }, frames: [chestRowsClosed, chestRowsOpen] });
 
-  // ------------------------------------------------------------ consumabili
+  // ------------------------------------------------------------ consumables
   defSprite('bomb', { frames: [['......y', '.....O.', '....n..', '..ggg..', '.gGsGg.', 'gGsGGGg', 'gGGGGGg', 'gGGGGGg', '.gGGGg.', '..ggg..']] });
   const bottle = ['..nnn..', '..sss..', '...s...', '..sLs..', '.sLWLs.', 'sLLWLLs', 'sLLLLLs', 'sLLLLls', '.sllls.'];
   defSprite('potion', { pal: { L: '#d04b3c', l: '#7e2530', W: '#ffb0a0', s: '#c8c0d0' }, frames: [bottle] });
@@ -285,7 +285,7 @@ function buildSprites() {
   defSprite('pouch', { pal: { n: '#2a2440', N: '#4a4068', t: '#8a80b0' }, frames: [['..n.n..', '...n...', '..nNn..', '.nNNNn.', 'nNNtNNn', 'nNtNNNn', 'nNNNNNn', '.nnnnn.']] });
   defSprite('feather', { frames: [['......Rr', '.....RRr', '....ORRr', '...OORr.', '..yOOr..', '..yOr...', '.yOr....', '.n......', 'n.......']] });
 
-  // ------------------------------------------------------------ oggetti di scena
+  // ------------------------------------------------------------ props
   defSprite('barrel', {
     frames: [[
       '..nnnnnnnn..', '.nNNNNNNNNn.', 'nNNtNNNNtNNn', 'gGGGGGGGGGGg', 'nNNNNNNNNNNn', 'nNNNRRRRNNNn', 'nNNRRyyRRNNn',
@@ -315,7 +315,7 @@ function buildSprites() {
     ]]
   });
 
-  // ------------------------------------------------------------ icone doni / reliquie (10x10)
+  // ------------------------------------------------------------ perk / relic icons (10x10)
   const I = (name, rows, pal, sym) => defSprite(name, { frames: [rows], pal: pal || {}, sym: !!sym });
   I('i_blade', ['........ss', '.......sWs', '......sWs.', '.....sWs..', '....sWs...', '.n.sWs....', '..nWs.....', '..yn......', '.y.yn.....', 'y.........']);
   I('i_rate', ['.O...O....', '..O...O...', '...O...O..', '....y...y.', '...O...O..', '..O...O...', '.O...O....']);
@@ -366,7 +366,7 @@ function buildSprites() {
   I('i_blood', ['....r', '...rR', '..rRR', '.rRRW', '.rRRR', '..rRR', '...rr'], null, true);
   I('i_mask', ['.wwww', 'wwwww', 'wkkww', 'wwwww', '.wwwk', '..www'], { w: '#c8c0d0' }, true);
 
-  // ------------------------------------------------------------ icone di stato (7x7)
+  // ------------------------------------------------------------ status icons (7x7)
   I('s_burn', ['..R', '.RO', 'ROO', 'ROy', '.Ry'], null, true);
   I('s_poison', ['..e', '.eE', 'eEl', 'eEl', '.ee'], null, true);
   I('s_chill', ['C.c', '.Cc', 'ccW', '.Cc', 'C.c'], { c: '#7fd0e0', C: '#c8f2f5' }, true);

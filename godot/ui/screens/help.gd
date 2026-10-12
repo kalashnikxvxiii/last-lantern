@@ -1,5 +1,5 @@
 extends Screen
-# Come si gioca (Scenes.help in js/game.js).
+# How to play (Scenes.help in js/game.js).
 
 var page := 0
 
@@ -20,36 +20,36 @@ func paint() -> void:
 	var W := Consts.W
 	var H := Consts.H
 	UiDraw.panel(self, 24, 14, W - 48, H - 28)
-	var titles := ["Comandi", "La discesa", "Stati alterati"]
+	var titles := ["Controls", "The descent", "Status effects"]
 	UiDraw.text(self, titles[mini(page, 2)], W / 2.0, 24, {"align": "center", "color": "#f6cf57", "scale": 2})
 	var x := 44.0
 	if page == 0:
 		var rows := [
-			[["W", "A", "S", "D"], "Muoviti"], [["Mouse"], "Mira  (oppure le frecce)"], [["Clic Sx"], "Spara  (oppure tieni premute le frecce)"],
-			[["Spazio"], "Scatto: attraversi i colpi senza danno"], [["Clic Dx", "F"], "Vampata: onda di fuoco, consuma olio"],
-			[["1", "2", "3", "4"], "Usa un consumabile"], [["E"], "Interagisci: forzieri, reliquie, mercante"], [["Tab", "M"], "Mappa della profondità"], [["Esc", "P"], "Pausa e equipaggiamento"],
+			[["W", "A", "S", "D"], "Move"], [["Mouse"], "Aim  (or the arrow keys)"], [["Left click"], "Shoot  (or hold the arrow keys)"],
+			[["Space"], "Dash: pass through attacks unharmed"], [["Right click", "F"], "Flare: wave of fire, uses oil"],
+			[["1", "2", "3", "4"], "Use a consumable"], [["E"], "Interact: chests, relics, merchant"], [["Tab", "M"], "Depth map"], [["Esc", "P"], "Pause and equipment"],
 		]
 		for i in rows.size():
 			var kx := x
 			for k in rows[i][0]:
 				kx += UiDraw.keycap(self, kx, 50 + i * 18, k) + 3
 			UiDraw.text(self, rows[i][1], x + 110, 51 + i * 18, {"color": "#d8d0c0"})
-		UiDraw.text_wrapped(self, "^dGamepad: stick sinistro per muoverti, stick destro per mirare e sparare, A scatto, B Vampata, X interagisci, croce direzionale per i consumabili.", x, 216, W - 90, {})
+		UiDraw.text_wrapped(self, "^dGamepad: left stick to move, right stick to aim and shoot, A dash, B Flare, X interact, d-pad for consumables.", x, 216, W - 90, {})
 	elif page == 1:
 		var txt := [
-			"^yLa lanterna è la tua vita.^w Durante i combattimenti l'olio si consuma e la luce si restringe. Ogni nemico ucciso restituisce un po' d'olio. Senza olio il buio ti ferisce: subisci ^r+25%^w danni.",
-			"^yLa Vampata^w brucia e respinge chi ti sta attorno e cancella i proiettili vicini. Costa olio: usala con giudizio.",
-			"^yI doni^w arrivano salendo di livello e si scelgono quando la stanza è sicura. ^yLe reliquie^w si trovano nei tesori, dai mercanti, nei segreti e dai guardiani. Alcune portano ^pmaledizioni^w.",
-			"Le ^ybombe^w aprono passaggi segreti: cerca le crepe sui muri. Ogni profondità ha un ^rguardiano^w: sconfiggilo e scendi dalla botola. Sono cinque profondità fino al Cuore del Pozzo.",
+			"^yThe lantern is your life.^w During fights the oil burns and your light shrinks. Every enemy killed gives back a little oil. Without oil the dark hurts you: you take ^r+25%^w damage.",
+			"^yThe Flare^w burns and pushes back everything around you and cancels nearby projectiles. It costs oil: use it wisely.",
+			"^yPerks^w come from leveling up and are chosen once the room is safe. ^yRelics^w are found in treasures, from merchants, in secrets and from wardens. Some carry ^pcurses^w.",
+			"^yBombs^w open secret passages: look for cracks in the walls. Every depth has a ^rwarden^w: defeat it and go down the trapdoor. There are five depths down to the Heart of the Well.",
 		]
 		var y := 46.0
 		for tx in txt:
 			y += UiDraw.text_wrapped(self, tx, x, y, W - 90, {"color": "#d8d0c0"}) + 6
 	else:
 		var desc := {
-			"burn": "Danno continuo per qualche secondo.", "poison": "Danno continuo che si accumula a ogni colpo.", "chill": "Rallenta. Tre cariche congelano i nemici.",
-			"slow": "Ti muovi più lentamente.", "weak": "Infliggi il 30% di danno in meno.", "fragile": "Subisci il 30% di danno in più.", "blind": "La tua luce si riduce drasticamente.",
-			"rage": "Danno e cadenza aumentati.", "immune": "Nessun malus può colpirti.", "invis": "I nemici perdono le tue tracce.", "fury": "Cadenza aumentata dopo ogni uccisione.",
+			"burn": "Damage over time for a few seconds.", "poison": "Damage over time that stacks with every hit.", "chill": "Slows. Three stacks freeze enemies.",
+			"slow": "You move more slowly.", "weak": "You deal 30% less damage.", "fragile": "You take 30% more damage.", "blind": "Your light shrinks drastically.",
+			"rage": "Damage and fire rate increased.", "immune": "No debuff can affect you.", "invis": "Enemies lose your trail.", "fury": "Fire rate increased after every kill.",
 		}
 		var ks := Statuses.ALL.keys()
 		for i in ks.size():
@@ -59,4 +59,4 @@ func paint() -> void:
 			Spr.draw(self, Statuses.ALL[k].icon, 0, x + 5.5, y + 4)
 			UiDraw.text(self, Statuses.ALL[k].name, x + 18, y, {"color": Statuses.ALL[k].col})
 			UiDraw.text(self, desc.get(k, ""), x + 110, y, {"color": "#d8d0c0"})
-	UiDraw.text(self, str(mini(page, 2) + 1) + " / 3   -   frecce per sfogliare, ESC per uscire", W / 2.0, H - 26, {"align": "center", "color": "#55505e"})
+	UiDraw.text(self, str(mini(page, 2) + 1) + " / 3   -   arrows to flip pages, ESC to exit", W / 2.0, H - 26, {"align": "center", "color": "#55505e"})

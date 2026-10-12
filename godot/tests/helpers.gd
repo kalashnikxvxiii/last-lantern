@@ -1,8 +1,8 @@
 class_name TH
 extends RefCounted
-# Aiuti per i test di gioco senza scena.
+# Helpers for game tests without a scene.
 
-static func new_run(seed: int = 7, lantern: String = "custode") -> void:
+static func new_run(seed: int = 7, lantern: String = "warden") -> void:
 	U.seed_random(seed)
 	Flow.start_run(lantern, 0, seed)
 
@@ -17,7 +17,7 @@ static func enter(type: String) -> Dictionary:
 	Flow.enter_room(r, null)
 	return r
 
-# stanza di combattimento senza ondate: le porte restano chiuse finché vive un nemico
+# combat room without waves: the doors stay closed while an enemy is alive
 static func arena() -> Dictionary:
 	var r := enter("normal")
 	r.waves = []

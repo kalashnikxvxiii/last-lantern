@@ -1,11 +1,11 @@
 {
-  "name": "ultima-lanterna",
-  "productName": "Ultima Lanterna",
+  "name": "last-lantern",
+  "productName": "Last Lantern",
   "version": "0.9.0",
-  "description": "Ultima Lanterna - roguelike d'azione 2D",
+  "description": "Last Lantern - 2D action roguelike",
   "main": "main.js",
   "private": true,
-  "author": "Ultima Lanterna",
+  "author": "Last Lantern",
   "license": "MIT",
   "devDependencies": {
     "electron": "43.0.0",

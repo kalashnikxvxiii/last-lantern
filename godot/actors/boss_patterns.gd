@@ -1,7 +1,7 @@
 class_name BossPatterns
 extends RefCounted
-# Pattern d'attacco dei boss (PATTERNS e bossShoot in js/entities.js).
-# Firma comune: (e, P, dt, s) -> true quando il pattern è finito.
+# Boss attack patterns (PATTERNS and bossShoot in js/entities.js).
+# Common signature: (e, P, dt, s) -> true when the pattern is finished.
 
 static func run(e: Boss, P: Dictionary, dt: float, s: Dictionary) -> bool:
 	match s.p:

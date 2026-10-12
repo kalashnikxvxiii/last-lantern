@@ -1,6 +1,6 @@
 class_name RoomU
 extends RefCounted
-# Utilità delle stanze (js/dungeon.js): porte, tile, coordinate, raggiungibilità.
+# Room utilities (js/dungeon.js): doors, tiles, coordinates, reachability.
 
 const DIRS := {
 	"n": {"dx": 0, "dy": -1, "opp": "s", "tiles": [[13, 0], [14, 0], [15, 0]]},
@@ -15,7 +15,7 @@ static func key(r: Dictionary) -> String:
 static func room_at(fl: Dictionary, gx: int, gy: int) -> Variant:
 	return fl.map.get("%d,%d" % [gx, gy])
 
-# punto di ingresso del giocatore quando arriva da una porta
+# player entry point when arriving through a door
 static func door_entry(dir: String) -> Vector2:
 	match dir:
 		"n": return Vector2(Consts.RX + 14.5 * Consts.TS, Consts.RY + 1.9 * Consts.TS)
@@ -80,7 +80,7 @@ static func blocks_shot(room: Dictionary, tx: int, ty: int) -> bool:
 static func walkable(t: int) -> bool:
 	return t == Consts.T.FLOOR or t == Consts.T.SPIKE or t == Consts.T.DOOR
 
-# insieme ordinato (Dictionary) delle caselle raggiungibili da (sx, sy)
+# ordered set (Dictionary) of cells reachable from (sx, sy)
 static func flood_from(room: Dictionary, sx: int, sy: int) -> Dictionary:
 	var rw := Consts.RW
 	var seen := {}

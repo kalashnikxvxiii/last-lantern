@@ -1,24 +1,24 @@
 class_name Cons
 extends RefCounted
-# Consumabili (CONS in js/data.js): 4 slot, si impilano fino a 3. L'ordine conta.
+# Consumables (CONS in js/data.js): 4 slots, stack up to 3. Order matters.
 
 static var ALL := {
-	"potion": {"name": "Pozione Rossa", "spr": "potion", "w": 10, "price": 14, "desc": "Cura ^y30^w vita."},
-	"bigpotion": {"name": "Elisir Vitale", "spr": "bigpotion", "w": 2, "price": 30, "desc": "Cura ^ytutta^w la vita."},
-	"oil": {"name": "Fiaschetta d'Olio", "spr": "oilflask", "w": 8, "price": 10, "desc": "Ricarica ^y60^w olio."},
-	"bomb": {"name": "Bomba", "spr": "bomb", "w": 9, "price": 9, "desc": "Esplode dopo poco: ^y80^w danni ad area. Sfonda rocce incrinate e passaggi segreti."},
-	"antidote": {"name": "Antidoto", "spr": "antidote", "w": 6, "price": 10, "desc": "Rimuove tutti i malus e ne protegge per ^y6^w secondi."},
-	"rage": {"name": "Grappa del Minatore", "spr": "rage", "w": 6, "price": 12, "desc": "+^y50%^w danno e cadenza per ^y10^w secondi."},
-	"frost": {"name": "Fiala di Gelo", "spr": "frost", "w": 5, "price": 14, "desc": "^cCongela^w tutti i nemici della stanza per ^y3^w secondi."},
-	"map": {"name": "Pergamena", "spr": "scroll", "w": 4, "price": 8, "desc": "Rivela la mappa della profondità, segreti inclusi."},
-	"firefly": {"name": "Barattolo di Lucciole", "spr": "jar", "w": 5, "price": 12, "desc": "^y3^w lucciole ti proteggono per ^y25^w secondi."},
-	"dice": {"name": "Dado Truccato", "spr": "dice", "w": 3, "price": 18, "desc": "Ottieni un dono casuale. ^r30%^w di ricevere anche una maledizione."},
-	"smoke": {"name": "Polvere d'Ombra", "spr": "pouch", "w": 4, "price": 10, "desc": "Diventi ^sinvisibile^w per ^y4^w secondi."},
-	"holy": {"name": "Acqua Santa", "spr": "holy", "w": 2, "price": 28, "desc": "Rimuove una ^pmaledizione^w. Senza maledizioni cura 30 vita."},
-	"feather": {"name": "Piuma di Fenice", "spr": "feather", "w": 1.5, "price": 35, "desc": "Passiva: se muori, ^yrinasci^w con metà vita (si consuma).", "passive": true},
+	"potion": {"name": "Red Potion", "spr": "potion", "w": 10, "price": 14, "desc": "Heals ^y30^w health."},
+	"bigpotion": {"name": "Vital Elixir", "spr": "bigpotion", "w": 2, "price": 30, "desc": "Heals ^yall^w health."},
+	"oil": {"name": "Oil Flask", "spr": "oilflask", "w": 8, "price": 10, "desc": "Restores ^y60^w oil."},
+	"bomb": {"name": "Bomb", "spr": "bomb", "w": 9, "price": 9, "desc": "Explodes shortly after: ^y80^w area damage. Breaks cracked rocks and secret passages."},
+	"antidote": {"name": "Antidote", "spr": "antidote", "w": 6, "price": 10, "desc": "Removes all debuffs and protects against them for ^y6^w seconds."},
+	"rage": {"name": "Miner's Brew", "spr": "rage", "w": 6, "price": 12, "desc": "+^y50%^w damage and fire rate for ^y10^w seconds."},
+	"frost": {"name": "Frost Vial", "spr": "frost", "w": 5, "price": 14, "desc": "^cFreezes^w all enemies in the room for ^y3^w seconds."},
+	"map": {"name": "Scroll", "spr": "scroll", "w": 4, "price": 8, "desc": "Reveals the depth's map, secrets included."},
+	"firefly": {"name": "Jar of Fireflies", "spr": "jar", "w": 5, "price": 12, "desc": "^y3^w fireflies protect you for ^y25^w seconds."},
+	"dice": {"name": "Loaded Die", "spr": "dice", "w": 3, "price": 18, "desc": "Gain a random perk. ^r30%^w chance of also receiving a curse."},
+	"smoke": {"name": "Shadow Dust", "spr": "pouch", "w": 4, "price": 10, "desc": "You become ^sinvisible^w for ^y4^w seconds."},
+	"holy": {"name": "Holy Water", "spr": "holy", "w": 2, "price": 28, "desc": "Removes a ^pcurse^w. With no curses, heals 30 health."},
+	"feather": {"name": "Phoenix Feather", "spr": "feather", "w": 1.5, "price": 35, "desc": "Passive: if you die, ^yrevive^w with half health (consumed).", "passive": true},
 }
 
-# use() dei consumabili; vero se il consumabile è stato usato
+# consumable use(); true if the consumable was used
 static func use(id: String, p) -> bool:
 	match id:
 		"potion":
@@ -60,7 +60,7 @@ static func use(id: String, p) -> bool:
 		"holy":
 			if not p.curses.is_empty():
 				var c: String = p.curses.pop_back()
-				Run.toast("Maledizione spezzata: " + Curses.ALL[c].name, "#c57ae0")
+				Run.toast("Curse broken: " + Curses.ALL[c].name, "#c57ae0")
 				p.recalc_stats()
 				Sfx.play("heal")
 			else:

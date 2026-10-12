@@ -4,8 +4,8 @@
 
 [resource]
 script = ExtResource("1")
-id = "custode"
-name = "Lanterna del Custode"
+id = "warden"
+name = "Warden's Lantern"
 glass = "#f6cf57"
-desc = "Equilibrata e affidabile. Parti con una ^yPozione Rossa^w e una ^yBomba^w."
+desc = "Balanced and reliable. Start with a ^yRed Potion^w and a ^yBomb^w."
 start_cons = Array[String](["potion", "bomb"])

@@ -1,21 +1,21 @@
 class_name UiDraw
 extends RefCounted
-# Primitive pixel, pannelli e testo (da js/gfx.js e js/font.js).
-# UiDraw.alpha fa da ctx.globalAlpha: moltiplica l'alfa di tutto ciò che si disegna.
+# Pixel primitives, panels and text (from js/gfx.js and js/font.js).
+# UiDraw.alpha acts as ctx.globalAlpha: multiplies the alpha of everything drawn.
 
 static var alpha := 1.0
-static var origin := Vector2.ZERO   # trasformazione di base del nodo che sta disegnando
+static var origin := Vector2.ZERO   # base transform of the node that is drawing
 static var _colors: Dictionary = {}
 static var _glow_tex: Texture2D
 
-# Gli attori stanno in position = (x, y) per l'ordinamento in Y, ma disegnano in
-# coordinate del mondo come il JS: set_origin(self, -position) all'inizio di _draw()
-# e set_origin(self, Vector2.ZERO) alla fine.
+# Actors sit at position = (x, y) for Y sorting, but draw in
+# world coordinates like the JS: set_origin(self, -position) at the start of _draw()
+# and set_origin(self, Vector2.ZERO) at the end.
 static func set_origin(ci: CanvasItem, o: Vector2) -> void:
 	origin = o
 	ci.draw_set_transform(o)
 
-static var UI := {   # UI_COL del JS
+static var UI := {   # JS UI_COL
 	"bg": Color("#16111c"), "bg2": Color("#1f1826"), "edge": Color("#0a070d"), "brass": Color("#9a7a44"),
 	"brassL": Color("#d8b46a"), "brassD": Color("#5a4428"), "ink": Color("#ece6d8"), "dim": Color("#8a8294"), "sel": Color("#f6cf57"),
 }
@@ -64,8 +64,8 @@ static func shadow(ci: CanvasItem, x: float, y: float, w: float) -> void:
 		pts.append(Vector2(cx + cos(a) * w, cy + sin(a) * ry))
 	ci.draw_colored_polygon(pts, _a(U.rgba(5, 3, 8, 0.45)))
 
-# alone luminoso; nel JS è additivo ('lighter'), qui è una sfumatura normale:
-# sugli sfondi scuri del gioco la differenza è minima
+# glow halo; in the JS it is additive ('lighter'), here it is a normal gradient:
+# on the game's dark backgrounds the difference is minimal
 static func glow(ci: CanvasItem, x: float, y: float, r: float, color: Variant, a: float = 0.35) -> void:
 	if _glow_tex == null:
 		var g := Gradient.new()
@@ -82,7 +82,7 @@ static func glow(ci: CanvasItem, x: float, y: float, r: float, color: Variant, a
 	var k := col(color)
 	ci.draw_texture_rect(_glow_tex, Rect2(x - r, y - r, r * 2, r * 2), false, Color(k.r, k.g, k.b, a * alpha))
 
-# pannello "fatto a mano": legno scuro con rifiniture in ottone (panel in js/gfx.js)
+# "handmade" panel: dark wood with brass trim (panel in js/gfx.js)
 static func panel(ci: CanvasItem, x: float, y: float, w: float, h: float, o: Dictionary = {}) -> void:
 	x = U.jround(x)
 	y = U.jround(y)
@@ -95,24 +95,24 @@ static func panel(ci: CanvasItem, x: float, y: float, w: float, h: float, o: Dic
 	px_rect(ci, x, y, w, h, UI.edge)
 	px_rect(ci, x + 1, y + 1, w - 2, h - 2, o.get("border", UI.brassD))
 	px_rect(ci, x + 2, y + 2, w - 4, h - 4, o.get("bg", UI.bg))
-	# venature del "legno"
+	# "wood" grain
 	alpha = a * 0.25
 	var yy := y + 5
 	while yy < y + h - 4:
 		px_rect(ci, x + 3, yy, w - 6, 1, UI.bg2)
 		yy += 6
 	alpha = a
-	# filo d'ottone
+	# brass thread
 	px_rect(ci, x + 2, y + 2, w - 4, 1, o.get("hi", UI.brass))
 	px_rect(ci, x + 2, y + h - 3, w - 4, 1, UI.brassD)
-	# borchie agli angoli
+	# corner studs
 	var st: Variant = o.get("hi", UI.brassL)
 	for c in [[x + 3, y + 3], [x + w - 5, y + 3], [x + 3, y + h - 5], [x + w - 5, y + h - 5]]:
 		px_rect(ci, c[0], c[1], 2, 2, st)
 		px_rect(ci, c[0] + 1, c[1] + 1, 1, 1, UI.brassD)
 	alpha = ga
 
-# tasto disegnato come un piccolo tasto meccanico
+# key drawn as a small mechanical key
 static func keycap(ci: CanvasItem, x: float, y: float, label: String, o: Dictionary = {}) -> float:
 	var w := maxf(9, Txt.width(label) + 5)
 	x = U.jround(x)
@@ -132,7 +132,7 @@ static func bar(ci: CanvasItem, x: float, y: float, w: float, h: float, frac: fl
 		px_rect(ci, x, y, maxf(1, U.jround(w * frac)), h, c)
 		px_rect(ci, x, y, maxf(1, U.jround(w * frac)), 1, U.rgba(255, 255, 255, 0.25) if hi == null else hi)
 
-# fiammella (drawFlame in js/render.js); t è il tempo in secondi
+# small flame (drawFlame in js/render.js); t is the time in seconds
 static func flame(ci: CanvasItem, x: float, y: float, s: float, t: float) -> void:
 	var tt := t * 10 + x
 	for i in 6:
@@ -142,7 +142,7 @@ static func flame(ci: CanvasItem, x: float, y: float, s: float, t: float) -> voi
 	px_rect(ci, x - 2 * s, y - 3 * s, 4 * s, 3 * s, "#f6cf57")
 	px_rect(ci, x - 1 * s, y - 2 * s, 2 * s, 2 * s, "#fff2a8")
 
-# testo con codici colore ^x (Font.draw in js/font.js)
+# text with ^x color codes (Font.draw in js/font.js)
 # o: color, align (left, center, right), shadow, shadowColor, scale, alpha
 static func text(ci: CanvasItem, s: Variant, x: float, y: float, o: Dictionary = {}) -> float:
 	var str_ := str(s)

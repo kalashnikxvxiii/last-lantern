@@ -1,6 +1,6 @@
 class_name Lights
 extends RefCounted
-# Sorgenti di luce della stanza (collectLights in js/render.js).
+# Room light sources (collectLights in js/render.js).
 
 static func collect() -> Array:
 	var p := Run.player

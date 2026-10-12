@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 id = "rat"
-name = "Ratto di Cripta"
+name = "Crypt Rat"
 spr = "rat"
 hp = 14.0
 spd = 74.0

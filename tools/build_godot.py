@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Crea il pacchetto Windows per i tester della versione Godot.
+"""Builds the Windows package for testers of the Godot version.
 
-Uso:  python3 tools/build_godot.py
-Richiede: Godot 4.7.2 nel PATH (comando "godot") con i modelli di esportazione
-installati (Editor > Gestisci modelli di esportazione). Esegue prima i test.
-Risultato: dist/godot/UltimaLanterna-<versione>-Windows.zip e SHA256SUMS.txt.
+Usage:  python3 tools/build_godot.py
+Requires: Godot 4.7.2 in the PATH (the "godot" command) with the export templates
+installed (Editor > Manage Export Templates). Runs the tests first.
+Result: dist/godot/LastLantern-<version>-Windows.zip and SHA256SUMS.txt.
 """
 import hashlib
 import os
@@ -20,7 +20,7 @@ BUILD = os.path.join(OUT, 'build')
 TESTER = os.path.join(ROOT, 'tools', 'tester-godot')
 
 version = re.search(r'const VERSION := "([^"]+)"', open(os.path.join(GODOT, 'core', 'consts.gd'), encoding='utf-8').read()).group(1)
-NAME = 'UltimaLanterna-' + version.replace(' ', '-')
+NAME = 'LastLantern-' + version.replace(' ', '-')
 
 
 def step(msg):
@@ -33,7 +33,7 @@ def run(cmd, cwd=ROOT):
 
 
 def text(name):
-    # i tester aprono i .txt con il Blocco note: a capo in stile Windows
+    # testers open the .txt files with Notepad: Windows-style line endings
     s = open(os.path.join(TESTER, name), encoding='utf-8').read().replace('{VERSION}', version)
     return s.replace('\n', '\r\n')
 
@@ -47,29 +47,29 @@ def sha256(path):
 
 
 def main():
-    step('Versione ' + version)
+    step('Version ' + version)
     step('Test')
     run([os.path.join(ROOT, 'tools', 'test.sh')])
 
-    step('Esportazione Windows')
+    step('Windows export')
     shutil.rmtree(OUT, ignore_errors=True)
     os.makedirs(BUILD)
-    exe = os.path.join(BUILD, 'Ultima Lanterna.exe')
+    exe = os.path.join(BUILD, 'Last Lantern.exe')
     run(['godot', '--headless', '--path', GODOT, '--export-release', 'Windows Desktop', exe])
     if not os.path.isfile(exe):
-        raise SystemExit('Esportazione fallita: manca ' + exe)
+        raise SystemExit('Export failed: missing ' + exe)
 
-    step('Pacchetto')
+    step('Package')
     zip_path = os.path.join(OUT, NAME + '-Windows.zip')
     with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED, compresslevel=9) as z:
-        z.write(exe, 'Ultima Lanterna/Ultima Lanterna.exe')
-        z.writestr('Ultima Lanterna/LEGGIMI.txt', text('LEGGIMI.txt'))
-        z.writestr('Ultima Lanterna/MODULO_FEEDBACK.txt', text('MODULO_FEEDBACK.txt'))
+        z.write(exe, 'Last Lantern/Last Lantern.exe')
+        z.writestr('Last Lantern/README.txt', text('README.txt'))
+        z.writestr('Last Lantern/FEEDBACK_FORM.txt', text('FEEDBACK_FORM.txt'))
     shutil.rmtree(BUILD, ignore_errors=True)
     with open(os.path.join(OUT, 'SHA256SUMS.txt'), 'w') as f:
         f.write(sha256(zip_path) + '  ' + os.path.basename(zip_path) + '\n')
     print('\n   %s  %.1f MB' % (os.path.basename(zip_path), os.path.getsize(zip_path) / 1e6))
-    print('Pacchetto pronto in ' + OUT)
+    print('Package ready in ' + OUT)
 
 
 if __name__ == '__main__':

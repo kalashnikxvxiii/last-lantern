@@ -1,8 +1,8 @@
 class_name U
 extends RefCounted
-# Utilità portate da js/core.js e js/dungeon.js.
-# Tutta la casualità di gioco (Math.random nel JS) passa da U.random(),
-# così i test possono fissarne il seme con U.seed_random().
+# Utilities ported from js/core.js and js/dungeon.js.
+# All game randomness (Math.random in the JS) goes through U.random(),
+# so tests can fix its seed with U.seed_random().
 
 static var rand: RNG = RNG.new(int(Time.get_unix_time_from_system() * 1000.0) & 0x7FFFFFFF)
 
@@ -68,7 +68,7 @@ static func ang_diff(a: float, b: float) -> float:
 static func approach(v: float, t: float, d: float) -> float:
 	return minf(v + d, t) if v < t else maxf(v - d, t)
 
-# Math.round del JS: le metà vanno verso +infinito
+# JS Math.round: halves go toward +infinity
 static func jround(v: float) -> float:
 	return floor(v + 0.5)
 
@@ -82,13 +82,13 @@ static func to_int32(v: int) -> int:
 	v = v & 0xFFFFFFFF
 	return v - 0x100000000 if v >= 0x80000000 else v
 
-# ToInt32 del JS applicato a un numero in virgola mobile
+# JS ToInt32 applied to a floating-point number
 static func f_to_int32(x: float) -> int:
 	if is_nan(x) or is_inf(x):
 		return 0
 	return to_int32(int(x) & 0xFFFFFFFF)
 
-# Math.imul: prodotto a 32 bit senza overflow a 64 bit
+# Math.imul: 32-bit product without 64-bit overflow
 static func imul(a: int, b: int) -> int:
 	a = a & 0xFFFFFFFF
 	b = b & 0xFFFFFFFF
@@ -96,8 +96,8 @@ static func imul(a: int, b: int) -> int:
 	var hi := ((a * (b >> 16)) & 0xFFFF) << 16
 	return to_int32((lo + hi) & 0xFFFFFFFF)
 
-# hash2 di js/dungeon.js. Il secondo prodotto nel JS è in virgola mobile
-# e perde precisione: va riprodotto con un float, non con un intero.
+# hash2 from js/dungeon.js. The second product in the JS is floating point
+# and loses precision: it must be reproduced with a float, not an integer.
 static func hash2(x: int, y: int, s: int = 0) -> float:
 	var h := to_int32(x * 374761393 + y * 668265263 + s * 1442695041)
 	var v := to_int32(h ^ ((h & 0xFFFFFFFF) >> 13))
@@ -113,7 +113,7 @@ static func later(sec: float, fn: Callable) -> void:
 	var tree := Engine.get_main_loop() as SceneTree
 	tree.create_timer(sec).timeout.connect(fn)
 
-# numero come lo stampa il JS: niente ".0" per i valori interi
+# number as the JS prints it: no ".0" for integer values
 static func num(v: Variant) -> String:
 	if typeof(v) == TYPE_FLOAT and v == floorf(v) and absf(v) < 1e15:
 		return str(int(v))

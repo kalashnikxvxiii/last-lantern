@@ -4,13 +4,13 @@
 
 [resource]
 script = ExtResource("1")
-id = "spezzata"
-name = "Lanterna Spezzata"
+id = "broken"
+name = "Broken Lantern"
 glass = "#e0574a"
-desc = "+^y35%^w danno, +^y10%^w critico, ^r-35%^w vita massima. Parti con il dono ^oTizzone^w."
+desc = "+^y35%^w damage, +^y10%^w crit, ^r-35%^w max health. Start with the ^oFirebrand^w perk."
 unlock_stat = "bestDepth"
 unlock_min = 3
-unlock_text = "Raggiungi la terza profondità."
+unlock_text = "Reach the third depth."
 dmg_mult_add = 0.35
 crit_add = 0.1
 max_hp_mult = 0.65

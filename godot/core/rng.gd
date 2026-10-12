@@ -1,7 +1,7 @@
 class_name RNG
 extends RefCounted
-# Generatore pseudo-casuale con seme (mulberry32), identico a RNG in js/core.js.
-# Lavora su interi a 32 bit senza segno.
+# Seeded pseudo-random generator (mulberry32), identical to RNG in js/core.js.
+# Works on unsigned 32-bit integers.
 
 const M32 := 0xFFFFFFFF
 var s: int
@@ -18,11 +18,11 @@ func next() -> float:
 	t = (t ^ ((t + (U.imul(t ^ (t >> 7), t | 61) & M32)) & M32)) & M32
 	return float((t ^ (t >> 14)) & M32) / 4294967296.0
 
-# range() del JS (il nome range è una funzione globale di GDScript)
+# JS range() (the name range is a global GDScript function)
 func frange(a: float, b: float) -> float:
 	return a + next() * (b - a)
 
-# int() del JS
+# JS int()
 func rint(a: int, b: int) -> int:
 	return a + int(floor(next() * (b - a + 1)))
 

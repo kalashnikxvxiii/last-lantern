@@ -1,6 +1,6 @@
 extends Node
-# Scena di gioco (Scenes.play in js/game.js): aggiorna il mondo a tick fissi nello
-# stesso ordine del JS; i nodi figli disegnano i livelli.
+# Game scene (Scenes.play in js/game.js): updates the world at fixed ticks in the
+# same order as the JS; child nodes draw the layers.
 
 var mode := "play"
 var choices: Array = []
@@ -91,7 +91,7 @@ func open_level_up() -> void:
 	if choices.is_empty():
 		Run.pending_levels = maxi(0, Run.pending_levels - 1)
 		p.add_coins(10)
-		Run.toast("Hai già tutto. Prendi delle monete.", "#f6cf57")
+		Run.toast("You already have everything. Take some coins.", "#f6cf57")
 		return
 	mode = "levelup"
 	sel = 0
@@ -117,21 +117,21 @@ func open_pause() -> void:
 	mode = "pause"
 	confirm_quit = false
 	pause_menu = Menu.new([
-		{"label": "Riprendi", "action": func(): mode = "play"},
-		{"label": "Equipaggiamento", "action": func():
+		{"label": "Resume", "action": func(): mode = "play"},
+		{"label": "Equipment", "action": func():
 			mode = "build"
 			build_sel = 0},
-		{"label": "Mappa", "action": func():
+		{"label": "Map", "action": func():
 			mode = "map"
 			map_from = "pause"},
-		{"label": "Opzioni", "action": func():
+		{"label": "Options", "action": func():
 			mode = "options"
 			opt_menu = Panels.make_options_menu(func(): mode = "pause")},
-		{"label": func(): return "Confermi? La discesa andrà persa" if confirm_quit else "Abbandona la discesa", "action": func():
+		{"label": func(): return "Sure? The descent will be lost" if confirm_quit else "Abandon the descent", "action": func():
 			if not confirm_quit:
 				confirm_quit = true
 				return
-			Run.player.last_hit = "La resa"
+			Run.player.last_hit = "Surrender"
 			Run.abandoned = true
 			Game.set_scene("gameover")},
 	])
@@ -164,7 +164,7 @@ func update_level_up(dt: float) -> void:
 	if Controls.confirm():
 		choose_perk(choices[sel])
 		return
-	# rilancio
+	# rematch
 	var clicked := Controls.mouse_left_pressed() and reroll_rect.has_point(m)
 	if Controls.reroll() or clicked:
 		var p := Run.player
@@ -217,7 +217,7 @@ func update_play(dt: float) -> void:
 	elif Run.room.combat:
 		Run.level_delay = 0.7
 
-# --sim=N [--fire]: N tick simulati prima del primo disegno (devStart del JS)
+# --sim=N [--fire]: N simulated ticks before the first draw (JS devStart)
 func _dev_sim() -> void:
 	var n := int(Game.dev.get("sim", 0))
 	for i in n:

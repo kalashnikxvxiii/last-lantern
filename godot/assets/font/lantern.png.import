@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://de61keq2r0351"
-path="res://.godot/imported/lanterna.png-e0a1a40cfbe8a5658838be8523ce3188.ctex"
+path="res://.godot/imported/lantern.png-eb4c4a553ad67553c226f4f7b4facfc7.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/font/lanterna.png"
-dest_files=["res://.godot/imported/lanterna.png-e0a1a40cfbe8a5658838be8523ce3188.ctex"]
+source_file="res://assets/font/lantern.png"
+dest_files=["res://.godot/imported/lantern.png-eb4c4a553ad67553c226f4f7b4facfc7.ctex"]
 
 [params]
 

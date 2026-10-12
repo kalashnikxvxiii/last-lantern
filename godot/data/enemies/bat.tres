@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 id = "bat"
-name = "Pipistrello"
+name = "Bat"
 spr = "bat"
 hp = 10.0
 spd = 62.0

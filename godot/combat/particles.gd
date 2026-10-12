@@ -1,6 +1,6 @@
 class_name Particles
 extends RefCounted
-# Particelle (da Particles in js/gfx.js).
+# Particles (from Particles in js/gfx.js).
 
 static var list: Array = []
 

@@ -1,6 +1,6 @@
 'use strict';
 // =====================================================================
-//  Rendering del mondo: stanza, entita', luci e ombre
+// World rendering: room, entities, lights and shadows
 // =====================================================================
 
 const Render = { light: null, lctx: null, time: 0 };
@@ -26,7 +26,7 @@ function drawWorld(ctx) {
   drawObjects(ctx, room);
   drawPickups(ctx, room);
 
-  // entita' ordinate per profondita'
+  // entities sorted by depth
   const list = [];
   for (const e of run.enemies) list.push(e);
   if (!p.dead) list.push(p);
@@ -51,7 +51,7 @@ function drawWorld(ctx) {
 }
 
 // ---------------------------------------------------------------------
-//  Porte
+// Doors
 // ---------------------------------------------------------------------
 function doorStyle(room, d) {
   const n = room.doors[d];
@@ -73,21 +73,21 @@ function drawDoors(ctx, room) {
     const w = horiz ? TS * 3 : TS, h = horiz ? TS : TS * 3;
     const open = doorOpen(room, d), locked = doorLocked(room, d);
     if (st.kind === 'secret') {
-      // varco irregolare
+      // irregular gap
       pxRect(ctx, x + 2, y + 2, w - 4, h - 4, '#050308');
       ctx.fillStyle = '#3b3546';
       for (let i = 0; i < 6; i++) { const k = hash2(i, x, y); ctx.fillRect(x + (horiz ? k * w : (k > 0.5 ? 1 : w - 3)), y + (horiz ? (k > 0.5 ? 1 : h - 3) : k * h), 2, 2); }
       continue;
     }
-    // cornice
+    // frame
     pxRect(ctx, x, y, w, h, '#0b0810');
     pxRect(ctx, x + 1, y + 1, w - 2, h - 2, st.frame);
     pxRect(ctx, x + 4, y + 4, w - 8, h - 8, open ? '#050308' : '#120c16');
-    // filo luminoso
+    // glowing thread
     if (horiz) { pxRect(ctx, x + 2, d === 'n' ? y + 2 : y + h - 3, w - 4, 1, st.hi); }
     else { pxRect(ctx, d === 'w' ? x + 2 : x + w - 3, y + 2, 1, h - 4, st.hi); }
     if (!open) {
-      // sbarre
+      // bars
       ctx.fillStyle = locked ? '#c49a3a' : '#6b6478';
       if (horiz) for (let i = 0; i < 6; i++) ctx.fillRect(x + 7 + i * 6, y + 3, 2, h - 6);
       else for (let i = 0; i < 6; i++) ctx.fillRect(x + 3, y + 7 + i * 6, w - 6, 2);
@@ -98,7 +98,7 @@ function drawDoors(ctx, room) {
         pxRect(ctx, cx - 1, cy + 1, 2, 2, '#5a4428');
       }
     }
-    // simboli
+    // symbols
     const cx = x + w / 2, cy = y + h / 2;
     const sx = horiz ? cx : (d === 'w' ? x + w + 6 : x - 6), sy = horiz ? (d === 'n' ? y + h + 6 : y - 6) : cy;
     if (st.kind === 'boss') drawSpr(ctx, 'i_skull', 0, sx, sy, { alpha: 0.8 });
@@ -121,7 +121,7 @@ function drawSecretHints(ctx, room) {
 }
 
 // ---------------------------------------------------------------------
-//  Tile dinamici
+// Dynamic tiles
 // ---------------------------------------------------------------------
 function drawDynamicTiles(ctx, room) {
   const up = spikesUp(room), warn = spikesWarn(room);
@@ -163,7 +163,7 @@ function drawFlame(ctx, x, y, s) {
 }
 
 // ---------------------------------------------------------------------
-//  Effetti a terra
+// Ground effects
 // ---------------------------------------------------------------------
 function drawGroundFx(ctx) {
   for (const f of run.fx) {
@@ -248,7 +248,7 @@ function drawAirFx(ctx) {
   }
 }
 
-// avvisi sempre visibili anche al buio
+// warnings always visible even in the dark
 function drawTelegraphs(ctx) {
   for (const f of run.fx) {
     if (f.type === 'warn') {
@@ -303,7 +303,7 @@ function drawTelegraphs(ctx) {
       ctx.beginPath(); ctx.moveTo(e.x, e.y); ctx.lineTo(e.x + Math.cos(e.dashA) * 110, e.y + Math.sin(e.dashA) * 110); ctx.stroke();
       ctx.restore();
     }
-    // preavviso d'attacco: scintilla sopra la testa
+    // attack warning: spark above the head
     if (e.wind > 0 && !e.dead && e.alpha > 0.3) {
       const blink = Math.sin(Render.time * 40) > 0;
       if (blink) { pxRect(ctx, e.x - 1, e.y - e.r - 9 - e.z, 2, 4, '#f6cf57'); pxRect(ctx, e.x - 1, e.y - e.r - 4 - e.z, 2, 1, '#f6cf57'); }
@@ -312,7 +312,7 @@ function drawTelegraphs(ctx) {
 }
 
 // ---------------------------------------------------------------------
-//  Oggetti
+// Objects
 // ---------------------------------------------------------------------
 function drawObjects(ctx, room) {
   const tt = Render.time;
@@ -360,7 +360,7 @@ function drawObjects(ctx, room) {
       case 'merchant': {
         shadow(ctx, o.x, o.y + 8, 7);
         drawSpr(ctx, 'merchant', Math.floor(tt * 1.5) % 4 === 0 ? 1 : 0, o.x, o.y);
-        // lanterna del mercante
+        // merchant's lantern
         pxRect(ctx, o.x + 8, o.y - 2, 3, 4, '#f6cf57'); pxRect(ctx, o.x + 8, o.y - 3, 3, 1, '#3b3546');
         if (dist(o.x, o.y, run.player.x, run.player.y) < 70) {
           const w = Math.min(200, Font.width(o.line) + 12);
@@ -404,7 +404,7 @@ function drawPickups(ctx, room) {
 }
 
 // ---------------------------------------------------------------------
-//  Giocatore e nemici
+// Player and enemies
 // ---------------------------------------------------------------------
 function drawLantern(ctx, p) {
   const L = LANTERNS.find(l => l.id === p.lantern) || LANTERNS[0];
@@ -466,7 +466,7 @@ function drawEnemy(ctx, e) {
     ctx.restore();
   }
   drawSpr(ctx, spr, fr, e.x, yy, o);
-  // scudo frontale
+  // front shield
   if (e.D && e.D.shield) {
     const a = e.shieldDown ? e.facing + 1.3 : e.facing, r = e.r + 4;
     ctx.save();
@@ -476,7 +476,7 @@ function drawEnemy(ctx, e) {
     ctx.beginPath(); ctx.arc(e.x, yy, r, a - 0.85, a + 0.85); ctx.stroke();
     ctx.restore();
   }
-  // barra vita
+  // health bar
   if (!e.boss && e.hp < e.maxHp && e.alpha > 0.4) {
     const w = Math.max(10, e.r * 2 + 2);
     bar(ctx, e.x - w / 2, yy - S.h / 2 - 4, w, 1, e.hp / e.maxHp, e.elite ? ELITE_MODS[e.mod].col : '#d04b3c');
@@ -518,7 +518,7 @@ function drawEnemyBullets(ctx) {
   }
 }
 
-// occhi dei nemici nell'oscurita'
+// enemy eyes in the darkness
 function drawEyes(ctx) {
   const p = run.player;
   const lr = pLight(p);
@@ -537,7 +537,7 @@ function drawEyes(ctx) {
 }
 
 // ---------------------------------------------------------------------
-//  Luce e ombre
+// Light and shadows
 // ---------------------------------------------------------------------
 function collectLights() {
   const p = run.player, room = run.room;
@@ -594,7 +594,7 @@ function drawLighting(ctx, sx, sy) {
   }
   lc.globalCompositeOperation = 'source-over';
   ctx.drawImage(Render.light, 0, 0);
-  // bagliore caldo additivo
+  // additive warm glow
   ctx.save();
   ctx.globalCompositeOperation = 'lighter';
   for (const L of lights) {
@@ -606,38 +606,38 @@ function drawLighting(ctx, sx, sy) {
     ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2);
   }
   ctx.restore();
-  // vignettatura
+  // vignette
   const vg = ctx.createRadialGradient(W / 2, H / 2 + 14, H * 0.35, W / 2, H / 2 + 14, H * 0.95);
   vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,0.55)');
   ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
 }
 
-// suggerimento d'interazione
+// interaction hint
 function drawPrompt(ctx) {
   const o = run.focus;
   if (!o) return;
-  let title = '', desc = '', verb = 'Interagisci', col = TEXT_COLORS.w, extra = '';
+  let title = '', desc = '', verb = 'Interact', col = TEXT_COLORS.w, extra = '';
   switch (o.type) {
-    case 'relic': title = RELICS[o.id].name; desc = RELICS[o.id].desc; verb = 'Prendi'; col = TEXT_COLORS.y; if (o.group) extra = '^dPuoi sceglierne solo una.'; break;
-    case 'chest': title = o.gold ? 'Forziere dorato' : 'Forziere'; desc = o.gold ? 'Serve una chiave. Contiene tesori preziosi.' : 'Chissà cosa contiene.'; verb = 'Apri'; break;
+    case 'relic': title = RELICS[o.id].name; desc = RELICS[o.id].desc; verb = 'Take'; col = TEXT_COLORS.y; if (o.group) extra = '^dYou can only choose one.'; break;
+    case 'chest': title = o.gold ? 'Golden chest' : 'Chest'; desc = o.gold ? 'Needs a key. Holds precious treasures.' : 'Who knows what it holds.'; verb = 'Open'; break;
     case 'shopitem': {
       const it = o.item;
       if (it.kind === 'cons') { title = CONS[it.id].name; desc = CONS[it.id].desc; }
-      else if (it.kind === 'heal') { title = 'Unguento'; desc = 'Cura il ^y40%^w della vita massima.'; }
-      else if (it.kind === 'key') { title = 'Chiave'; desc = 'Apre forzieri dorati e stanze del tesoro.'; }
+      else if (it.kind === 'heal') { title = 'Salve'; desc = 'Heals ^y40%^w of max health.'; }
+      else if (it.kind === 'key') { title = 'Key'; desc = 'Opens golden chests and treasure rooms.'; }
       else { title = RELICS[it.id].name; desc = RELICS[it.id].desc; col = TEXT_COLORS.y; }
       verb = 'Compra (' + priceOf(o) + ')';
       break;
     }
     case 'shrine':
-      if (o.kind === 'blood') { title = 'Altare di Sangue'; desc = 'Offri ^r15^w vita massima in cambio di un dono ^braro^w o migliore.'; verb = 'Offri'; }
-      else if (o.kind === 'fortune') { title = 'Fontana dei Desideri'; desc = 'Getta ^y5^w monete e spera. (Usi rimasti: ' + o.uses + ')'; verb = 'Getta'; }
-      else if (o.kind === 'fountain') { title = 'Fonte Pura'; desc = run.player.curses.length ? 'Purifica una maledizione per ^y20^w monete.' : 'Ti ristora completamente, una volta.'; verb = 'Bevi'; }
-      else { title = 'Idolo Proibito'; desc = 'Ottieni una ^yreliquia^w. Ricevi una ^pmaledizione^w.'; verb = 'Accetta'; }
-      if (o.uses <= 0) { desc = '^dIl potere si è esaurito.'; verb = ''; }
+      if (o.kind === 'blood') { title = 'Blood Altar'; desc = 'Offer ^r15^w max health in exchange for a ^brare^w or better perk.'; verb = 'Offer'; }
+      else if (o.kind === 'fortune') { title = 'Wishing Fountain'; desc = 'Throw in ^y5^w coins and hope. (Uses left: ' + o.uses + ')'; verb = 'Throw'; }
+      else if (o.kind === 'fountain') { title = 'Pure Spring'; desc = run.player.curses.length ? 'Purify a curse for ^y20^w coins.' : 'Fully restores you, once.'; verb = 'Drink'; }
+      else { title = 'Forbidden Idol'; desc = 'Gain a ^yrelic^w. Receive a ^pcurse^w.'; verb = 'Accept'; }
+      if (o.uses <= 0) { desc = '^dThe power is spent.'; verb = ''; }
       col = TEXT_COLORS.p;
       break;
-    case 'trapdoor': title = 'Botola'; desc = 'Scendi alla profondità successiva.'; verb = 'Scendi'; break;
+    case 'trapdoor': title = 'Trapdoor'; desc = 'Descend to the next depth.'; verb = 'Descend'; break;
   }
   const w = 168;
   const lines = Font.wrap(desc, w - 12);

@@ -1,6 +1,6 @@
 class_name BossDef
 extends Resource
-# Guardiano di fine profondità (BOSSES in js/data.js).
+# End-of-depth warden (BOSSES in js/data.js).
 
 @export var id := ""
 @export var name := ""

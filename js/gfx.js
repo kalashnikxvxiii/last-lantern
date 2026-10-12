@@ -1,7 +1,7 @@
 'use strict';
 // =====================================================================
-//  Grafica: canvas, sprite pixel-art compilati da stringhe, particelle,
-//  pannelli UI disegnati a mano
+// Graphics: canvas, pixel-art sprites compiled from strings, particles,
+// hand-drawn UI panels
 // =====================================================================
 
 const PAL = {
@@ -35,7 +35,7 @@ const Gfx = {
 };
 
 // ---------------------------------------------------------------------
-//  Sprite
+// Sprites
 // ---------------------------------------------------------------------
 const SPR = {};
 
@@ -67,7 +67,7 @@ function compileRows(rows, pal, sym, outline) {
         if (!set.has(nx + ',' + ny)) { c.fillRect(nx + pad, ny + pad, 1, 1); }
       }
     }
-    // ridisegna i pixel pieni (l'outline non deve coprirli)
+    // redraws the solid pixels (the outline must not cover them)
     for (const [x, y] of solid) { c.fillStyle = pal[rows[y][x]] || PAL[rows[y][x]]; c.fillRect(x + pad, y + pad, 1, 1); }
   }
   return cv;
@@ -96,7 +96,7 @@ function sprTint(name, color) {
   if (!s.tint[color]) s.tint[color] = s.frames.map(f => silhouette(f, color));
   return s.tint[color];
 }
-// disegna centrato su (x,y)
+// draws centered on (x,y)
 function drawSpr(ctx, name, frame, x, y, o) {
   const s = SPR[name];
   if (!s) return;
@@ -123,7 +123,7 @@ function drawSpr(ctx, name, frame, x, y, o) {
 }
 
 // ---------------------------------------------------------------------
-//  Primitive pixel
+// Pixel primitives
 // ---------------------------------------------------------------------
 function pxRect(ctx, x, y, w, h, c) { ctx.fillStyle = c; ctx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); }
 function pxCircle(ctx, cx, cy, r, c) {
@@ -153,7 +153,7 @@ function glow(ctx, x, y, r, color, a = 0.35) {
 }
 
 // ---------------------------------------------------------------------
-//  Pannelli UI "fatti a mano": legno scuro con rifiniture in ottone
+// "Handmade" UI panels: dark wood with brass trim
 // ---------------------------------------------------------------------
 const UI_COL = {
   bg: '#16111c', bg2: '#1f1826', edge: '#0a070d', brass: '#9a7a44', brassL: '#d8b46a', brassD: '#5a4428',
@@ -167,14 +167,14 @@ function panel(ctx, x, y, w, h, o = {}) {
   pxRect(ctx, x, y, w, h, UI_COL.edge);
   pxRect(ctx, x + 1, y + 1, w - 2, h - 2, o.border || UI_COL.brassD);
   pxRect(ctx, x + 2, y + 2, w - 4, h - 4, o.bg || UI_COL.bg);
-  // venature del "legno"
+  // "wood" grain
   ctx.globalAlpha = a * 0.25;
   for (let yy = y + 5; yy < y + h - 4; yy += 6) pxRect(ctx, x + 3, yy, w - 6, 1, UI_COL.bg2);
   ctx.globalAlpha = a;
-  // filo d'ottone
+  // brass thread
   pxRect(ctx, x + 2, y + 2, w - 4, 1, o.hi || UI_COL.brass);
   pxRect(ctx, x + 2, y + h - 3, w - 4, 1, UI_COL.brassD);
-  // borchie agli angoli
+  // corner studs
   const st = o.hi || UI_COL.brassL;
   for (const [sx, sy] of [[x + 3, y + 3], [x + w - 5, y + 3], [x + 3, y + h - 5], [x + w - 5, y + h - 5]]) {
     pxRect(ctx, sx, sy, 2, 2, st);
@@ -182,7 +182,7 @@ function panel(ctx, x, y, w, h, o = {}) {
   }
   ctx.restore();
 }
-// tasto disegnato come un piccolo tasto meccanico
+// key drawn as a small mechanical key
 function keycap(ctx, x, y, label, o = {}) {
   const w = Math.max(9, Font.width(label) + 5);
   x = Math.round(x); y = Math.round(y);
@@ -203,7 +203,7 @@ function bar(ctx, x, y, w, h, frac, col, bg = '#120d16', hi) {
 }
 
 // ---------------------------------------------------------------------
-//  Particelle e testi fluttuanti
+// Particles and floating texts
 // ---------------------------------------------------------------------
 const Particles = {
   list: [],

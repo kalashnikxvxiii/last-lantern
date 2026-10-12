@@ -1,127 +1,127 @@
-# Contribuire a Ultima Lanterna
+# Contributing to Last Lantern
 
-Grazie per voler dare una mano. Questa guida spiega come preparare l'ambiente, dove mettere le mani e come proporre una modifica.
+Thanks for wanting to help. This guide explains how to set up your environment, where to make changes and how to propose them.
 
-## Le due versioni del gioco
+## The two versions of the game
 
-- **`js/`**: la versione originale in JavaScript (beta 0.9.0, cinque profondità). È il **riferimento del comportamento**: in caso di dubbio su come deve funzionare qualcosa, fa fede il codice JS.
-- **`godot/`**: il porting in Godot 4.7, dove continua lo sviluppo. Per ora contiene la prima profondità fino al primo guardiano. La specifica è in [docs/superpowers/specs/2026-10-11-godot-port-vertical-slice-design.md](docs/superpowers/specs/2026-10-11-godot-port-vertical-slice-design.md).
+- **`js/`**: the original JavaScript version (beta 0.9.0, five depths). It is the **reference for behavior**: when in doubt about how something should work, the JS code is authoritative.
+- **`godot/`**: the Godot 4.7 port, where development continues. For now it contains the first depth up to the first warden.
 
-Le nuove funzioni si fanno in Godot. Nel JS si correggono solo i bug della beta.
+New features go into Godot. In the JS only beta bugs are fixed.
 
-## Cosa serve
+## What you need
 
-| Strumento | Per cosa |
+| Tool | Used for |
 |---|---|
-| [Godot 4.7.2](https://godotengine.org) (comando `godot` nel PATH) | sviluppo e test della versione Godot |
-| Modelli di esportazione di Godot 4.7.2 | solo per creare il pacchetto Windows |
-| Node.js 20 o superiore | dati di riferimento dei test (`tools/golden/`) |
-| Python 3 | script dei pacchetti per i tester |
-| npm, ffmpeg (opzionali) | Electron e conversione audio, solo per riesportare gli asset |
+| [Godot 4.7.2](https://godotengine.org) (`godot` command in the PATH) | developing and testing the Godot version |
+| Godot 4.7.2 export templates | only to build the Windows package |
+| Node.js 20 or newer | reference data for the tests (`tools/golden/`) |
+| Python 3 | the tester package scripts |
+| npm, ffmpeg (optional) | Electron and audio conversion, only to re-export the assets |
 
-## Primo avvio
+## First run
 
 ```bash
-git clone https://github.com/kalashnikxvxiii/ultima-lanterna.git && cd ultima-lanterna
-godot --headless --path godot --import   # la prima volta registra le classi
-godot --path godot                       # avvia il gioco
-tools/test.sh                            # esegue tutti i test
+git clone https://github.com/kalashnikxvxiii/last-lantern.git && cd last-lantern
+godot --headless --path godot --import   # the first time, registers the classes
+godot --path godot                       # starts the game
+tools/test.sh                            # runs all the tests
 ```
 
-Per lavorare nell'editor: `godot -e --path godot`.
+To work in the editor: `godot -e --path godot`.
 
-### Argomenti di sviluppo
+### Development arguments
 
-Dopo `--` si può saltare direttamente a una situazione:
+After `--` you can jump straight to a situation:
 
 ```bash
-godot --path godot -- --test=boss --seed=7          # stanza del boss, piano riproducibile
+godot --path godot -- --test=boss --seed=7          # boss room, reproducible floor
 godot --path godot -- --test=fight --perks=multishot,comet --relics=r_anvil
-godot --path godot -- --seed=7 --spawn=rat,ghoul,skull   # nemici nella stanza iniziale
-godot --path godot -- --seed=7 --lv=2 --coins=50     # scelta dei doni subito
-godot --path godot -- --scene=title --screenshot=/tmp/titolo.png --shot-after=40
+godot --path godot -- --seed=7 --spawn=rat,ghoul,skull   # enemies in the starting room
+godot --path godot -- --seed=7 --lv=2 --coins=50     # perk choice right away
+godot --path godot -- --scene=title --screenshot=/tmp/title.png --shot-after=40
 ```
 
-Valori di `--test`: `fight`, `boss`, `shop`, `treasure`, `shrine`, `secret`. Altri argomenti: `--lantern=`, `--ardore=`, `--sim=N` (tick simulati), `--fire` (spara al primo nemico durante `--sim`), `--pause`, `--map`. Queste esecuzioni scrivono nel salvataggio locale, come una partita vera.
+`--test` values: `fight`, `boss`, `shop`, `treasure`, `shrine`, `secret`. Other arguments: `--lantern=`, `--ardor=`, `--sim=N` (simulated ticks), `--fire` (shoot the first enemy during `--sim`), `--pause`, `--map`. These runs write to the local save, like a real game.
 
-## Struttura di `godot/`
+## Structure of `godot/`
 
-| Cartella | Contenuto |
+| Folder | Contents |
 |---|---|
-| `autoload/` | servizi sempre attivi: `Save`, `Sfx`, `Music`, `Fx`, `Controls`, `Run` (stato della partita), `Game` (scene, argomenti, errori) |
-| `core/` | costanti, utilità numeriche, generatore casuale, sprite e font |
-| `data/` | doni, reliquie, maledizioni, consumabili (script) e nemici, boss, biomi, lanterne (Resource `.tres`, modificabili nell'Inspector) |
-| `world/` | generazione di piani e stanze, flusso della partita, interazioni, luce, disegno del mondo |
-| `actors/` | giocatore, nemici, IA, boss e pattern d'attacco |
-| `combat/` | collisioni, proiettili, danni, stati alterati, effetti, raccoglibili |
-| `ui/` | HUD, menu, pannelli e schermate |
-| `assets/` | sprite, tile, font, effetti sonori, musica |
-| `tests/` | test automatici e dati di riferimento (`golden/`) |
+| `autoload/` | always-on services: `Save`, `Sfx`, `Music`, `Fx`, `Controls`, `Run` (game state), `Game` (scenes, arguments, errors) |
+| `core/` | constants, numeric utilities, random generator, sprites and font |
+| `data/` | perks, relics, curses, consumables (scripts) and enemies, bosses, biomes, lanterns (`.tres` Resources, editable in the Inspector) |
+| `world/` | floor and room generation, run flow, interactions, light, world drawing |
+| `actors/` | player, enemies, AI, bosses and attack patterns |
+| `combat/` | collisions, projectiles, damage, status effects, effects, pickups |
+| `ui/` | HUD, menus, panels and screens |
+| `assets/` | sprites, tiles, font, sound effects, music |
+| `tests/` | automated tests and reference data (`golden/`) |
 
-La logica gira a 60 tick al secondo: `scenes/play.gd` chiama `Flow.update_game()`, che aggiorna giocatore, nemici, proiettili ed effetti **nello stesso ordine del JS**.
+The logic runs at 60 ticks per second: `scenes/play.gd` calls `Flow.update_game()`, which updates player, enemies, projectiles and effects **in the same order as the JS**.
 
-## Regole del codice
+## Code rules
 
-- **GDScript** con tipi espliciti dove l'inferenza darebbe `Variant`. Esempio: `var x: Array = dizionario.campo`; per gli arrotondamenti usa `floorf`/`ceilf`/`absf` e mai `floor()` con `:=`.
-- **Nomi:** variabili e funzioni in `snake_case`. Le chiavi dei dizionari che rispecchiano oggetti del JS (statistiche, stanze, effetti, proiettili) restano in camelCase come nel JS, così si confrontano con i dati di riferimento.
-- **Testi:** in italiano, uguali al JS quando esistono, con i codici colore `^y`, `^r` e così via. Anche i commenti sono in italiano.
-- **Casualità:**
-  - nella logica di gioco usa sempre `U.random()`, `U.rnd()`, `U.pick()`… oppure un `RNG` con seme, mai `randf()`/`randi()`;
-  - nel disegno usa `Fx.vrnd()`, che non tocca la sequenza di gioco.
-- **Divisioni:** tra valori delle statistiche scrivi `float(a) / b`. Molti valori base sono interi e la divisione intera dà risultati sbagliati.
-- **Confronti tra dizionari o array:** `==` confronta il contenuto. Per sapere se sono lo stesso oggetto usa `is_same(a, b)`.
-- **Liste che crescono durante un ciclo** (`Run.fx`, `Run.bullets`, `Run.enemies`): ciclo per indice con `while i < arr.size()`.
-- **Portare codice dal JS:** la tabella completa delle regole di traduzione è nella sezione «Convenzioni del porting» di [docs/superpowers/plans/2026-10-12-godot-port-vertical-slice.md](docs/superpowers/plans/2026-10-12-godot-port-vertical-slice.md).
+- **GDScript** with explicit types wherever inference would give `Variant`. Example: `var x: Array = dictionary.field`; for rounding use `floorf`/`ceilf`/`absf` and never `floor()` with `:=`.
+- **Naming:** variables and functions in `snake_case`. Dictionary keys that mirror JS objects (stats, rooms, effects, projectiles) stay in camelCase as in the JS, so they can be compared with the reference data.
+- **Text:** in English, identical to the JS where it exists, with the color codes `^y`, `^r` and so on. Comments are in English too.
+- **Randomness:**
+  - in game logic always use `U.random()`, `U.rnd()`, `U.pick()`… or a seeded `RNG`, never `randf()`/`randi()`;
+  - in drawing use `Fx.vrnd()`, which does not touch the game sequence.
+- **Divisions:** between stat values write `float(a) / b`. Many base values are integers and integer division gives wrong results.
+- **Comparing dictionaries or arrays:** `==` compares the contents. To tell whether they are the same object use `is_same(a, b)`.
+- **Lists that grow during a loop** (`Run.fx`, `Run.bullets`, `Run.enemies`): loop by index with `while i < arr.size()`.
+- **Porting code from the JS:** the full table of translation rules is in [docs/porting-conventions.md](docs/porting-conventions.md).
 
-## Test
+## Tests
 
-- `tools/test.sh` esegue tutto; `tools/test.sh --only=boss` solo i file o le funzioni che contengono `boss`.
-- **Un test fallisce** se registra un fallimento o se durante la sua esecuzione compare un errore di script. Se un test provoca apposta un errore, chiama `allow_errors()`.
-- **Dove scrivere i test:** un nuovo file `godot/tests/test_<argomento>.gd` che estende `TestCase`, con funzioni `test_*`. Le asserzioni sono `check`, `eq`, `near` e `fail`; gli aiuti per creare partite e stanze sono in `tests/helpers.gd` (`TH.new_run`, `TH.arena`, `TH.spawn`).
-- **Dati di riferimento (golden):** i file in `tests/golden/` vengono dal codice JS (`node tools/golden/gen.js`). Se una modifica rende il comportamento diverso dal JS **di proposito**, scrivilo nella descrizione della modifica. Se cambi il JS, rigenera i dati e controlla il diff.
-- **Test prima del codice:** scrivi il test che fallisce, poi la modifica che lo fa passare.
+- `tools/test.sh` runs everything; `tools/test.sh --only=boss` only the files or functions containing `boss`.
+- **A test fails** if it records a failure or if a script error appears while it runs. If a test causes an error on purpose, call `allow_errors()`.
+- **Where to write tests:** a new file `godot/tests/test_<topic>.gd` that extends `TestCase`, with `test_*` functions. The assertions are `check`, `eq`, `near` and `fail`; the helpers for creating runs and rooms are in `tests/helpers.gd` (`TH.new_run`, `TH.arena`, `TH.spawn`).
+- **Reference data (golden):** the files in `tests/golden/` come from the JS code (`node tools/golden/gen.js`). If a change makes the behavior differ from the JS **on purpose**, say so in the description of the change. If you change the JS, regenerate the data and check the diff.
+- **Tests before code:** write the failing test, then the change that makes it pass.
 
-## Asset
+## Assets
 
-Gli asset in `godot/assets/` sono stati generati una volta dal codice JS e ora **si modificano direttamente**: i PNG con Aseprite o un editor di pixel art, i WAV e gli OGG con un editor audio.
+The assets in `godot/assets/` were generated once from the JS code and are now **edited directly**: PNGs with Aseprite or any pixel-art editor, WAVs and OGGs with an audio editor.
 
-- **Sprite:** le dimensioni dei frame sono in `assets/sprites/manifest.json`. Se cambi la dimensione di uno sprite, aggiorna il manifest.
-- **Tile:** dopo una modifica agli atlas rigenera le TileSet con `godot --headless --path godot -s res://tools/build_tilesets.gd`.
-- **Riesportare dal JS:** `tools/export_assets/` sovrascrive le modifiche fatte a mano, quindi rifiuta di farlo senza `--force`. Usalo solo se sai di volerlo.
+- **Sprites:** frame sizes are in `assets/sprites/manifest.json`. If you change a sprite's size, update the manifest.
+- **Tiles:** after changing the atlases, regenerate the TileSets with `godot --headless --path godot -s res://tools/build_tilesets.gd`.
+- **Re-exporting from the JS:** `tools/export_assets/` overwrites hand-made changes, so it refuses to run without `--force`. Use it only if you mean to.
 
-## Aggiungere contenuti
+## Adding content
 
-- **Nemico:** crea `data/enemies/<id>.tres` (classe `EnemyDef`, copia un esistente) e aggiungilo al `pool` del bioma in `data/biomes/<bioma>.tres`. Se serve un comportamento nuovo, aggiungi un metodo in `actors/ai.gd` e il suo caso in `AI.run`. Lo sprite va in `assets/sprites/` con la voce nel manifest.
-- **Dono o reliquia:** aggiungi la voce in fondo a `Perks.ALL` o `Relics.ALL` (l'ordine conta per le estrazioni) e il suo effetto in `apply()`. Poi aggiungi in `tests/test_data.gd` un test che controlli l'effetto: i test delle statistiche coprono solo i doni che esistono anche nel JS.
-- **Lanterna:** crea un nuovo `.tres` in `data/lanterns/` e aggiungi il suo id a `DB.LANTERN_IDS`.
+- **Enemy:** create `data/enemies/<id>.tres` (class `EnemyDef`, copy an existing one) and add it to the biome's `pool` in `data/biomes/<biome>.tres`. If you need a new behavior, add a method in `actors/ai.gd` and its case in `AI.run`. The sprite goes in `assets/sprites/` with its entry in the manifest.
+- **Perk or relic:** add the entry at the end of `Perks.ALL` or `Relics.ALL` (order matters for the draws) and its effect in `apply()`. Then add a test in `tests/test_data.gd` that checks the effect: the stat tests only cover perks that also exist in the JS.
+- **Lantern:** create a new `.tres` in `data/lanterns/` and add its id to `DB.LANTERN_IDS`.
 
-## Proporre una modifica
+## Proposing a change
 
-1. Crea un branch da `master`: `git checkout -b nome-breve`.
-2. Fai commit piccoli e con un messaggio in italiano che dica cosa cambia, ad esempio «Ghoul: la carica si ferma contro le rocce».
-3. Prima di proporre la modifica:
-   - `tools/test.sh` deve passare;
-   - prova la situazione nel gioco con gli argomenti di sviluppo;
-   - se cambia qualcosa di visibile, allega uno screenshot.
-4. Apri una pull request che spieghi il perché della modifica, come l'hai provata e le eventuali differenze volute rispetto al JS.
+1. Create a branch from `master`: `git checkout -b short-name`.
+2. Make small commits with a message saying what changes, for example "Ghoul: the charge stops against rocks".
+3. Before proposing the change:
+   - `tools/test.sh` must pass;
+   - try the situation in the game with the development arguments;
+   - if something visible changes, attach a screenshot.
+4. Open a pull request explaining why the change is needed, how you tried it and any intended differences from the JS.
 
-## Pacchetti per i tester
+## Tester packages
 
-- **Versione Godot (Windows):** `python3 tools/build_godot.py`. Esegue i test, esporta e crea `dist/godot/UltimaLanterna-<versione>-Windows.zip` con le istruzioni per i tester (`tools/tester-godot/`). Il numero di versione è `VERSION` in `godot/core/consts.gd`.
-- **Versione JS (Windows, Linux, browser):** `python3 tools/build.py` (vedi [README.md](README.md)).
+- **Godot version (Windows):** `python3 tools/build_godot.py`. Runs the tests, exports and creates `dist/godot/LastLantern-<version>-Windows.zip` with the tester instructions (`tools/tester-godot/`). The version number is `VERSION` in `godot/core/consts.gd`.
+- **JS version (Windows, Linux, browser):** `python3 tools/build.py` (see [README.md](README.md)).
 
-## Segnalare un bug
+## Reporting a bug
 
-Apri una issue con:
-- cosa è successo e cosa ti aspettavi;
-- il seme della partita (si legge in pausa);
-- uno screenshot;
-- se c'è, il registro degli errori: `%APPDATA%\Ultima Lanterna Godot\logs\godot.log` su Windows, `~/.local/share/Ultima Lanterna Godot/logs/godot.log` su Linux.
+Open an issue with:
+- what happened and what you expected;
+- the game seed (shown in the pause menu);
+- a screenshot;
+- if there is one, the error log: `%APPDATA%\Last Lantern Godot\logs\godot.log` on Windows, `~/.local/share/Last Lantern Godot/logs/godot.log` on Linux.
 
-## Comportamento
+## Conduct
 
-Sii gentile e costruttivo nelle issue e nelle revisioni. Critica il codice, non le persone.
+Be kind and constructive in issues and reviews. Criticize the code, not the people.
 
-## Licenza
+## License
 
-Contribuendo accetti che il tuo lavoro sia distribuito con la [licenza MIT](LICENSE) del progetto.
+By contributing you agree that your work is distributed under the project's [MIT license](LICENSE).

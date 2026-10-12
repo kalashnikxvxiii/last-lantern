@@ -1,6 +1,6 @@
 extends Node
-# Effetti sonori (da Sound in js/audio.js): varianti registrate offline,
-# intervalli minimi tra ripetizioni, bus con compressore e volumi delle opzioni.
+# Sound effects (from Sound in js/audio.js): variants recorded offline,
+# minimum intervals between repeats, compressor bus and option volumes.
 
 const NAMES := ["shoot", "hit", "crit", "kill", "hurt", "coin", "xp", "pickup", "heal", "oil", "levelup", "dash", "flare",
 	"explosion", "door", "lock", "enemyShoot", "spawn", "roar", "select", "confirm", "deny", "chest", "buy", "curse", "shield",
@@ -8,11 +8,11 @@ const NAMES := ["shoot", "hit", "crit", "kill", "hurt", "coin", "xp", "pickup", 
 const GAP := {"shoot": 0.045, "hit": 0.035, "xp": 0.03, "coin": 0.04, "enemyShoot": 0.05, "kill": 0.04, "tick": 0.05}
 const VOICES := 24
 
-var streams: Dictionary = {}   # nome -> Array di AudioStream
-var last: Dictionary = {}      # nome -> secondi dell'ultima esecuzione
+var streams: Dictionary = {}   # name -> Array of AudioStream
+var last: Dictionary = {}      # name -> seconds of the last playback
 var players: Array[AudioStreamPlayer] = []
 var next_voice := 0
-var variety := RNG.new(12345)  # scelta della variante: non tocca la casualità di gioco
+var variety := RNG.new(12345)  # variant choice: does not touch game randomness
 
 func _ready() -> void:
 	_setup_buses()

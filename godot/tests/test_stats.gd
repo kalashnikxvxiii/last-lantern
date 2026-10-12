@@ -1,5 +1,5 @@
 extends TestCase
-# recalcStats, pDamage, pFireRate, pSpeed, pLight, rollPerkChoices e formule: confronto con il JS.
+# recalcStats, pDamage, pFireRate, pSpeed, pLight, rollPerkChoices and formulas: comparison with the JS.
 
 func after() -> void:
 	Run.reset()
@@ -7,9 +7,9 @@ func after() -> void:
 func _player(c: Dictionary) -> Player:
 	Run.reset()
 	Run.active = true
-	Run.ardore = int(c.get("ardore", 0))
+	Run.ardor = int(c.get("ardor", 0))
 	var p := Player.new()
-	p.lantern = c.get("lantern", "custode")
+	p.lantern = c.get("lantern", "warden")
 	for k in c.get("perks", {}):
 		p.perks[k] = int(c.perks[k])
 	p.relics = Array(c.get("relics", []))
@@ -22,7 +22,7 @@ func _player(c: Dictionary) -> Player:
 	p.recalc_stats()
 	return p
 
-func test_statistiche_come_il_js() -> void:
+func test_stats_like_the_js() -> void:
 	for c in TestCase.golden("stats").cases:
 		var p := _player(c)
 		var d := TestCase.diff(p.stats, c.stats, "stats")
@@ -40,14 +40,14 @@ func test_statistiche_come_il_js() -> void:
 			near(p.speed(), dv.speed, 1e-9, "speed %s" % [dv])
 			near(p.light(), dv.light, 1e-9, "light %s" % [dv])
 
-func test_scelta_dei_doni_come_il_js() -> void:
+func test_perk_choice_like_the_js() -> void:
 	for c in TestCase.golden("stats").perkRolls:
 		var p := _player({"perks": c.perks, "relics": c.relics})
 		Run.depth = int(c.depth)
 		U.seed_random(int(c.seed))
 		eq(Perks.roll_choices(int(c.n), int(c.minRar)), c.out, "seme %d" % c.seed)
 
-func test_formule() -> void:
+func test_formulas() -> void:
 	var f: Dictionary = TestCase.golden("formulas")
 	for c in f.xpNeed:
 		eq(Stats.xp_need(int(c[0])), c[1])

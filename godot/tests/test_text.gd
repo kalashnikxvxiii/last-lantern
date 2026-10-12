@@ -1,27 +1,27 @@
 extends TestCase
-# Misura e a capo del testo: devono coincidere con Font.width e Font.wrap del JS.
+# Text measuring and wrapping: must match Font.width and Font.wrap of the JS.
 
-func test_larghezza_base() -> void:
-	eq(Txt.width("Ciao"), 21.0)          # C5 i3 a5 o5 + 3 spazi tra glifi
-	eq(Txt.width("^yCiao^w"), 21.0)      # i codici colore non contano
-	eq(Txt.width("a b"), 15.0)           # lo spazio vale 3 + 1
-	eq(Txt.width("Ciao", 2), 42.0)
+func test_base_width() -> void:
+	eq(Txt.width("Hello"), 25.0)         # H5 e5 l3 l3 o5 + 4 gaps between glyphs
+	eq(Txt.width("^yHello^w"), 25.0)     # color codes do not count
+	eq(Txt.width("a b"), 15.0)           # the space is worth 3 + 1
+	eq(Txt.width("Hello", 2), 50.0)
 	eq(Txt.width(""), 0.0)
 
-func test_a_capo_conserva_il_colore() -> void:
-	eq(Txt.wrap("^yuno due tre", 30), ["^yuno", "^ydue", "^ytre"])
-	eq(Txt.wrap("uno\ndue", 200), ["uno", "due"])
+func test_wrap_keeps_the_color() -> void:
+	eq(Txt.wrap("^yone two three", 30), ["^yone", "^ytwo", "^ythree"])
+	eq(Txt.wrap("one\ntwo", 200), ["one", "two"])
 	eq(Txt.wrap("", 50), [""])
 
 func test_missing_glyph_fallback() -> void:
 	eq(Txt.glyph("ò"), Txt.glyph("ò"))
-	eq(Txt.glyph("Ò")[1], 5.0, "maiuscola accentata disegnata")
-	eq(Txt.glyph("ñ"), Txt.glyph("?"), "senza glifo: punto interrogativo")
+	eq(Txt.glyph("Ò")[1], 5.0, "accented capital drawn")
+	eq(Txt.glyph("ñ"), Txt.glyph("?"), "no glyph: question mark")
 	eq(Txt.glyph("’"), Txt.glyph("?"))
 	eq(Txt.width("ñ"), Txt.width("?"))
 	eq(Txt.glyph("q")[1], 5.0)
 
-func test_colori_del_testo() -> void:
+func test_text_colors() -> void:
 	eq(Txt.COLORS.y, Color("#f6cf57"))
 	eq(Txt.COLORS.k, Color("#0d0a12"))
 	eq(Txt.COLORS.size(), 11)

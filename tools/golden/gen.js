@@ -1,6 +1,6 @@
 'use strict';
-// Genera i dati golden per i test del porting Godot eseguendo il codice JS originale.
-// Uso: node tools/golden/gen.js
+// Generates the golden data for the Godot port tests by running the original JS code.
+// Usage: node tools/golden/gen.js
 const fs = require('fs'), path = require('path'), vm = require('vm');
 const ROOT = path.resolve(__dirname, '..', '..');
 const OUT = path.join(ROOT, 'godot', 'tests', 'golden');
@@ -18,12 +18,12 @@ const ctx = {
 vm.createContext(ctx);
 for (const f of FILES) vm.runInContext(fs.readFileSync(path.join(ROOT, 'js', f), 'utf8'), ctx, { filename: f });
 
-// codice eseguito dentro la sandbox: vede le dichiarazioni globali dei file JS
+// code run inside the sandbox: sees the global declarations of the JS files
 const HARNESS = String.raw`
 Save.load();
 function seedRandom(s) { const r = new RNG(s); Math.random = () => r.next(); }
 function makeRun(lantern) {
-  run = { player: newPlayer(lantern || 'custode'), offeredRelics: new Set(), ardore: 0, depth: 1, room: null,
+  run = { player: newPlayer(lantern || 'warden'), offeredRelics: new Set(), ardor: 0, depth: 1, room: null,
     enemies: [], bullets: [], ebullets: [], fx: [], toasts: [], banners: [], kills: 0, dmgDealt: 0, dmgTaken: 0, coinsTotal: 0 };
   return run;
 }
@@ -89,9 +89,9 @@ function genRooms() {
   return out;
 }
 
-function statCase(lantern, perks, relics, curses, ardore, baseHpMod) {
+function statCase(lantern, perks, relics, curses, ardor, baseHpMod) {
   makeRun(lantern);
-  run.ardore = ardore;
+  run.ardor = ardor;
   const p = run.player;
   p.perks = perks; p.relics = relics; p.curses = curses; p.baseHpMod = baseHpMod;
   p.hp = 9999; p.oil = 9999; p.dashCharges = 99;
@@ -103,14 +103,14 @@ function statCase(lantern, perks, relics, curses, ardore, baseHpMod) {
       derived.push({ statuses: Object.keys(st), hpFrac: hf, oilFrac: of, damage: pDamage(p), fireRate: pFireRate(p), speed: pSpeed(p), light: pLight(p) });
     }
   }
-  return { lantern, perks, relics, curses, ardore, baseHpMod, stats: p.stats, derived };
+  return { lantern, perks, relics, curses, ardor, baseHpMod, stats: p.stats, derived };
 }
 function genStats() {
   const cases = [];
   for (const L of LANTERNS) cases.push(statCase(L.id, {}, [], [], 0, 0));
-  for (const id in PERKS) { cases.push(statCase('custode', { [id]: 1 }, [], [], 0, 0)); cases.push(statCase('custode', { [id]: PERKS[id].max }, [], [], 0, 0)); }
-  for (const id in RELICS) cases.push(statCase('custode', {}, [id], [], 0, 0));
-  for (const id in CURSES) cases.push(statCase('custode', {}, [], [id], 0, 0));
+  for (const id in PERKS) { cases.push(statCase('warden', { [id]: 1 }, [], [], 0, 0)); cases.push(statCase('warden', { [id]: PERKS[id].max }, [], [], 0, 0)); }
+  for (const id in RELICS) cases.push(statCase('warden', {}, [id], [], 0, 0));
+  for (const id in CURSES) cases.push(statCase('warden', {}, [], [id], 0, 0));
   const r = new RNG(99);
   const pk = Object.keys(PERKS), rk = Object.keys(RELICS), ck = Object.keys(CURSES), lk = LANTERNS.map(l => l.id);
   for (let i = 0; i < 30; i++) {
@@ -148,7 +148,7 @@ function genFormulas() {
   const r = new RNG(3);
   for (let i = 0; i < 100; i++) {
     const amount = r.range(1, 40), dmgTaken = r.pick([1, 1.2, 1.44]), armor = r.int(0, 12), fragile = r.chance(0.3), oilEmpty = r.chance(0.3);
-    // stessa formula di hurtPlayer (js/entities.js)
+    // same formula as hurtPlayer (js/entities.js)
     let dmg = amount * dmgTaken * (1 - Math.min(0.6, armor * 0.07));
     if (fragile) dmg *= 1.3;
     if (oilEmpty) dmg *= 1.25;
@@ -195,7 +195,7 @@ function genMovement() {
       for (let i = 0; i < 400; i++) {
         const axis = r.int(0, 2);
         const dx = axis === 1 ? 0 : r.range(-6, 6), dy = axis === 0 ? 0 : r.range(-6, 6);
-        // come updatePlayer: assi separati e scivolamento sugli spigoli
+        // like updatePlayer: separate axes and corner sliding
         const bx = moveAxis(a, dx, 0, false);
         const by = moveAxis(a, dy, 1, false);
         if (bx && Math.abs(dy) < 1) nudge(a, 0, dx);
@@ -234,5 +234,5 @@ const all = JSON.parse(vm.runInContext(HARNESS, ctx, { filename: 'harness.js' })
 fs.mkdirSync(OUT, { recursive: true });
 for (const k in all) {
   fs.writeFileSync(path.join(OUT, k + '.json'), JSON.stringify(all[k]));
-  console.log('scritto', k + '.json');
+  console.log('written', k + '.json');
 }

@@ -1,10 +1,10 @@
 'use strict';
 // =====================================================================
-//  Interfaccia: HUD, minimappa, notifiche, menu
+// Interface: HUD, minimap, notifications, menus
 // =====================================================================
 
 // ---------------------------------------------------------------------
-//  Notifiche
+// Notifications
 // ---------------------------------------------------------------------
 function toast(text, col = '#ece6d8', sub = '') {
   if (!run) return;
@@ -51,11 +51,11 @@ function drawNotices(ctx) {
 }
 
 // ---------------------------------------------------------------------
-//  HUD
+// HUD
 // ---------------------------------------------------------------------
 function drawHUD(ctx) {
   const p = run.player, s = p.stats;
-  // fascia superiore
+  // top bar
   pxRect(ctx, 0, 0, W, 27, '#0e0a12');
   pxRect(ctx, 0, 26, W, 1, UI_COL.brassD);
   pxRect(ctx, 0, 27, W, 1, '#050308');
@@ -63,23 +63,23 @@ function drawHUD(ctx) {
   for (let x = 0; x < W; x += 7) pxRect(ctx, x, 2 + (x * 7 % 5), 3, 1, '#1a141f');
   ctx.restore();
 
-  // vita
+  // health
   drawSpr(ctx, 'heart', 0, 8, 7);
   const hpLow = p.hp / s.maxHp < 0.3;
   bar(ctx, 16, 3, 92, 8, p.hp / s.maxHp, hpLow && Math.sin(Render.time * 8) > 0 ? '#ff6a5a' : '#c0392b', '#2a0d12', '#e87060');
   Font.draw(ctx, Math.ceil(p.hp) + '/' + s.maxHp, 62, 3, { align: 'center', color: '#f2ead8' });
-  // olio
+  // oil
   drawSpr(ctx, 'oil', 0, 8, 17);
   const oilF = p.oil / s.maxOil;
   bar(ctx, 16, 15, 92, 4, oilF, p.oil <= 0 ? '#3b3546' : '#d88a28', '#1e140a', '#f6cf57');
   const cx = 16 + Math.round(92 * Math.min(1, s.flareCost / s.maxOil));
   const ready = p.oil >= s.flareCost;
   pxRect(ctx, cx, 13, 1, 8, ready ? '#fff2a8' : '#5a4428');
-  if (p.oil <= 0) Font.draw(ctx, 'BUIO', 62, 13, { align: 'center', color: Math.sin(Render.time * 6) > 0 ? '#e0574a' : '#8a8294' });
-  // esperienza
+  if (p.oil <= 0) Font.draw(ctx, 'DARK', 62, 13, { align: 'center', color: Math.sin(Render.time * 6) > 0 ? '#e0574a' : '#8a8294' });
+  // experience
   bar(ctx, 16, 23, 92, 1, p.xp / xpNeed(p.level), '#c57ae0', '#1a0d22');
 
-  // consumabili
+  // consumables
   for (let i = 0; i < 4; i++) {
     const x = 116 + i * 22, y = 3;
     pxRect(ctx, x, y, 20, 20, '#0b0810');
@@ -92,21 +92,21 @@ function drawHUD(ctx) {
     }
     Font.draw(ctx, String(i + 1), x + 2, y + 1, { color: '#6b6478', shadow: false });
   }
-  // monete e chiavi
+  // coins and keys
   drawSpr(ctx, 'coin', 0, 212, 8);
   Font.draw(ctx, String(p.coins), 220, 4, { color: TEXT_COLORS.y });
   drawSpr(ctx, 'key', 0, 213, 19);
   Font.draw(ctx, String(p.keys), 220, 15, { color: '#e8dcc0' });
 
-  // profondita' e livello
+  // depth and level
   const bio = biomeOf(run.depth);
-  Font.draw(ctx, 'Profondità ' + run.depth + (run.depth > 5 ? '' : ' di 5'), 254, 3, { color: '#e8dcc0' });
+  Font.draw(ctx, 'Depth ' + run.depth + (run.depth > 5 ? '' : ' of 5'), 254, 3, { color: '#e8dcc0' });
   Font.draw(ctx, bio.name, 254, 14, { color: '#8a8294' });
   Font.draw(ctx, 'Lv ' + p.level, 388, 3, { align: 'right', color: '#c57ae0' });
 
   drawMinimap(ctx, 394, 2, false);
 
-  // stati e maledizioni (sotto la fascia)
+  // statuses and curses (below the bar)
   let sx = 6;
   for (const k in p.statuses) {
     const st = STATUS[k];
@@ -126,7 +126,7 @@ function drawHUD(ctx) {
     sx += 13;
   }
 
-  // cariche di scatto sotto i piedi
+  // dash charges under the feet
   if (p.dashCharges < s.dashCharges && !p.dead) {
     for (let i = 0; i < s.dashCharges; i++) {
       const x = p.x - (s.dashCharges * 4) / 2 + i * 4;
@@ -134,7 +134,7 @@ function drawHUD(ctx) {
     }
   }
 
-  // barra del boss
+  // boss bar
   const boss = run.enemies.find(e => e.boss);
   if (boss) {
     const w = 300, x = W / 2 - w / 2, y = H - 14;
@@ -142,7 +142,7 @@ function drawHUD(ctx) {
     pxRect(ctx, x - 2, y - 2, w + 4, 9, '#0b0810');
     pxRect(ctx, x - 1, y - 1, w + 2, 7, UI_COL.brassD);
     bar(ctx, x, y, w, 5, boss.hp / boss.maxHp, boss.invuln > 0 ? '#a59fb0' : '#a02a3a', '#200810', '#e0574a');
-    // tacche di fase
+    // phase ticks
     for (const ph of boss.B.phases) if (ph.at < 1) pxRect(ctx, x + Math.round(w * ph.at), y - 1, 1, 7, '#e8dcc0');
   }
 }
@@ -156,7 +156,7 @@ function drawMinimap(ctx, x0, y0, full) {
   const p = run.player;
   if (p.stats.hideMap && !full) {
     pxRect(ctx, x0, y0, 80, 23, '#0b0810');
-    Font.draw(ctx, 'Nebbia', x0 + 40, y0 + 8, { align: 'center', color: '#55505e' });
+    Font.draw(ctx, 'Fog', x0 + 40, y0 + 8, { align: 'center', color: '#55505e' });
     return;
   }
   const cur = run.room;
@@ -174,7 +174,7 @@ function drawMinimap(ctx, x0, y0, full) {
     if (isCur) fill = '#d8b46a';
     pxRect(ctx, x, y, cw, ch, '#6b6478');
     pxRect(ctx, x + 1, y + 1, cw - 2, ch - 2, fill);
-    // corridoi
+    // corridors
     for (const d in r.doors) {
       const n = r.doors[d];
       if (!doorVisible(r, d) || !roomKnown(n)) continue;
@@ -195,9 +195,9 @@ function drawFullMap(ctx) {
   const w = 9 * 24 + 30, h = 8 * 15 + 70;
   const x = W / 2 - w / 2, y = H / 2 - h / 2;
   panel(ctx, x, y, w, h);
-  Font.draw(ctx, 'Mappa - ' + biomeOf(run.depth).name, W / 2, y + 8, { align: 'center', color: '#e8dcc0' });
+  Font.draw(ctx, 'Map - ' + biomeOf(run.depth).name, W / 2, y + 8, { align: 'center', color: '#e8dcc0' });
   drawMinimap(ctx, x + 15, y + 24, true);
-  const leg = [['boss', 'Guardiano'], ['treasure', 'Tesoro'], ['shop', 'Mercante'], ['shrine', 'Santuario'], ['elite', 'Sfida'], ['secret', 'Segreto']];
+  const leg = [['boss', 'Warden'], ['treasure', 'Treasure'], ['shop', 'Merchant'], ['shrine', 'Shrine'], ['elite', 'Challenge'], ['secret', 'Secret']];
   leg.forEach(([k, n], i) => {
     const lx = x + 14 + (i % 3) * 82, ly = y + h - 28 + Math.floor(i / 3) * 11;
     pxRect(ctx, lx, ly + 2, 4, 4, ROOM_MARK[k]);
@@ -206,7 +206,7 @@ function drawFullMap(ctx) {
 }
 
 // ---------------------------------------------------------------------
-//  Menu generico (tastiera, mouse, gamepad)
+// Generic menu (keyboard, mouse, gamepad)
 // ---------------------------------------------------------------------
 class Menu {
   constructor(items, o = {}) { this.items = items; this.sel = 0; this.rects = []; this.o = o; this.lastMx = -1; this.lastMy = -1; }
@@ -258,7 +258,7 @@ class Menu {
       const yy = y + i * lh;
       this.rects.push({ x: lx - 14, y: yy - 3, w: w + 28, h: lh });
       if (sel) {
-        // piccola fiamma accanto alla voce selezionata
+        // small flame next to the selected entry
         const fx = lx - 9, fy = yy + 4;
         pxRect(ctx, fx, fy - 2, 3, 4, '#f29c38'); pxRect(ctx, fx + 1, fy - 3 - (Math.floor(Render.time * 8) % 2), 1, 2, '#f6cf57');
         pxRect(ctx, fx + 1, fy, 1, 1, '#fff2a8');
@@ -270,7 +270,7 @@ class Menu {
 }
 
 // ---------------------------------------------------------------------
-//  Schermata della scelta del dono
+// Perk choice screen
 // ---------------------------------------------------------------------
 function drawPerkCards(ctx, choices, sel, title, sub) {
   ctx.save(); ctx.globalAlpha = 0.78; pxRect(ctx, 0, 0, W, H, '#050308'); ctx.restore();
@@ -290,7 +290,7 @@ function drawPerkCards(ctx, choices, sel, title, sub) {
     const y = y0 - (isSel ? 4 : 0);
     rects.push({ x, y, w: cw, h: chh });
     panel(ctx, x, y, cw, chh, { hi: isSel ? R.col : UI_COL.brass, border: isSel ? R.col : UI_COL.brassD, alpha: 0.97 });
-    // icona
+    // icon
     pxRect(ctx, x + cw / 2 - 14, y + 10, 28, 28, '#0b0810');
     pxRect(ctx, x + cw / 2 - 13, y + 11, 26, 26, '#1a141f');
     if (isSel) glow(ctx, x + cw / 2, y + 24, 22, R.col, 0.3);
@@ -311,7 +311,7 @@ function drawPerkCards(ctx, choices, sel, title, sub) {
 }
 
 // ---------------------------------------------------------------------
-//  Elenco dell'equipaggiamento (pausa)
+// Equipment list (pause)
 // ---------------------------------------------------------------------
 function buildEntries() {
   const p = run.player;
@@ -324,8 +324,8 @@ function buildEntries() {
 function drawBuildPanel(ctx, x, y, w, h, hoverIdx) {
   panel(ctx, x, y, w, h);
   const entries = buildEntries();
-  Font.draw(ctx, 'Equipaggiamento', x + w / 2, y + 7, { align: 'center', color: '#e8dcc0' });
-  if (!entries.length) { Font.draw(ctx, 'Ancora nulla. Scendi e combatti.', x + w / 2, y + 30, { align: 'center', color: '#6b6478' }); return []; }
+  Font.draw(ctx, 'Equipment', x + w / 2, y + 7, { align: 'center', color: '#e8dcc0' });
+  if (!entries.length) { Font.draw(ctx, 'Nothing yet. Descend and fight.', x + w / 2, y + 30, { align: 'center', color: '#6b6478' }); return []; }
   const cols = Math.floor((w - 12) / 20);
   const rects = [];
   entries.forEach((e, i) => {
@@ -341,19 +341,19 @@ function drawBuildPanel(ctx, x, y, w, h, hoverIdx) {
   if (sel) {
     Font.draw(ctx, sel.name, x + 8, dy, { color: sel.col });
     Font.wrap(sel.desc, w - 16).slice(0, 3).forEach((l, k) => Font.draw(ctx, l, x + 8, dy + 11 + k * 10, { color: '#d8d0c0' }));
-  } else Font.drawWrapped(ctx, '^dPassa sopra un\'icona o apri Equipaggiamento per leggere i dettagli.', x + 8, dy, w - 16, {});
+  } else Font.drawWrapped(ctx, '^dHover over an icon or open Equipment to read the details.', x + 8, dy, w - 16, {});
   return rects;
 }
 
 function drawStatsPanel(ctx, x, y, w, h) {
   const p = run.player, s = p.stats;
   panel(ctx, x, y, w, h);
-  Font.draw(ctx, 'Statistiche', x + w / 2, y + 7, { align: 'center', color: '#e8dcc0' });
+  Font.draw(ctx, 'Stats', x + w / 2, y + 7, { align: 'center', color: '#e8dcc0' });
   const rows = [
-    ['Danno', pDamage(p).toFixed(1)], ['Cadenza', pFireRate(p).toFixed(2) + '/s'], ['Proiettili', s.proj],
-    ['Critico', Math.round(s.crit * 100) + '%  x' + s.critMult.toFixed(1)], ['Velocità', Math.round(pSpeed(p))], ['Armatura', s.armor],
-    ['Schivata', Math.round(s.dodge * 100) + '%'], ['Scatti', s.dashCharges], ['Olio', Math.round(p.oil) + '/' + s.maxOil],
-    ['Costo Vampata', Math.round(s.flareCost)], ['Luce', Math.round(pLight(p))],
+    ['Damage', pDamage(p).toFixed(1)], ['Fire rate', pFireRate(p).toFixed(2) + '/s'], ['Projectiles', s.proj],
+    ['Crit', Math.round(s.crit * 100) + '%  x' + s.critMult.toFixed(1)], ['Speed', Math.round(pSpeed(p))], ['Armor', s.armor],
+    ['Dodge', Math.round(s.dodge * 100) + '%'], ['Dashes', s.dashCharges], ['Oil', Math.round(p.oil) + '/' + s.maxOil],
+    ['Flare cost', Math.round(s.flareCost)], ['Light', Math.round(pLight(p))],
   ];
   rows.forEach(([k, v], i) => {
     Font.draw(ctx, k, x + 8, y + 20 + i * 10, { color: '#8a8294' });
@@ -361,13 +361,13 @@ function drawStatsPanel(ctx, x, y, w, h) {
   });
 }
 
-// lanterna disegnata grande (titolo e selezione)
+// big lantern drawing (title and selection)
 function drawBigLantern(ctx, x, y, glass, swing, s = 3) {
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate(swing);
   const R = (a, b, c, d, col) => pxRect(ctx, a * s, b * s, c * s, d * s, col);
-  // catena
+  // chain
   for (let i = 0; i < 5; i++) R(-0.5, -16 + i * 2, 1, 1, '#6b6478');
   R(-3, -6, 6, 1, '#3b3546'); R(-4, -5, 8, 1, '#6b6478');
   R(-5, -4, 10, 1, '#0b0810');

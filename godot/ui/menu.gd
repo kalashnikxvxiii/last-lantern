@@ -1,7 +1,7 @@
 class_name Menu
 extends RefCounted
-# Menu generico (class Menu in js/ui.js): tastiera, mouse, gamepad.
-# Voci: {label: String | Callable, value: Callable, adjust: Callable, action: Callable, disabled: bool}
+# Generic menu (class Menu in js/ui.js): keyboard, mouse, gamepad.
+# Entries: {label: String | Callable, value: Callable, adjust: Callable, action: Callable, disabled: bool}
 
 var items: Array
 var sel := 0
@@ -80,7 +80,7 @@ func draw(ci: CanvasItem, x: float, y: float, oo: Dictionary = {}) -> void:
 		var yy := y + i * lh
 		rects.append(Rect2(lx - 14, yy - 3, w + 28, lh))
 		if is_sel:
-			# piccola fiamma accanto alla voce selezionata
+			# small flame next to the selected entry
 			var fx := lx - 9
 			var fy := yy + 4
 			var tt := Fx.time

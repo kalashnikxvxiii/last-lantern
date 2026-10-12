@@ -1,11 +1,11 @@
 extends SceneTree
-# Genera assets/tiles/<bioma>.tres dagli atlas esportati e da layout.json.
-# Uso: godot --headless --path godot -s res://tools/build_tilesets.gd
+# Generates assets/tiles/<biome>.tres from the exported atlases and layout.json.
+# Usage: godot --headless --path godot -s res://tools/build_tilesets.gd
 
 func _initialize() -> void:
 	var j := JSON.new()
 	if j.parse(FileAccess.get_file_as_string("res://assets/tiles/layout.json")) != OK:
-		push_error("layout.json non leggibile")
+		push_error("layout.json not readable")
 		quit(1)
 		return
 	var px := int(j.data.tile)
@@ -21,7 +21,7 @@ func _initialize() -> void:
 		ts.add_source(src, 0)
 		var err := ResourceSaver.save(ts, "res://assets/tiles/%s.tres" % biome)
 		if err != OK:
-			push_error("salvataggio di %s fallito: %d" % [biome, err])
+			push_error("saving %s failed: %d" % [biome, err])
 			quit(1)
 			return
 		print("tileset ", biome)

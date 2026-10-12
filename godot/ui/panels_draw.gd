@@ -1,6 +1,6 @@
 class_name PanelsDraw
 extends RefCounted
-# Carte dei doni, equipaggiamento e statistiche (js/ui.js).
+# Perk cards, equipment and stats (js/ui.js).
 
 static func perk_cards(ci: CanvasItem, choices: Array, sel: int, title: String, sub: String) -> Array:
 	var W := Consts.W
@@ -28,7 +28,7 @@ static func perk_cards(ci: CanvasItem, choices: Array, sel: int, title: String, 
 		var y := y0 - (4 if is_sel else 0)
 		rects.append(Rect2(x, y, cw, chh))
 		UiDraw.panel(ci, x, y, cw, chh, {"hi": R.col if is_sel else UiDraw.UI.brass, "border": R.col if is_sel else UiDraw.UI.brassD, "alpha": 0.97})
-		# icona
+		# icon
 		UiDraw.px_rect(ci, x + cw / 2 - 14, y + 10, 28, 28, "#0b0810")
 		UiDraw.px_rect(ci, x + cw / 2 - 13, y + 11, 26, 26, "#1a141f")
 		if is_sel:
@@ -64,9 +64,9 @@ static func build_entries() -> Array:
 static func build_panel(ci: CanvasItem, x: float, y: float, w: float, h: float, hover: int) -> Array:
 	UiDraw.panel(ci, x, y, w, h)
 	var entries := build_entries()
-	UiDraw.text(ci, "Equipaggiamento", x + w / 2, y + 7, {"align": "center", "color": "#e8dcc0"})
+	UiDraw.text(ci, "Equipment", x + w / 2, y + 7, {"align": "center", "color": "#e8dcc0"})
 	if entries.is_empty():
-		UiDraw.text(ci, "Ancora nulla. Scendi e combatti.", x + w / 2, y + 30, {"align": "center", "color": "#6b6478"})
+		UiDraw.text(ci, "Nothing yet. Descend and fight.", x + w / 2, y + 30, {"align": "center", "color": "#6b6478"})
 		return []
 	var cols := int(floor((w - 12) / 20))
 	var rects: Array = []
@@ -87,28 +87,28 @@ static func build_panel(ci: CanvasItem, x: float, y: float, w: float, h: float, 
 		for k in lines.size():
 			UiDraw.text(ci, lines[k], x + 8, dy + 11 + k * 10, {"color": "#d8d0c0"})
 	else:
-		UiDraw.text_wrapped(ci, "^dPassa sopra un'icona o apri Equipaggiamento per leggere i dettagli.", x + 8, dy, w - 16, {})
+		UiDraw.text_wrapped(ci, "^dHover over an icon or open Equipment to read the details.", x + 8, dy, w - 16, {})
 	return rects
 
 static func stats_panel(ci: CanvasItem, x: float, y: float, w: float, h: float) -> void:
 	var p := Run.player
 	var s := p.stats
 	UiDraw.panel(ci, x, y, w, h)
-	UiDraw.text(ci, "Statistiche", x + w / 2, y + 7, {"align": "center", "color": "#e8dcc0"})
+	UiDraw.text(ci, "Stats", x + w / 2, y + 7, {"align": "center", "color": "#e8dcc0"})
 	var rows := [
-		["Danno", "%.1f" % p.damage()], ["Cadenza", "%.2f/s" % p.fire_rate()], ["Proiettili", U.num(s.proj)],
-		["Critico", str(int(U.jround(s.crit * 100))) + "%  x" + ("%.1f" % s.critMult)], ["Velocità", str(int(U.jround(p.speed())))], ["Armatura", U.num(s.armor)],
-		["Schivata", str(int(U.jround(s.dodge * 100))) + "%"], ["Scatti", U.num(s.dashCharges)], ["Olio", str(int(U.jround(p.oil))) + "/" + U.num(s.maxOil)],
-		["Costo Vampata", str(int(U.jround(s.flareCost)))], ["Luce", str(int(U.jround(p.light())))],
+		["Damage", "%.1f" % p.damage()], ["Fire rate", "%.2f/s" % p.fire_rate()], ["Projectiles", U.num(s.proj)],
+		["Crit", str(int(U.jround(s.crit * 100))) + "%  x" + ("%.1f" % s.critMult)], ["Speed", str(int(U.jround(p.speed())))], ["Armor", U.num(s.armor)],
+		["Dodge", str(int(U.jround(s.dodge * 100))) + "%"], ["Dashes", U.num(s.dashCharges)], ["Oil", str(int(U.jround(p.oil))) + "/" + U.num(s.maxOil)],
+		["Flare cost", str(int(U.jround(s.flareCost)))], ["Light", str(int(U.jround(p.light())))],
 	]
 	for i in rows.size():
 		UiDraw.text(ci, rows[i][0], x + 8, y + 20 + i * 10, {"color": "#8a8294"})
 		UiDraw.text(ci, rows[i][1], x + w - 8, y + 20 + i * 10, {"align": "right", "color": "#e8dcc0"})
 
-# riepilogo della discesa (runSummaryRows, drawSummary, drawIconsRow in js/game.js)
+# descent summary (runSummaryRows, drawSummary, drawIconsRow in js/game.js)
 static func summary_rows() -> Array:
-	return [["Profondità raggiunta", Run.depth], ["Livello", Run.player.level], ["Nemici sconfitti", Run.kills],
-		["Stanze ripulite", Run.rooms_cleared], ["Monete raccolte", Run.coins_total], ["Tempo", U.fmt_time(Run.time)]]
+	return [["Depth reached", Run.depth], ["Level", Run.player.level], ["Enemies defeated", Run.kills],
+		["Rooms cleared", Run.rooms_cleared], ["Coins collected", Run.coins_total], ["Time", U.fmt_time(Run.time)]]
 
 static func summary(ci: CanvasItem, x: float, y: float) -> void:
 	var rows := summary_rows()

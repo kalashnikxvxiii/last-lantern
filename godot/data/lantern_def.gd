@@ -1,13 +1,13 @@
 class_name LanternDef
 extends Resource
-# Lanterna iniziale (LANTERNS in js/data.js). Effetti sulle statistiche come campi,
-# così si modificano dall'Inspector.
+# Starting lantern (LANTERNS in js/data.js). Stat effects as fields,
+# so they can be edited from the Inspector.
 
 @export var id := ""
 @export var name := ""
 @export var glass := "#f6cf57"
 @export_multiline var desc := ""
-@export var unlock_stat := ""    # chiave di Save.data.stats; "" = sempre disponibile
+@export var unlock_stat := ""    # key of Save.data.stats; "" = always available
 @export var unlock_min := 0
 @export var unlock_text := ""
 @export var max_hp_add := 0.0
@@ -43,7 +43,7 @@ func apply_stats(s: Dictionary) -> void:
 	s.lightMult += light_mult_add
 	s.dashCharges += dash_charges_add
 
-# start() del JS
+# JS start()
 func on_start(p) -> void:
 	for c in start_cons:
 		p.give_cons(c)

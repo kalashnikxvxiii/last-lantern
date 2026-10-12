@@ -1,6 +1,6 @@
 extends Node
-# Scene, argomenti di sviluppo, screenshot e cattura degli errori
-# (setScene, boot e devStart in js/game.js).
+# Scenes, development arguments, screenshots and error capture
+# (setScene, boot and devStart in js/game.js).
 
 var SCENES := {
 	"title": "res://ui/screens/title.tscn",
@@ -21,7 +21,7 @@ var frames := 0
 class ErrorLogger extends Logger:
 	func _log_error(function: String, file: String, line: int, code: String, rationale: String, editor_notify: bool, error_type: int, script_backtrace: Array[ScriptBacktrace]) -> void:
 		if error_type == ERROR_TYPE_WARNING:
-			return   # gli avvisi non sono errori del gioco
+			return   # warnings are not game errors
 		var g := (Engine.get_main_loop() as SceneTree).root.get_node_or_null("Game")
 		if g != null and g.error == "":
 			g.error = rationale if rationale != "" else code
@@ -54,7 +54,7 @@ func set_scene(name: String, arg: Variant = null) -> void:
 	Controls.sim.erase("pressed")
 	get_tree().change_scene_to_file(SCENES[name])
 
-# chiamata dalla scena di avvio
+# called by the boot scene
 func boot() -> void:
 	if dev.has("test") or dev.has("spawn") or dev.has("seed"):
 		dev_start()
@@ -63,7 +63,7 @@ func boot() -> void:
 	else:
 		set_scene("title")
 
-# pausa automatica quando la finestra perde il fuoco (boot in js/game.js)
+# auto-pause when the window loses focus (boot in js/game.js)
 static func should_autopause(scene: String, mode: Variant, dead: bool, victory_t: float) -> bool:
 	return scene == "play" and mode == "play" and not dead and victory_t == 0.0
 
@@ -72,7 +72,7 @@ func _on_focus_lost() -> void:
 	if sc != null and Run.active and Run.player != null and should_autopause(scene_name, sc.get("mode"), Run.player.dead, Run.victory_t):
 		sc.open_pause()
 
-# F11 e Alt+Invio: schermo intero (come desktop/main.js)
+# F11 and Alt+Enter: fullscreen (as in desktop/main.js)
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_F11 or (event.keycode == KEY_ENTER and event.alt_pressed):
@@ -80,7 +80,7 @@ func _input(event: InputEvent) -> void:
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED if fs else DisplayServer.WINDOW_MODE_FULLSCREEN)
 			get_viewport().set_input_as_handled()
 
-# barra degli errori (frame() in js/game.js), sopra ogni schermata
+# error bar (frame() in js/game.js), above every screen
 class ErrorBar extends Node2D:
 	func _process(_delta: float) -> void:
 		queue_redraw()
@@ -89,9 +89,9 @@ class ErrorBar extends Node2D:
 		if g.error == "":
 			return
 		UiDraw.px_rect(self, 0, Consts.H - 32, Consts.W, 32, "#300810")
-		UiDraw.text(self, "Errore: " + g.error.substr(0, 70), 4, Consts.H - 29, {"color": "#ff8080"})
-		var seed_txt := ("  seme " + str(Run.seed)) if Run.active else ""
-		UiDraw.text(self, "Fai uno screenshot e invialo insieme al modulo di feedback. " + Consts.VERSION + seed_txt, 4, Consts.H - 16, {"color": "#e8c0c0"})
+		UiDraw.text(self, "Error: " + g.error.substr(0, 70), 4, Consts.H - 29, {"color": "#ff8080"})
+		var seed_txt := ("  seed " + str(Run.seed)) if Run.active else ""
+		UiDraw.text(self, "Take a screenshot and send it along with the feedback form. " + Consts.VERSION + seed_txt, 4, Consts.H - 16, {"color": "#e8c0c0"})
 
 func _process(_delta: float) -> void:
 	if dev.has("screenshot") and scene_name != "":
@@ -101,12 +101,12 @@ func _process(_delta: float) -> void:
 			get_viewport().get_texture().get_image().save_png(str(dev.screenshot))
 			get_tree().quit()
 
-# devStart (js/game.js): argomenti di prova dopo "--"
+# devStart (js/game.js): test arguments after "--"
 func dev_start() -> void:
 	var seed := int(dev.get("seed", -1))
 	if seed >= 0:
 		U.seed_random(seed)
-	Flow.start_run(str(dev.get("lantern", "custode")), int(dev.get("ardore", 0)), seed)
+	Flow.start_run(str(dev.get("lantern", "warden")), int(dev.get("ardor", 0)), seed)
 	var mode := str(dev.get("test", ""))
 	if mode in ["boss", "shop", "treasure", "elite", "shrine", "secret"]:
 		var rs: Array = Run.floor.rooms.filter(func(x): return x.type == mode)
@@ -137,7 +137,7 @@ func dev_start() -> void:
 		Run.pending_levels = int(dev.lv)
 	if dev.has("coins"):
 		Run.player.coins = int(dev.coins)
-	# --spawn=rat,bat: nemici nella stanza corrente, per provare le IA
+	# --spawn=rat,bat: enemies in the current room, to try out the AI
 	if dev.has("spawn"):
 		Run.room.combat = true
 		Run.room.waves = []

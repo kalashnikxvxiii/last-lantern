@@ -1,6 +1,6 @@
 'use strict';
-// Gira nella finestra nascosta di Electron: disegna e registra gli asset
-// con il codice originale del gioco e li passa al processo principale.
+// Runs in Electron's hidden window: draws and records the assets
+// with the game's original code and passes them to the main process.
 
 const toB64 = canvas => canvas.toDataURL('image/png').split(',')[1];
 
@@ -15,7 +15,7 @@ async function runExport(only) {
   if (only.includes('music')) await exportMusic();
 }
 
-// ogni sprite: un PNG con i frame affiancati (outline incluso) + manifest
+// each sprite: a PNG with the frames side by side (outline included) + manifest
 async function exportSprites() {
   const manifest = {};
   for (const name of Object.keys(SPR)) {
@@ -27,10 +27,10 @@ async function exportSprites() {
     manifest[name] = { w: s.w, h: s.h, frames: s.frames.length };
   }
   await exporter.writeText('sprites/manifest.json', JSON.stringify(manifest, null, 1));
-  exporter.log('sprite esportati: ' + Object.keys(manifest).length);
+  exporter.log('sprites exported: ' + Object.keys(manifest).length);
 }
 
-// font: atlas bianco, larghezze dei glifi e BMFont per l'editor
+// font: white atlas, glyph widths and BMFont for the editor
 async function exportFont() {
   const chars = Object.keys(Font.glyphs);
   let total = 0;
@@ -39,11 +39,11 @@ async function exportFont() {
   c.fillStyle = '#ffffff';
   const map = {};
   const fnt = [
-    'info face="lanterna" size=8 bold=0 italic=0 charset="" unicode=1 stretchH=100 smooth=0 aa=1 padding=0,0,0,0 spacing=1,1',
+    'info face="lantern" size=8 bold=0 italic=0 charset="" unicode=1 stretchH=100 smooth=0 aa=1 padding=0,0,0,0 spacing=1,1',
     'common lineHeight=10 base=7 scaleW=' + total + ' scaleH=8 pages=1 packed=0',
-    // pagina separata: l'importatore BMFont di Godot marca la sua texture come "skip",
-    // mentre lanterna.png deve restare una texture normale per UiDraw
-    'page id=0 file="lanterna_page.png"',
+    // separate page: Godot's BMFont importer marks its texture as "skip",
+    // while lantern.png must remain a normal texture for UiDraw
+    'page id=0 file="lantern_page.png"',
     'chars count=' + (chars.length + 1),
     'char id=32 x=0 y=0 width=0 height=0 xoffset=0 yoffset=0 xadvance=4 page=0 chnl=15',
   ];
@@ -55,13 +55,13 @@ async function exportFont() {
     fnt.push('char id=' + ch.codePointAt(0) + ' x=' + x + ' y=0 width=' + g.w + ' height=8 xoffset=0 yoffset=0 xadvance=' + (g.w + 1) + ' page=0 chnl=15');
     x += g.w + 1;
   }
-  await exporter.write('font/lanterna.png', toB64(cv));
-  await exporter.write('font/lanterna_page.png', toB64(cv));
+  await exporter.write('font/lantern.png', toB64(cv));
+  await exporter.write('font/lantern_page.png', toB64(cv));
   await exporter.writeText('font/glyphs.json', JSON.stringify(map));
-  await exporter.writeText('font/lanterna.fnt', fnt.join('\n') + '\n');
-  exporter.log('glifi esportati: ' + chars.length);
+  await exporter.writeText('font/lantern.fnt', fnt.join('\n') + '\n');
+  exporter.log('glyphs exported: ' + chars.length);
 }
-// atlas dei tile per bioma: pavimento, muri e rocce di renderRoomBg (js/dungeon.js)
+// tile atlas per biome: floor, walls and rocks from renderRoomBg (js/dungeon.js)
 async function exportTiles() {
   const COLS = 8, layoutAll = {};
   for (const biome of BIOMES) {
@@ -80,10 +80,10 @@ async function exportTiles() {
     layoutAll[biome.id] = layout;
   }
   await exporter.writeText('tiles/layout.json', JSON.stringify({ tile: TS, columns: COLS, biomes: layoutAll }));
-  exporter.log('atlas dei tile: ' + Object.keys(layoutAll).join(', '));
+  exporter.log('tile atlases: ' + Object.keys(layoutAll).join(', '));
 }
 
-// pavimento di renderRoomBg con colore, giunto e granelli scelti
+// renderRoomBg floor with chosen color, joint and specks
 function drawFloorVariant(c, x, y, biome, ci, kind, g) {
   c.fillStyle = biome.floor[ci]; c.fillRect(x, y, TS, TS);
   c.fillStyle = biome.floorD;
@@ -97,7 +97,7 @@ function drawFloorVariant(c, x, y, biome, ci, kind, g) {
   if (kind === 'crack') { c.fillStyle = biome.floorD; c.fillRect(x + 3, y + 5, 5, 1); c.fillRect(x + 7, y + 6, 4, 1); c.fillRect(x + 10, y + 7, 1, 3); }
 }
 
-// muro di drawWallTile per bordo e parità della riga
+// drawWallTile wall by edge and row parity
 function drawWallVariant(c, x, y, biome, edge, crack) {
   const ty = { top: 0, bottom: RH - 1, left0: 2, left1: 1, right0: 2, right1: 1, corner: 0 }[edge];
   c.fillStyle = biome.wallD; c.fillRect(x, y, TS, TS);
@@ -119,7 +119,7 @@ const SFX_NAMES = ['shoot', 'hit', 'crit', 'kill', 'hurt', 'coin', 'xp', 'pickup
   'explosion', 'door', 'lock', 'enemyShoot', 'spawn', 'roar', 'select', 'confirm', 'deny', 'chest', 'buy', 'curse', 'shield',
   'freeze', 'thud', 'bolt', 'tick', 'descend', 'warn', 'block'];
 
-// rumore bianco come in Sound.unlock, generato con il Math.random corrente
+// white noise as in Sound.unlock, generated with the current Math.random
 function makeNoise(c) {
   const len = c.sampleRate * 1.0, b = c.createBuffer(1, len, c.sampleRate), d = b.getChannelData(0);
   for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
@@ -130,7 +130,7 @@ function trimTail(data, sr) {
   while (end > sr * 0.05 && Math.abs(data[end - 1]) < 1e-4) end--;
   return data.subarray(0, end);
 }
-// PCM 16 bit, codificato in base64
+// 16-bit PCM, base64-encoded
 function wavB64(samples, sr) {
   const n = samples.length, buf = new ArrayBuffer(44 + n * 2), v = new DataView(buf);
   const str = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
@@ -144,7 +144,7 @@ function wavB64(samples, sr) {
   return btoa(bin);
 }
 
-// ogni effetto di Sound.play registrato offline in 3 varianti (Math.random con semi diversi)
+// each Sound.play effect recorded offline in 3 variants (Math.random with different seeds)
 async function exportSfx() {
   const SR = 44100;
   Save.data.settings.sfx = 1;
@@ -162,9 +162,9 @@ async function exportSfx() {
       await exporter.write('sfx/' + name + '_' + v + '.wav', wavB64(trimTail(buf.getChannelData(0), SR), SR));
     }
   }
-  exporter.log('effetti esportati: ' + SFX_NAMES.length * 3);
+  exporter.log('effects exported: ' + SFX_NAMES.length * 3);
 }
-// strati della musica: ognuno riproduce una parte di Music.playStep a intensità fissa
+// music layers: each plays a part of Music.playStep at fixed intensity
 const STEMS = {
   drone: null,                                   // Music.startDrone
   arp_lo: (s, t) => stemArp(s, t, 0),
@@ -222,8 +222,8 @@ function stemHats(s, t) {
   src.connect(f); f.connect(g); g.connect(Music.bus); src.start(t, Math.random() * 0.5); src.stop(t + 0.06);
 }
 
-// 32 battute (256 ottavi) per strato, con preroll per il drone e chiusura ad anello:
-// la coda delle note viene sommata all'inizio, il drone si dissolve incrociato.
+// 32 bars (256 eighth notes) per layer, with preroll for the drone and a loop closure:
+// the tail of the notes is summed at the start, the drone crossfades.
 async function renderStem(name, stem, seed) {
   const SR = 44100, PRE = 4, TAIL = 2, STEPS = 256;
   const tr = TRACKS[name], stepDur = 60 / tr.tempo / 2;
@@ -255,5 +255,5 @@ async function exportMusic() {
     const loop = await renderStem(name, stem, seed++);
     await exporter.write('music/' + name + '_' + stem + '.wav', wavB64(loop, 44100));
   }
-  exporter.log('strati musicali: ' + Object.keys(TRACKS).length * Object.keys(STEMS).length);
+  exporter.log('music layers: ' + Object.keys(TRACKS).length * Object.keys(STEMS).length);
 }

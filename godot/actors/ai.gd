@@ -1,7 +1,7 @@
 class_name AI
 extends RefCounted
-# Comportamenti dei nemici (AI in js/entities.js). Firma comune: (e, dt, tg, m),
-# con tg il bersaglio ({x, y} o il giocatore) e m il moltiplicatore di velocità.
+# Enemy behaviors (AI in js/entities.js). Common signature: (e, dt, tg, m),
+# with tg the target ({x, y} or the player) and m the speed multiplier.
 
 static func run(e: Enemy, dt: float, tg, m: float) -> void:
 	match e.ai:

@@ -1,12 +1,12 @@
 class_name Stats
 extends RefCounted
-# Statistiche di base del giocatore, rarità e scalature (da js/data.js e js/entities.js).
+# Base player stats, rarity and scaling (from js/data.js and js/entities.js).
 
 static var RARITY := [
-	{"name": "Comune", "col": "#c8c0b0", "w": 62},
-	{"name": "Raro", "col": "#6fa8e8", "w": 27},
-	{"name": "Epico", "col": "#c57ae0", "w": 9},
-	{"name": "Leggendario", "col": "#f6cf57", "w": 2.5},
+	{"name": "Common", "col": "#c8c0b0", "w": 62},
+	{"name": "Rare", "col": "#6fa8e8", "w": 27},
+	{"name": "Epic", "col": "#c57ae0", "w": 9},
+	{"name": "Legendary", "col": "#f6cf57", "w": 2.5},
 ]
 
 static func base() -> Dictionary:
@@ -22,7 +22,7 @@ static func base() -> Dictionary:
 		"enemySpeed": 1, "dmgTaken": 1, "mapReveal": 0, "hideMap": 0, "goldKeys": 0, "burnMult": 1,
 	}
 
-# scalature per profondità
+# per-depth scaling
 static func depth_hp(d: int) -> float:
 	return 1 + 0.6 * (d - 1) + 0.08 * (d - 1) * (d - 1)
 
@@ -33,7 +33,7 @@ static func xp_need(level: int) -> float:
 	return U.jround(12 + 7 * level + 1.5 * level * level)
 
 static func ard_hp() -> float:
-	return 1.25 if Run.ardore >= 1 else 1.0
+	return 1.25 if Run.ardor >= 1 else 1.0
 
 static func ard_dmg() -> float:
-	return 1.2 if Run.ardore >= 2 else 1.0
+	return 1.2 if Run.ardor >= 2 else 1.0

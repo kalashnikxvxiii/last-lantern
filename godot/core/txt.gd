@@ -1,6 +1,6 @@
 class_name Txt
 extends RefCounted
-# Font bitmap (js/font.js): glifi, misura e a capo dei testi con i codici colore ^x.
+# Bitmap font (js/font.js): glyphs, text measuring and wrapping with ^x color codes.
 
 const LINE := 10
 static var COLORS := {
@@ -8,7 +8,7 @@ static var COLORS := {
 	"b": Color("#6fa8e8"), "o": Color("#f29c38"), "p": Color("#c57ae0"), "d": Color("#8a8294"),
 	"c": Color("#7fd8e6"), "s": Color("#b8b2c2"), "k": Color("#0d0a12"),
 }
-static var glyphs: Dictionary = {}   # carattere -> [x nell'atlas, larghezza]
+static var glyphs: Dictionary = {}   # character -> [x in the atlas, width]
 static var _atlas: Texture2D
 
 static func ensure() -> void:
@@ -16,16 +16,16 @@ static func ensure() -> void:
 		return
 	var j := JSON.new()
 	if j.parse(FileAccess.get_file_as_string("res://assets/font/glyphs.json")) != OK:
-		push_error("glyphs.json non leggibile")
+		push_error("glyphs.json not readable")
 		return
 	glyphs = j.data
 
 static func atlas() -> Texture2D:
 	if _atlas == null:
-		_atlas = load("res://assets/font/lanterna.png")
+		_atlas = load("res://assets/font/lantern.png")
 	return _atlas
 
-# ripiego del JS: maiuscola/minuscola, poi il punto interrogativo
+# JS fallback: upper/lower case, then the question mark
 static func glyph(ch: String) -> Array:
 	ensure()
 	if glyphs.has(ch):
@@ -38,7 +38,7 @@ static func glyph(ch: String) -> Array:
 		return glyphs[lo]
 	return glyphs["?"]
 
-# larghezza ignorando i codici colore
+# width ignoring the color codes
 static func width(s: String, scale: float = 1.0) -> float:
 	var w := 0.0
 	var n := 0
@@ -67,7 +67,7 @@ static func _last_code(word: String) -> String:
 			i += 1
 	return res
 
-# a capo automatico, preserva i codici colore tra le righe
+# automatic wrapping, keeps the color codes across lines
 static func wrap(s: String, max_w: float, scale: float = 1.0) -> Array:
 	var out: Array = []
 	for para in s.split("\n"):

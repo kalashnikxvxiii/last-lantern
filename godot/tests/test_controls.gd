@@ -1,29 +1,29 @@
 extends TestCase
-# Input: movimento normalizzato, mira dall'ultimo dispositivo, input simulato.
+# Input: normalized movement, aim from the last device, simulated input.
 
 func after() -> void:
 	Controls.sim.clear()
 	for a in ["move_right", "move_down", "aim_left"]:
 		Input.action_release(a)
 
-func test_movimento_normalizzato() -> void:
+func test_normalized_movement() -> void:
 	Input.action_press("move_right")
 	Input.action_press("move_down")
 	var m := Controls.move()
-	near(m.length(), 1.0, 1e-6)   # Vector2 è a 32 bit
+	near(m.length(), 1.0, 1e-6)   # Vector2 is 32-bit
 	near(m.x, sqrt(0.5), 1e-6)
 
 func test_aim_follows_last_device() -> void:
 	Controls.sim = {"device": "pad", "mouse": Vector2(300, 100)}
-	eq(Controls.aim_angle(100, 104, 1.5), 1.5, "col gamepad il mouse non conta")
+	eq(Controls.aim_angle(100, 104, 1.5), 1.5, "with the gamepad the mouse does not count")
 	Controls.sim = {"device": "mouse", "mouse": Vector2(300, 100)}
-	near(Controls.aim_angle(100, 104, 1.5), 0.0, 1e-9, "mira verso il mouse (da y - 4)")
+	near(Controls.aim_angle(100, 104, 1.5), 0.0, 1e-9, "aims at the mouse (from y - 4)")
 	Controls.sim = {"device": "pad", "mouse": Vector2(100, 300), "fire": true}
-	near(Controls.aim_angle(100, 104, 0.0), PI / 2, 1e-9, "tasto sinistro premuto: mouse")
+	near(Controls.aim_angle(100, 104, 0.0), PI / 2, 1e-9, "left button pressed: mouse")
 	Controls.sim = {"device": "mouse", "mouse": Vector2(300, 100), "aim": PI}
-	eq(Controls.aim_angle(100, 104, 0.0), PI, "le frecce hanno la precedenza")
+	eq(Controls.aim_angle(100, 104, 0.0), PI, "the arrows take precedence")
 
-func test_pressioni_simulate_durano_un_tick() -> void:
+func test_simulated_presses_last_one_tick() -> void:
 	Controls.sim = {"pressed": ["dash", "slot_3"]}
 	check(Controls.dash())
 	eq(Controls.slot(), 2)
@@ -31,9 +31,9 @@ func test_pressioni_simulate_durano_un_tick() -> void:
 	check(not Controls.dash())
 	eq(Controls.slot(), -1)
 
-func test_alt_invio_non_conferma() -> void:
+func test_alt_enter_does_not_confirm() -> void:
 	await (Engine.get_main_loop() as SceneTree).process_frame
-	# come sulla tastiera vera: prima Alt, poi Invio con il modificatore
+	# like a real keyboard: first Alt, then Enter with the modifier
 	var alt := InputEventKey.new()
 	alt.keycode = KEY_ALT
 	alt.physical_keycode = KEY_ALT
@@ -46,7 +46,7 @@ func test_alt_invio_non_conferma() -> void:
 	ev.pressed = true
 	Input.parse_input_event(ev)
 	Input.flush_buffered_events()
-	check(not Controls.confirm(), "Alt+Invio è lo schermo intero")
+	check(not Controls.confirm(), "Alt+Enter is fullscreen")
 	var up := ev.duplicate()
 	up.pressed = false
 	Input.parse_input_event(up)

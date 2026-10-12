@@ -1,15 +1,15 @@
 shader_type canvas_item;
-// Strato di buio di drawLighting (js/render.js): colore #050309 con opacità amb;
-// ogni luce toglie opacità con il gradiente radiale del JS (raggio interno 0,12 r,
-// arresti alfa a / 0,6 a / 0), e le luci si combinano moltiplicando (destination-out).
+// Darkness layer from drawLighting (js/render.js): color #050309 with opacity amb;
+// each light removes opacity with the JS radial gradient (inner radius 0.12 r,
+// alpha stops a / 0.6 a / 0), and the lights combine by multiplying (destination-out).
 
 uniform float amb = 0.68;
 uniform int count = 0;
-uniform vec4 lights[128];   // x, y, raggio, alfa in coordinate dello schermo 480x270
+uniform vec4 lights[128];   // x, y, radius, alpha in 480x270 screen coordinates
 
 const vec3 DARK = vec3(5.0, 3.0, 9.0) / 255.0;
 const float R0 = 0.12;
-const float R1 = 0.12 + 0.55 * 0.88;   // secondo arresto del gradiente
+const float R1 = 0.12 + 0.55 * 0.88;   // second gradient stop
 
 float falloff(float k) {
 	if (k <= R0) return 1.0;

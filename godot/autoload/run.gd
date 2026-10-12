@@ -1,12 +1,12 @@
 extends Node
-# Stato della run corrente (l'oggetto run di js/game.js e js/entities.js).
-# active sostituisce il controllo "run !== null" del JS.
+# State of the current run (the run object in js/game.js and js/entities.js).
+# active replaces the JS "run !== null" check.
 
 var active := false
 var seed := 0
 var rng: RNG
 var depth := 1
-var ardore := 0
+var ardor := 0
 var player: Player
 var floor: Dictionary = {}
 var room: Dictionary = {}
@@ -47,7 +47,7 @@ var forced_choices: Variant = null
 var blood_paid := 0
 var abandoned := false
 var win_recorded := false
-var actors: Node2D = null   # nodo della scena di gioco che ospita gli attori
+var actors: Node2D = null   # game scene node that hosts the actors
 
 func reset() -> void:
 	if player != null and is_instance_valid(player):
@@ -57,14 +57,14 @@ func reset() -> void:
 	for e in enemies:
 		if is_instance_valid(e):
 			e.free()
-	# spezza i riferimenti circolari tra le stanze del piano precedente
+	# breaks circular references between the rooms of the previous floor
 	for r in floor.get("rooms", []):
 		r.doors.clear()
 	active = false
 	seed = 0
 	rng = null
 	depth = 1
-	ardore = 0
+	ardor = 0
 	player = null
 	floor = {}
 	room = {}
@@ -106,7 +106,7 @@ func reset() -> void:
 	abandoned = false
 	win_recorded = false
 
-# notifiche (toast e banner in js/ui.js)
+# notifications (toast and banner in js/ui.js)
 func toast(text: String, col: Variant = "#ece6d8", sub: String = "") -> void:
 	if not active:
 		return
@@ -141,7 +141,7 @@ func clear_enemies() -> void:
 			_free_node(e)
 	enemies = []
 
-# run.enemies = run.enemies.filter(e => !e.dead), liberando i nodi
+# run.enemies = run.enemies.filter(e => !e.dead), freeing the nodes
 func prune_enemies() -> void:
 	var alive: Array = []
 	for e in enemies:

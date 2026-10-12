@@ -1,6 +1,6 @@
 class_name Notices
 extends RefCounted
-# Toast e banner (drawNotices in js/ui.js).
+# Toasts and banners (drawNotices in js/ui.js).
 
 static func draw(ci: CanvasItem) -> void:
 	var W := Consts.W

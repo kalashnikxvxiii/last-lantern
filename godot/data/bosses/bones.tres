@@ -5,8 +5,8 @@
 [resource]
 script = ExtResource("1")
 id = "bones"
-name = "Il Custode delle Ossa"
-title = "Re delle Cripte Dimenticate"
+name = "The Bone Warden"
+title = "King of the Forgotten Crypts"
 spr = "boss_bones"
 hp = 800.0
 r = 11.0

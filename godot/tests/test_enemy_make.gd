@@ -1,10 +1,10 @@
 extends TestCase
-# makeEnemy: statistiche scalate per profondità, élite e versioni piccole come nel JS.
+# makeEnemy: stats scaled by depth, elites and small versions as in the JS.
 
 func after() -> void:
 	Run.reset()
 
-func test_nemici_come_il_js() -> void:
+func test_enemies_like_the_js() -> void:
 	for c in TestCase.golden("enemies").enemies:
 		U.seed_random(int(c.seed))
 		Run.reset()
@@ -18,5 +18,5 @@ func test_nemici_come_il_js() -> void:
 		var d := TestCase.diff(got, c.fields, "")
 		e.free()
 		if d != "":
-			fail("%s prof. %d %s %s: %s" % [c.type, c.depth, c.mod, c.small, d])
+			fail("%s depth %d %s %s: %s" % [c.type, c.depth, c.mod, c.small, d])
 			return

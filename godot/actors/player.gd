@@ -1,7 +1,7 @@
 class_name Player
 extends Node2D
-# Il portatore di lanterna (newPlayer e funzioni del giocatore in js/entities.js).
-# x, y sono le coordinate logiche del JS; position si allinea a fine tick.
+# The lantern bearer (newPlayer and player functions in js/entities.js).
+# x, y are the JS logical coordinates; position aligns at the end of the tick.
 
 var x := 0.0
 var y := 0.0
@@ -42,14 +42,14 @@ var trail_t := 0.0
 var echo_t := 0.0
 var anim := 0.0
 var moving := false
-var lantern := "custode"
+var lantern := "warden"
 var stats: Dictionary = Stats.base()
 var dead := false
 var last_hit := ""
 var facing := 1
 var base_hp_mod := 0.0
 
-# recalcStats: lanterna, doni, reliquie, maledizioni, Ardore e limiti
+# recalcStats: lantern, perks, relics, curses, Ardor and limits
 func recalc_stats() -> void:
 	var s := Stats.base()
 	DB.lantern(lantern).apply_stats(s)
@@ -60,9 +60,9 @@ func recalc_stats() -> void:
 	for id in curses:
 		Curses.apply(id, s)
 	s.maxHp += base_hp_mod
-	if Run.ardore >= 4:
+	if Run.ardor >= 4:
 		s.healMult -= 0.3
-	if Run.ardore >= 5:
+	if Run.ardor >= 5:
 		s.oilDrain *= 1.5
 	s.dmgMult = maxf(0.2, s.dmgMult)
 	s.rateMult = maxf(0.3, s.rateMult)
@@ -116,7 +116,7 @@ func light() -> float:
 		r_ *= 0.45
 	return maxf(26, r_)
 
-# parte pura di hurtPlayer: danno effettivo dopo armatura, fragilità e buio
+# pure part of hurtPlayer: effective damage after armor, frailty and darkness
 func damage_taken(amount: float) -> int:
 	var d: float = amount * stats.dmgTaken * (1 - minf(0.6, stats.armor * 0.07))
 	if statuses.has("fragile"):
@@ -164,12 +164,12 @@ func add_xp(v: float) -> void:
 		xp -= Stats.xp_need(level)
 		level += 1
 		Run.pending_levels += 1
-		Floaters.add(x, y - 16, "LIVELLO " + str(level), Txt.COLORS.y, {"life": 1.4, "vy": -20})
+		Floaters.add(x, y - 16, "LEVEL " + str(level), Txt.COLORS.y, {"life": 1.4, "vy": -20})
 		Particles.burst(x, y, 24, ["#f6cf57", "#fff2a8", "#f29c38"], 90, 0.8, {"grav": -30})
 		Sfx.play("levelup")
 		heal(6, true)
 
-# aggiornamento (updatePlayer); il resto del corpo arriva nei Task 17, 18 e 21
+# update (updatePlayer); the rest of the body arrives in Tasks 17, 18 and 21
 func tick(dt: float) -> void:
 	var s := stats
 	anim += dt
@@ -178,10 +178,10 @@ func tick(dt: float) -> void:
 		return
 	inv = maxf(0.0, inv - dt)
 	flare_cd = maxf(0.0, flare_cd - dt)
-	# mira
+	# aim
 	aim = Controls.aim_angle(x, y, aim)
 	facing = 1 if cos(aim) >= 0 else -1
-	# scatto
+	# dash
 	if dash_charges < s.dashCharges:
 		dash_cd -= dt
 		if dash_cd <= 0:
@@ -225,27 +225,27 @@ func tick(dt: float) -> void:
 		mvx = mv.x * sp
 		mvy = mv.y * sp
 	moving = sqrt(mvx * mvx + mvy * mvy) > 5
-	# risucchio del Divoratore
+	# Devourer's suction
 	if Run.pull != null:
 		mvx += Run.pull.x
 		mvy += Run.pull.y
 	var bx := Coll.move_axis(self, mvx * dt, 0, false)
 	var by := Coll.move_axis(self, mvy * dt, 1, false)
-	# scivolamento sugli spigoli (aiuta a imboccare le porte)
+	# corner sliding (helps line up with doors)
 	if bx and absf(mvy) < 1:
 		Coll.nudge(self, 0, mvx)
 	if by and absf(mvx) < 1:
 		Coll.nudge(self, 1, mvy)
 
-	# fuoco
+	# fire
 	fire_cd -= dt
 	if Controls.firing() and fire_cd <= 0 and not Run.lock_fire:
 		fire()
 		fire_cd = 1 / fire_rate()
-	# vampata
+	# flare
 	if Controls.flare():
 		try_flare()
-	# consumabili
+	# consumables
 	var sl := Controls.slot()
 	if sl >= 0:
 		use_cons(sl)
@@ -254,23 +254,23 @@ func tick(dt: float) -> void:
 		if echo_t <= 0:
 			fire_volley(aim, true)
 	var room := Run.room
-	# olio
+	# oil
 	if room.combat and not s.noOilDrain:
 		oil = maxf(0, oil - 1.05 * s.oilDrain * dt)
-	# scudo del Lume Custode
+	# Warden Light shield
 	if s.guardian and not guard_up:
 		guard_t -= dt
 		if guard_t <= 0:
 			guard_up = true
 			Sfx.play("shield", 0.5)
-	# lucciole temporanee
+	# temporary fireflies
 	if temp_orbit_t > 0:
 		temp_orbit_t -= dt
 		if temp_orbit_t <= 0:
 			temp_orbit = 0
 	orbit_a += dt * 3.2
 	update_orbitals(dt)
-	# piccolo sole
+	# little sun
 	if s.sun and room.combat:
 		sun_t -= dt
 		if sun_t <= 0:
@@ -279,7 +279,7 @@ func tick(dt: float) -> void:
 			for e in Run.enemies.duplicate():
 				if not e.dead and U.dist(e.x, e.y, x, y) < R:
 					Combat.hit_enemy(e, damage() * 0.35, {"dot": "burn"})
-	# bottiglia di tempesta
+	# storm bottle
 	if s.storm and room.combat:
 		storm_t -= dt
 		if storm_t <= 0:
@@ -290,10 +290,10 @@ func tick(dt: float) -> void:
 				Effects.add({"type": "bolt", "pts": [[e.x + U.rnd(-10, 10), Consts.RY], [e.x, e.y]], "life": 0.25})
 				Combat.hit_enemy(e, damage() * 2.5, {"crit": false})
 				Sfx.play("bolt")
-	# spuntoni
+	# spikes
 	var t := RoomU.world_to_tile(x, y + 2)
 	if RoomU.tile_at(room, t.x, t.y) == Consts.T.SPIKE and RoomU.spikes_up(room) and dash_t <= 0:
-		Combat.hurt_player(8 * Stats.depth_dmg(Run.depth), "Gli spuntoni")
+		Combat.hurt_player(8 * Stats.depth_dmg(Run.depth), "The spikes")
 
 func fire() -> void:
 	fire_volley(aim)
@@ -329,7 +329,7 @@ func try_flare() -> void:
 		return
 	if oil < cost:
 		Sfx.play("deny")
-		Floaters.add(x, y - 14, "Olio insufficiente", Txt.COLORS.d, {"life": 0.9})
+		Floaters.add(x, y - 14, "Not enough oil", Txt.COLORS.d, {"life": 0.9})
 		flare_cd = 0.4
 		return
 	oil -= cost
@@ -411,7 +411,7 @@ func _draw_lantern() -> void:
 	UiDraw.px_rect(self, lx, ly - 2, 1, 2, "#ffffff")
 	UiDraw.px_rect(self, lx - 1, ly + 2, 3, 1, "#3b3546")
 
-# drawPlayer (js/render.js), in coordinate del mondo
+# drawPlayer (js/render.js), in world coordinates
 func _draw() -> void:
 	if dead or not Run.active:
 		return
@@ -445,7 +445,7 @@ func use_cons(i: int) -> void:
 		return
 	var C: Dictionary = Cons.ALL[sl.id]
 	if C.get("passive", false):
-		Run.toast(C.name + ": effetto passivo", "#8a8294")
+		Run.toast(C.name + ": passive effect", "#8a8294")
 		Sfx.play("deny")
 		return
 	if not Cons.use(sl.id, self):

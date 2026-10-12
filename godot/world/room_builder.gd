@@ -1,10 +1,10 @@
 class_name RoomBuilder
 extends RefCounted
-# Costruzione delle stanze (js/dungeon.js): layout dai quadranti, porte, contenuti, ondate.
+# Room building (js/dungeon.js): layout from quadrants, doors, contents, waves.
 
-# Quadranti 14x7 (colonna 13 e riga 6 sono gli assi di simmetria).
-# '.' pavimento  '#' roccia  '%' roccia incrinata  'b' barile  'u' urna
-# '^' spuntoni  'o' braciere  '?' roccia casuale
+# 14x7 quadrants (column 13 and row 6 are the symmetry axes).
+# '.' floor  '#' rock  '%' cracked rock  'b' barrel  'u' urn
+# '^' spikes  'o' brazier  '?' random rock
 const QUADS := [
 	["..............", "..............", "..............", "..............", "..............", "..............", ".............."],
 	["..............", "..............", "..............", ".....##.......", ".....##.......", "..............", ".............."],
@@ -87,7 +87,7 @@ static func build_room(room: Dictionary, fl: Dictionary) -> void:
 				room.tileHp[(y + 1) * rw + x + 1] = 18
 			if t == Consts.T.URN:
 				room.tileHp[(y + 1) * rw + x + 1] = 1
-	# varietà extra: urne/barili sparsi nelle stanze normali
+	# extra variety: urns/barrels scattered in normal rooms
 	if room.type == "normal" and rng.chance(0.5):
 		var k := 0
 		while k < rng.rint(1, 3):
@@ -98,7 +98,7 @@ static func build_room(room: Dictionary, fl: Dictionary) -> void:
 				room.grid[y][x] = t
 				room.tileHp[y * rw + x] = 1 if t == Consts.T.URN else 18
 			k += 1
-	# porte e spazio libero davanti
+	# doors and free space in front
 	for d in RoomU.DIRS:
 		if not room.doors.has(d):
 			continue
@@ -106,19 +106,19 @@ static func build_room(room: Dictionary, fl: Dictionary) -> void:
 			room.doorDir[tt[1] * rw + tt[0]] = d
 			room.grid[tt[1]][tt[0]] = Consts.T.DOOR if RoomU.door_visible(room, d) else Consts.T.WALL
 		clear_door_zone(room, d)
-	# raggiungibilità
+	# reachability
 	if not RoomU.check_reachable(room):
 		for y in range(1, rh - 1):
 			for x in range(1, rw - 1):
 				room.grid[y][x] = Consts.T.FLOOR
 		room.tileHp = {}
-	# decorazioni
+	# decorations
 	var n_dec := rng.rint(10, 22)
 	for k in n_dec:
 		room.decals.append({"x": rng.rint(Consts.RX + 18, Consts.RX + rw * Consts.TS - 18), "y": rng.rint(Consts.RY + 18, Consts.RY + rh * Consts.TS - 18),
 			"k": rng.rint(0, 5), "s": rng.next()})
 
-	# contenuti
+	# contents
 	var c := RoomU.tile_center(14, 7)
 	match room.type:
 		"normal", "elite":
@@ -178,7 +178,7 @@ static func plan_waves(room: Dictionary, fl: Dictionary, rng: RNG, biome: BiomeD
 		n_waves = 3 if rng.chance(0.3) else 2
 	if elite:
 		n_waves = 2
-	var ard := Run.ardore if Run.active else 0
+	var ard := Run.ardor if Run.active else 0
 	var elite_chance: float = [0, 0.06, 0.12, 0.18, 0.24][mini(4, d - 1)] + maxf(0, d - 5) * 0.04
 	if ard >= 3:
 		elite_chance *= 2
@@ -242,7 +242,7 @@ static func make_shrine(room: Dictionary, fl: Dictionary, rng: RNG) -> void:
 	var kind: String = rng.pick(["blood", "fortune", "fountain", "pact"])
 	room.objects.append({"type": "shrine", "kind": kind, "x": c.x, "y": c.y - 4, "uses": 5 if kind == "fortune" else 1})
 
-# reliquie non possedute e non ancora offerte; rng nullo = U.shuffle (Math.random)
+# relics not owned and not yet offered; null rng = U.shuffle (Math.random)
 static func random_relics(n: int, rng: RNG = null) -> Array:
 	var owned: Array = Run.player.relics if Run.active and Run.player != null else []
 	var offered: Dictionary = Run.offered_relics

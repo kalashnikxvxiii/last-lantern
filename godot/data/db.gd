@@ -1,9 +1,9 @@
 class_name DB
 extends RefCounted
-# Accesso alle Resource dei dati di gioco.
+# Access to the game data Resources.
 
-const LANTERN_IDS := ["custode", "pellegrino", "spezzata", "cava", "nera"]
-const BIOME_IDS := ["crypt"]   # le altre profondità arriveranno con i prossimi sotto-progetti
+const LANTERN_IDS := ["warden", "pilgrim", "broken", "hollow", "black"]
+const BIOME_IDS := ["crypt"]   # the other depths will arrive with the next sub-projects
 static var _cache: Dictionary = {}
 
 static func _res(path: String) -> Resource:
@@ -19,7 +19,7 @@ static func boss(id: String) -> BossDef:
 
 static func lantern(id: String) -> LanternDef:
 	var l := _res("res://data/lanterns/%s.tres" % id) as LanternDef
-	return l if l != null else _res("res://data/lanterns/custode.tres")
+	return l if l != null else _res("res://data/lanterns/warden.tres")
 
 static func lanterns() -> Array:
 	return LANTERN_IDS.map(func(id): return lantern(id))

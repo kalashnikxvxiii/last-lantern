@@ -1,6 +1,6 @@
 class_name Floaters
 extends RefCounted
-# Numeri e testi fluttuanti (da Floaters in js/gfx.js).
+# Floating numbers and texts (from Floaters in js/gfx.js).
 
 static var list: Array = []
 

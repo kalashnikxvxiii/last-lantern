@@ -1,6 +1,6 @@
 extends Node2D
-# Disegno a terra nell'ordine di drawWorld (js/render.js): indizi dei segreti, porte,
-# tile dinamici, effetti a terra, oggetti, raccoglibili.
+# Ground drawing in drawWorld order (js/render.js): secret hints, doors,
+# dynamic tiles, ground effects, objects, pickups.
 
 func _process(_delta: float) -> void:
 	queue_redraw()
@@ -61,7 +61,7 @@ func _doors(room: Dictionary) -> void:
 		var open := RoomU.door_open(room, d)
 		var locked := RoomU.door_locked(room, d)
 		if st.kind == "secret":
-			# varco irregolare
+			# irregular gap
 			UiDraw.px_rect(self, x + 2, y + 2, w - 4, h - 4, "#050308")
 			for i in 6:
 				var k := U.hash2(i, int(x), int(y))
@@ -69,17 +69,17 @@ func _doors(room: Dictionary) -> void:
 				var py: float = y + ((1.0 if k > 0.5 else h - 3) if horiz else k * h)
 				draw_rect(Rect2(px, py, 2, 2), UiDraw._a("#3b3546"))
 			continue
-		# cornice
+		# frame
 		UiDraw.px_rect(self, x, y, w, h, "#0b0810")
 		UiDraw.px_rect(self, x + 1, y + 1, w - 2, h - 2, st.frame)
 		UiDraw.px_rect(self, x + 4, y + 4, w - 8, h - 8, "#050308" if open else "#120c16")
-		# filo luminoso
+		# glowing thread
 		if horiz:
 			UiDraw.px_rect(self, x + 2, y + 2 if d == "n" else y + h - 3, w - 4, 1, st.hi)
 		else:
 			UiDraw.px_rect(self, x + 2 if d == "w" else x + w - 3, y + 2, 1, h - 4, st.hi)
 		if not open:
-			# sbarre
+			# bars
 			var bc := "#c49a3a" if locked else "#6b6478"
 			for i in 6:
 				if horiz:
@@ -95,7 +95,7 @@ func _doors(room: Dictionary) -> void:
 				UiDraw.px_rect(self, lx - 3, ly - 4, 1, 3, "#f6cf57")
 				UiDraw.px_rect(self, lx + 2, ly - 4, 1, 3, "#f6cf57")
 				UiDraw.px_rect(self, lx - 1, ly + 1, 2, 2, "#5a4428")
-		# simboli
+		# symbols
 		var cx := x + w / 2
 		var cy := y + h / 2
 		var sx: float = cx if horiz else (x + w + 6 if d == "w" else x - 6)
@@ -236,7 +236,7 @@ func _objects(room: Dictionary) -> void:
 			"merchant":
 				UiDraw.shadow(self, o.x, o.y + 8, 7)
 				Spr.draw(self, "merchant", 1 if int(floor(tt * 1.5)) % 4 == 0 else 0, o.x, o.y)
-				# lanterna del mercante
+				# merchant's lantern
 				UiDraw.px_rect(self, o.x + 8, o.y - 2, 3, 4, "#f6cf57")
 				UiDraw.px_rect(self, o.x + 8, o.y - 3, 3, 1, "#3b3546")
 				if U.dist(o.x, o.y, Run.player.x, Run.player.y) < 70:

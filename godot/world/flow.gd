@@ -1,15 +1,15 @@
 class_name Flow
 extends RefCounted
-# Flusso della run (js/game.js): avvio, piani, stanze, porte, transizioni, aggiornamento.
+# Run flow (js/game.js): start, floors, rooms, doors, transitions, update.
 
-static func start_run(lantern_id: String, ardore: int, seed: int = -1) -> void:
+static func start_run(lantern_id: String, ardor: int, seed: int = -1) -> void:
 	Run.reset()
 	if seed < 0:
 		seed = int(U.random() * 2147483648.0)
 	Run.active = true
 	Run.seed = seed
 	Run.rng = RNG.new(seed)
-	Run.ardore = ardore
+	Run.ardor = ardor
 	var p := Player.new()
 	p.lantern = lantern_id
 	Run.player = p
@@ -25,7 +25,7 @@ static func start_run(lantern_id: String, ardore: int, seed: int = -1) -> void:
 	Particles.clear()
 	Floaters.clear()
 	new_floor()
-	Run.toast("Trova il guardiano e scendi più in basso.", "#e8dcc0", "Premi TAB per la mappa, ESC per la pausa.")
+	Run.toast("Find the warden and descend deeper.", "#e8dcc0", "Press TAB for the map, ESC to pause.")
 
 static func new_floor() -> void:
 	var p := Run.player
@@ -54,7 +54,7 @@ static func check_unlocks() -> void:
 			Save.unlock_lantern(L.id)
 			if Run.active:
 				Run.new_unlocks.append(L.name)
-				Run.toast("Nuova lanterna sbloccata", "#f6cf57", L.name)
+				Run.toast("New lantern unlocked", "#f6cf57", L.name)
 
 static func enter_room(room: Dictionary, from_dir: Variant) -> void:
 	var p := Run.player
@@ -97,7 +97,7 @@ static func enter_room(room: Dictionary, from_dir: Variant) -> void:
 		else:
 			Music.set_intensity(1)
 		if room.type == "elite":
-			Run.toast("Sala della Sfida", "#e0574a", "Sopravvivi ai campioni per un premio.")
+			Run.toast("Challenge Hall", "#e0574a", "Survive the champions for a prize.")
 	else:
 		room.combat = false
 		Music.set_intensity(0)
@@ -106,7 +106,7 @@ static func enter_room(room: Dictionary, from_dir: Variant) -> void:
 		Sfx.play("coin")
 	if room.type == "secret" and not room.get("greeted", false):
 		room.greeted = true
-		Run.toast("Una stanza dimenticata", "#f6cf57")
+		Run.toast("A forgotten room", "#f6cf57")
 
 static func descend() -> void:
 	if Run.trans != null:
@@ -132,9 +132,9 @@ static func check_doors(dt: float) -> void:
 					room.doors[d].locked = false
 					Sfx.play("lock")
 					Sfx.play("chest")
-					Run.toast("Usi una chiave", "#f6cf57")
+					Run.toast("You use a key", "#f6cf57")
 				elif Run.lock_msg_t <= 0:
-					Run.toast("La porta è chiusa a chiave", "#8a8294")
+					Run.toast("The door is locked", "#8a8294")
 					Run.lock_msg_t = 2.5
 			continue
 		if not RoomU.door_open(room, d):
@@ -158,7 +158,7 @@ static func update_trans(dt: float) -> void:
 		if tr.kind == "room":
 			enter_room(tr.to, tr.dir)
 		else:
-			# la vertical slice finisce dopo il primo guardiano
+			# the vertical slice ends after the first warden
 			Run.trans = null
 			Game.set_scene("demo_end")
 			return
@@ -172,7 +172,7 @@ static func trans_alpha() -> float:
 	var half := 0.7 if tr.kind == "descend" else 0.13
 	return tr.t / half if tr.t < half else maxf(0.0, 1 - (tr.t - half) / half)
 
-# updateGame: i task successivi aggiungono le altre righe nell'ordine del JS
+# updateGame: later tasks add the other lines in the JS order
 static func update_game(dt: float) -> void:
 	Run.time += dt
 	Run.player.tick(dt)
@@ -268,7 +268,7 @@ static func room_cleared(room: Dictionary) -> void:
 		var r: Array = RoomBuilder.random_relics(1)
 		if not r.is_empty():
 			room.objects.append({"type": "relic", "id": r[0], "x": rx + 20, "y": ry})
-		Run.toast("Sfida superata!", "#f6cf57")
+		Run.toast("Challenge complete!", "#f6cf57")
 		return
 	if U.random() < 0.5:
 		var kind: String = U.weighted_pick([["coins", 30], ["heart", 18], ["oil", 18], ["cons", 14], ["key", 9], ["chest", 11]], func(k): return k[1])[0]
@@ -291,7 +291,7 @@ static func reveal_map() -> void:
 		r.seen = true
 		if r.type == "secret":
 			r.mapped = true
-	Run.toast("La mappa si rivela", "#d8c49a")
+	Run.toast("The map is revealed", "#d8c49a")
 	Sfx.play("pickup")
 
 static func roll_dice() -> void:
@@ -310,7 +310,7 @@ static func roll_dice() -> void:
 			var c: String = U.pick(avail)
 			p.curses.append(c)
 			p.recalc_stats()
-			U.later(0.7, func(): Run.toast("Maledizione: " + Curses.ALL[c].name, "#c57ae0", Curses.ALL[c].desc))
+			U.later(0.7, func(): Run.toast("Curse: " + Curses.ALL[c].name, "#c57ae0", Curses.ALL[c].desc))
 			Sfx.play("curse")
 	Sfx.play("pickup")
 
@@ -334,7 +334,7 @@ static func on_boss_defeated(e) -> void:
 		room.pickups.append(Pickups.make("xp", e.x, e.y, {"value": e.xp / 10}))
 	p.heal(U.jround(p.stats.maxHp * 0.3), true)
 	p.add_oil(p.stats.maxOil)
-	Run.toast(e.display_name + " è caduto", "#f6cf57", "Una botola si apre verso il basso.")
+	Run.toast(e.display_name + " has fallen", "#f6cf57", "A trapdoor opens downward.")
 	check_unlocks()
 	if e.bid == "devourer" and not Run.won:
 		Run.won = true

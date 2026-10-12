@@ -1,6 +1,6 @@
 class_name FloorGen
 extends RefCounted
-# Mappa della profondità (genFloor in js/dungeon.js). Stesso seme, stesso piano del JS.
+# Depth map (genFloor in js/dungeon.js). Same seed, same floor as the JS.
 
 const GW := 9
 const GH := 8
@@ -43,7 +43,7 @@ static func gen_floor(depth: int, rng: RNG, target: int = 0) -> Dictionary:
 				queue.append(n)
 				added = true
 			if not added and queue.is_empty() and cells.size() < n_target:
-				# rimetti in coda una stanza casuale per continuare a crescere
+				# push a random room back on the queue to keep growing
 				queue.append(rng.pick(cells.values()))
 		if cells.size() < n_target:
 			continue
@@ -55,7 +55,7 @@ static func gen_floor(depth: int, rng: RNG, target: int = 0) -> Dictionary:
 				if n != null:
 					out.append([d[0], n])
 			return out
-		# distanze BFS
+		# BFS distances
 		var dist_m := {_key(4, 4): 0}
 		var bq: Array = [start]
 		while not bq.is_empty():
@@ -66,7 +66,7 @@ static func gen_floor(depth: int, rng: RNG, target: int = 0) -> Dictionary:
 				if not dist_m.has(k):
 					dist_m[k] = dist_m[_key(c.gx, c.gy)] + 1
 					bq.append(n)
-		# vicoli ciechi ordinati per distanza decrescente (ordinamento stabile come il JS)
+		# dead ends sorted by descending distance (stable sort like the JS)
 		var dec: Array = []
 		for i in list.size():
 			var c: Dictionary = list[i]
@@ -80,7 +80,7 @@ static func gen_floor(depth: int, rng: RNG, target: int = 0) -> Dictionary:
 		if dist_m[_key(dead[0].gx, dead[0].gy)] < 3:
 			continue
 
-		# costruisci le stanze
+		# build the rooms
 		var rooms := {}
 		for c in list:
 			rooms[_key(c.gx, c.gy)] = {
@@ -101,7 +101,7 @@ static func gen_floor(depth: int, rng: RNG, target: int = 0) -> Dictionary:
 		if i < rest.size():
 			R.call(rest[i]).type = "shrine"
 			i += 1
-		# stanza segreta: cella vuota con molte stanze adiacenti
+		# secret room: empty cell with many adjacent rooms
 		var best: Variant = null
 		var best_n := 1
 		for gy in GH:
@@ -123,7 +123,7 @@ static func gen_floor(depth: int, rng: RNG, target: int = 0) -> Dictionary:
 				"gx": best.gx, "gy": best.gy, "type": "secret", "dist": 99, "doors": {}, "seed": rng.rint(1, 2147483647),
 				"built": false, "visited": false, "seen": false, "cleared": true, "found": false,
 			}
-		# collega le porte
+		# connect the doors
 		for r in rooms.values():
 			for d in RoomU.DIRS:
 				var n: Variant = rooms.get(_key(r.gx + RoomU.DIRS[d].dx, r.gy + RoomU.DIRS[d].dy))

@@ -1,16 +1,16 @@
 extends Node
-# Musica (da Music in js/audio.js): ogni traccia è un AudioStreamSynchronized di
-# 6 strati registrati; l'intensità sceglie quali strati suonano, con dissolvenza.
+# Music (from Music in js/audio.js): each track is an AudioStreamSynchronized of
+# 6 recorded layers; the intensity chooses which layers play, with crossfade.
 
 const STEMS := ["drone", "arp_lo", "arp", "arp_hi", "bass", "hats"]
-const MIX := [   # volume lineare di ogni strato alle intensità 0, 1, 2
+const MIX := [   # linear volume of each layer at intensities 0, 1, 2
 	[1.0, 1.0, 0.0, 0.0, 0.0, 0.0],
 	[1.0, 0.0, 1.0, 0.0, 1.0, 1.0],
 	[1.0, 0.0, 0.0, 1.0, 1.0, 1.0],
 ]
-const FADE_IN := 2.5     # come la salita del drone nel JS
+const FADE_IN := 2.5     # like the drone rise in the JS
 const FADE_OUT := 1.2
-const MIX_SPEED := 1.25  # una dissolvenza completa tra intensità dura 0,8 s
+const MIX_SPEED := 1.25  # a full crossfade between intensities lasts 0.8 s
 
 var track_name := ""
 var intensity := 0

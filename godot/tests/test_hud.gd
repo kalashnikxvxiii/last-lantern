@@ -1,5 +1,5 @@
 extends TestCase
-# Cursore, stanze note sulla mappa, HUD senza errori.
+# Cursor, known rooms on the map, HUD without errors.
 
 const PlayScript := preload("res://scenes/play.gd")
 
@@ -11,7 +11,7 @@ func test_cursor_hidden_only_in_play() -> void:
 	for m in ["levelup", "pause", "build", "map", "options"]:
 		check(not PlayScript.cursor_hidden(m), m)
 
-func test_stanze_note() -> void:
+func test_known_rooms() -> void:
 	TH.new_run(71)
 	var secret := TH.room_of("secret")
 	if not secret.is_empty():
@@ -23,13 +23,13 @@ func test_stanze_note() -> void:
 	Run.player.stats.mapReveal = 1
 	check(MapDraw.room_known(any))
 
-func test_hud_si_disegna() -> void:
+func test_hud_draws() -> void:
 	TH.new_run(72)
 	var play: Node = load("res://scenes/play.tscn").instantiate()
 	(Engine.get_main_loop() as SceneTree).root.add_child(play)
 	Run.player.hp = 5.0
-	Run.toast("Prova", "#ffffff", "sotto")
-	Run.banner("Titolo", "Descrizione lunga del banner", "#f6cf57", "i_blade")
+	Run.toast("Test", "#ffffff", "sotto")
+	Run.banner("Title", "Long banner description", "#f6cf57", "i_blade")
 	await (Engine.get_main_loop() as SceneTree).process_frame
 	await (Engine.get_main_loop() as SceneTree).process_frame
 	play.queue_free()

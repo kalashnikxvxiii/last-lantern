@@ -1,7 +1,7 @@
 class_name Enemy
 extends Node2D
-# Nemico (makeEnemy, updateEnemies, drawEnemy in js/entities.js e js/render.js).
-# x, y sono le coordinate logiche del JS; position si allinea a fine tick.
+# Enemy (makeEnemy, updateEnemies, drawEnemy in js/entities.js and js/render.js).
+# x, y are the JS logical coordinates; position aligns at the end of the tick.
 
 var type := ""
 var def: EnemyDef
@@ -48,7 +48,7 @@ var hit_wall := false
 var shield_down := false
 var wander: Variant = null
 var wander_t: Variant = null
-# campi che le AI del JS creano al volo
+# fields the JS AIs create on the fly
 var jit: Variant = null
 var jit_t := 0.0
 var charge_a := 0.0
@@ -104,11 +104,11 @@ static func make(type_: String, x_: float, y_: float, mod_: Variant = null, o: D
 func think(dt: float, tg, m: float) -> void:
 	AI.run(self, dt, tg, m)
 
-# solo i boss muoiono lentamente (bossDying); il Boss la sovrascrive
+# only bosses die slowly (bossDying); Boss overrides it
 func dying_update(_dt: float) -> void:
 	pass
 
-# enemyTarget: con il giocatore invisibile si vaga tra caselle raggiungibili
+# enemyTarget: with the player invisible, wander between reachable cells
 func target():
 	var p := Run.player
 	if p.statuses.has("invis"):
@@ -121,7 +121,7 @@ func target():
 		return wander
 	return p
 
-# corpo del ciclo di updateEnemies
+# body of the updateEnemies loop
 func tick(dt: float) -> void:
 	var p := Run.player
 	anim += dt
@@ -151,7 +151,7 @@ func tick(dt: float) -> void:
 	else:
 		var m := 0.55 if statuses.has("chill") else 1.0
 		think(dt, target(), m)
-	# movimento + spinta
+	# movement + knockback
 	var kx := kbx * dt
 	var ky := kby * dt
 	kbx *= maxf(0, 1 - 9 * dt)
@@ -160,7 +160,7 @@ func tick(dt: float) -> void:
 		hit_wall = true
 	if not boss and absf(vx) > 1 and ai != "shielder":
 		facing = atan2(vy, vx)
-	# contatto
+	# contact
 	if not intangible and z < 6 and not spawning and not p.dead and frozen <= 0:
 		var rr := r + p.r
 		if U.dist2(x, y, p.x, p.y) < rr * rr:
@@ -181,7 +181,7 @@ static func update_all(dt: float) -> void:
 		if not e.dead:
 			e.tick(dt)
 		i += 1
-	# separazione
+	# separation
 	var en := Run.enemies
 	for a_i in en.size():
 		var a: Enemy = en[a_i]
@@ -214,7 +214,7 @@ func _process(_delta: float) -> void:
 func _spr_name() -> String:
 	return def.spr
 
-# drawEnemy (js/render.js), in coordinate del mondo
+# drawEnemy (js/render.js), in world coordinates
 func _draw() -> void:
 	if dead or not Run.active:
 		return
@@ -266,13 +266,13 @@ func _draw() -> void:
 			Spr.draw_sil(self, spr, fr, dx + off[0], dy + off[1], col, flip)
 		UiDraw.alpha = ga
 	Spr.draw(self, spr, fr, x, yy, o)
-	# scudo frontale
+	# front shield
 	if def != null and def.shield:
 		var a := facing + 1.3 if shield_down else facing
 		var rr := r + 4
 		draw_arc(Vector2(x, yy), rr, a - 0.9, a + 0.9, 16, UiDraw._a("#0b0810"), 4)
 		draw_arc(Vector2(x, yy), rr, a - 0.85, a + 0.85, 16, UiDraw._a("#c0c8d0" if type == "knight" else "#8a5a34"), 2)
-	# barra vita
+	# health bar
 	if not boss and hp < max_hp and alpha > 0.4:
 		var w := maxf(10, r * 2 + 2)
 		UiDraw.bar(self, x - w / 2, yy - S.y / 2.0 - 4, w, 1, hp / max_hp, EliteMods.ALL[mod].col if elite else "#d04b3c")

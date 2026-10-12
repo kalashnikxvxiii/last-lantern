@@ -1,6 +1,6 @@
 extends Node2D
-# Sopra gli attori e sotto la luce (drawWorld in js/render.js): proiettili del giocatore,
-# particelle basse, effetti in aria.
+# Above the actors and below the light (drawWorld in js/render.js): player projectiles,
+# low particles, airborne effects.
 
 func _process(_delta: float) -> void:
 	queue_redraw()

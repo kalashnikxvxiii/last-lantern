@@ -1,7 +1,7 @@
 'use strict';
 // =====================================================================
-//  Font bitmap disegnato a mano (5x7, discendenti di 1 px)
-//  Codici colore inline: ^w ^y ^r ^g ^b ^o ^p ^d ^c ^s
+// Hand-drawn bitmap font (5x7, 1 px descenders)
+// Inline color codes: ^w ^y ^r ^g ^b ^o ^p ^d ^c ^s
 // =====================================================================
 
 const GLYPHS = {
@@ -123,7 +123,7 @@ const Font = {
   glyph(ch) {
     const g = this.glyphs[ch];
     if (g) return g;
-    // fallback: maiuscola/minuscola o punto interrogativo
+    // fallback: upper/lower case or question mark
     return this.glyphs[ch.toUpperCase()] || this.glyphs[ch.toLowerCase()] || this.glyphs['?'];
   },
   getAtlas(color) {
@@ -148,7 +148,7 @@ const Font = {
     this.atlas.set(color, a);
     return a;
   },
-  // larghezza ignorando i codici colore
+  // width ignoring the color codes
   width(str, scale = 1) {
     let w = 0, n = 0;
     for (let i = 0; i < str.length; i++) {
@@ -159,7 +159,7 @@ const Font = {
     }
     return (w + Math.max(0, n - 1)) * scale;
   },
-  // disegna testo; opts: {color, align, shadow, scale, alpha}
+  // draws text; opts: {color, align, shadow, scale, alpha}
   draw(ctx, str, x, y, opts = {}) {
     str = String(str);
     const scale = opts.scale || 1;
@@ -197,7 +197,7 @@ const Font = {
       x += (g.w + 1) * scale;
     }
   },
-  // a capo automatico, preserva i codici colore tra le righe
+  // automatic wrapping, keeps the color codes across lines
   wrap(str, maxW, scale = 1) {
     const out = [];
     for (const para of String(str).split('\n')) {

@@ -1,6 +1,6 @@
 class_name Combat
 extends RefCounted
-# Danni al giocatore e ai nemici, morte, uccisioni, fulmini, tile distruttibili (js/entities.js).
+# Damage to player and enemies, death, kills, lightning, destructible tiles (js/entities.js).
 
 static func hurt_player(amount: float, src: String = "", o: Dictionary = {}) -> bool:
 	var p := Run.player
@@ -11,7 +11,7 @@ static func hurt_player(amount: float, src: String = "", o: Dictionary = {}) -> 
 		if p.inv > 0 or p.dash_t > 0:
 			return false
 		if U.random() < p.stats.dodge:
-			Floaters.add(p.x, p.y - 14, "Schivato", Txt.COLORS.c)
+			Floaters.add(p.x, p.y - 14, "Dodged", Txt.COLORS.c)
 			p.inv = 0.35
 			return false
 		if p.guard_up:
@@ -24,7 +24,7 @@ static func hurt_player(amount: float, src: String = "", o: Dictionary = {}) -> 
 	var dmg := p.damage_taken(amount)
 	p.hp -= dmg
 	Run.dmg_taken += dmg
-	p.last_hit = src if src != "" else "Il buio"
+	p.last_hit = src if src != "" else "The dark"
 	if not dot:
 		p.inv = p.stats.iframes
 		Fx.shake(5)
@@ -36,7 +36,7 @@ static func hurt_player(amount: float, src: String = "", o: Dictionary = {}) -> 
 		if p.stats.ashguard:
 			Effects.add({"type": "shockwave", "x": p.x, "y": p.y, "r": 4.0, "maxR": 70.0, "spd": 220.0, "owner": "player", "dmg": p.damage() * 2, "hit": {}})
 	elif Save.data.settings.numbers:
-		Floaters.add(p.x, p.y - 12, "-" + str(dmg), Txt.COLORS.g if src == "Il veleno" else Txt.COLORS.o, {"life": 0.5})
+		Floaters.add(p.x, p.y - 12, "-" + str(dmg), Txt.COLORS.g if src == "The poison" else Txt.COLORS.o, {"life": 0.5})
 	if p.hp <= 0:
 		player_death()
 	return true
@@ -47,14 +47,14 @@ static func player_death() -> void:
 		p.secondwind_used = true
 		p.hp = 1.0
 		p.inv = 2.0
-		Run.toast("Ultimo Respiro", "#f6cf57", "Sei sopravvissuto per un soffio.")
+		Run.toast("Last Breath", "#f6cf57", "You survived by a breath.")
 		Sfx.play("shield")
 		return
 	if p.stats.revive and not p.coffin_used:
 		p.coffin_used = true
 		p.hp = U.jround(p.stats.maxHp / 2)
 		p.inv = 2.5
-		Run.toast("Chiodo di Bara", "#f6cf57", "La morte ti rifiuta. Per ora.")
+		Run.toast("Coffin Nail", "#f6cf57", "Death refuses you. For now.")
 		revive_burst(p)
 		return
 	var fi := -1
@@ -68,7 +68,7 @@ static func player_death() -> void:
 			p.cons[fi] = null
 		p.hp = U.jround(p.stats.maxHp / 2)
 		p.inv = 2.5
-		Run.toast("Piuma di Fenice", "#f29c38", "Rinasci dalle tue ceneri.")
+		Run.toast("Phoenix Feather", "#f29c38", "Rise from your ashes.")
 		revive_burst(p)
 		return
 	p.hp = 0.0
@@ -145,23 +145,23 @@ static func kill_enemy(e, o: Dictionary = {}) -> void:
 		Sfx.play("kill")
 	Fx.shake(3 if e.elite else 1.5)
 	if not e.summoned or U.chance(0.5):
-		# esperienza
+		# experience
 		var n := int(minf(8, maxf(1, U.jround(e.xp / 2))))
 		for i in n:
 			Run.room.pickups.append(Pickups.make("xp", e.x, e.y, {"value": e.xp / n}))
-		# olio
+		# oil
 		p.add_oil(2.5 + (4 if e.elite else 0))
 		Run.oil_fx.append({"x": e.x, "y": e.y, "t": 0.0})
-		# monete e cuori
+		# coins and hearts
 		var cc := 0.8 if e.elite else 0.13
 		if U.random() < cc:
 			Run.room.pickups.append(Pickups.make("coin5" if U.random() < 0.12 else "coin", e.x, e.y))
-		var hc := 0.02 if Run.ardore >= 4 else 0.035
+		var hc := 0.02 if Run.ardor >= 4 else 0.035
 		if U.random() < hc + (0.1 if e.elite else 0.0):
 			Run.room.pickups.append(Pickups.make("heart", e.x, e.y))
 		if e.elite and U.random() < 0.25:
 			Run.room.pickups.append(Pickups.make("cons", e.x, e.y, {"id": Pickups.random_cons()}))
-	# effetti dei doni
+	# perk effects
 	if s.leech:
 		p.heal(s.leech, true)
 	if s.fury:
@@ -170,7 +170,7 @@ static func kill_enemy(e, o: Dictionary = {}) -> void:
 		Effects.add({"type": "explosion", "x": e.x, "y": e.y, "r": 26 + 6 * s.explode, "dmg": p.damage() * (0.9 + 0.5 * s.explode), "owner": "player", "life": 0.3, "small": true})
 	if s.ashTrail:
 		Effects.add({"type": "fire", "x": e.x, "y": e.y, "r": 12.0, "life": 3.0, "owner": "player"})
-	# effetti del nemico
+	# enemy effects
 	if e.def != null and e.def.split != "" and not e.no_split:
 		for i in e.def.split_n:
 			var ne := Enemy.make(e.def.split, e.x + U.rnd(-5, 5), e.y + U.rnd(-5, 5), null, {"summoned": true})

@@ -1,6 +1,6 @@
 class_name Boss
 extends Enemy
-# Guardiano di fine profondità (makeBoss, bossUpdate, startBossDeath, bossDying in js/entities.js).
+# End-of-depth warden (makeBoss, bossUpdate, startBossDeath, bossDying in js/entities.js).
 
 var bid := ""
 var B: BossDef
@@ -64,17 +64,17 @@ func _boss_update(dt: float, tg, m: float) -> void:
 		var off := U.rnd(TAU)
 		for i in 20:
 			BossPatterns.boss_shoot(self, off + i * TAU / 20, {"spd": 70.0, "kind": ph[0].pats[0].get("kind", "orb")})
-		Run.toast(display_name + " si infuria!", "#e0574a")
+		Run.toast(display_name + " is enraged!", "#e0574a")
 	if invuln > 0:
 		invuln -= dt
 		vx = 0.0
 		vy = 0.0
 		return
-	var rate := (1.25 if Run.ardore >= 5 else 1.0) * (1 + 0.04 * maxf(0, Run.depth - 5))
+	var rate := (1.25 if Run.ardor >= 5 else 1.0) * (1 + 0.04 * maxf(0, Run.depth - 5))
 	var cur: Dictionary = ph[phase]
 	if pat == null:
 		gap_t -= dt * rate
-		# movimento tra un attacco e l'altro
+		# movement between attacks
 		var d := U.dist(x, y, tg.x, tg.y)
 		var a := U.ang_to(x, y, tg.x, tg.y)
 		if d < 70:

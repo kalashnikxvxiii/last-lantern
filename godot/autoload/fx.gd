@@ -1,12 +1,12 @@
 extends Node
-# Feedback globali (FX in js/entities.js) e tempo di rendering (Render.time).
+# Global feedback (FX in js/entities.js) and render time (Render.time).
 
 var shake_amt := 0.0
 var hitstop_t := 0.0
 var flash := 0.0
 var flash_col := Color.WHITE
 var time := 0.0
-var vis := RNG.new(777)   # casualità solo visiva: non consuma la sequenza di gioco
+var vis := RNG.new(777)   # visual-only randomness: does not consume the game sequence
 
 func _process(_delta: float) -> void:
 	time = Time.get_ticks_msec() / 1000.0
@@ -22,16 +22,16 @@ func screen_flash(c: Variant, a: float) -> void:
 	flash_col = UiDraw.col(c)
 	flash = maxf(flash, a)
 
-# parte di updateCommon
+# part of updateCommon
 func decay(dt: float) -> void:
 	shake_amt = maxf(0.0, shake_amt - dt * 30)
 	flash = maxf(0.0, flash - dt * 2.5)
 
-# casualità per il disegno (rnd del JS dentro le funzioni draw*)
+# randomness for drawing (the JS rnd inside the draw* functions)
 func vrnd(a: float, b: float) -> float:
 	return vis.frange(a, b)
 
-# scostamento dello scuotimento (drawWorld)
+# shake offset (drawWorld)
 func offset() -> Vector2:
 	if shake_amt > 0.1:
 		return Vector2(U.jround(vrnd(-1, 1) * shake_amt), U.jround(vrnd(-1, 1) * shake_amt))

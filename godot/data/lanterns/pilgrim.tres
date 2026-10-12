@@ -4,13 +4,13 @@
 
 [resource]
 script = ExtResource("1")
-id = "pellegrino"
-name = "Lanterna del Pellegrino"
+id = "pilgrim"
+name = "Pilgrim's Lantern"
 glass = "#8fd35a"
-desc = "+^y25^w vita, +^y2^w armatura, ^r-8%^w velocità e cadenza. Parti con due ^yBombe^w e una ^yPozione^w."
+desc = "+^y25^w health, +^y2^w armor, ^r-8%^w speed and fire rate. Start with two ^yBombs^w and a ^yPotion^w."
 unlock_stat = "bossKills"
 unlock_min = 1
-unlock_text = "Sconfiggi un guardiano di profondità."
+unlock_text = "Defeat a depth warden."
 max_hp_add = 25.0
 armor_add = 2.0
 speed_mult_add = -0.08

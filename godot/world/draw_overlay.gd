@@ -1,6 +1,6 @@
 extends Node2D
-# Sovrimpressione visibile anche al buio (drawWorld in js/render.js): telegrafi, occhi,
-# proiettili nemici, particelle alte, numeri fluttuanti, prompt d'interazione.
+# Overlay visible even in the dark (drawWorld in js/render.js): telegraphs, eyes,
+# enemy projectiles, high particles, floating numbers, interaction prompt.
 
 func _process(_delta: float) -> void:
 	queue_redraw()
@@ -30,7 +30,7 @@ func _enemy_bullets() -> void:
 		UiDraw.px_circle(self, b.x, b.y, b.r, col)
 		UiDraw.px_rect(self, b.x - 1, b.y - 1, 2, 2, "#140a1c" if b.kind == "void" else "#ffffff")
 
-# drawTelegraphs (js/render.js): avvisi sempre visibili anche al buio (senza i raggi)
+# drawTelegraphs (js/render.js): warnings always visible even in the dark (without the beams)
 func _telegraphs() -> void:
 	var ga := UiDraw.alpha
 	var t := Fx.time
@@ -58,13 +58,13 @@ func _telegraphs() -> void:
 			UiDraw.alpha = 0.35
 			draw_dashed_line(Vector2(e.x, e.y), Vector2(e.x + cos(e.charge_a) * 120, e.y + sin(e.charge_a) * 120), UiDraw._a("#e0574a"), 2, 3)
 			UiDraw.alpha = ga
-		# preavviso d'attacco: scintilla sopra la testa
+		# attack warning: spark above the head
 		if e.wind > 0 and not e.dead and e.alpha > 0.3:
 			if sin(t * 40) > 0:
 				UiDraw.px_rect(self, e.x - 1, e.y - e.r - 9 - e.z, 2, 4, "#f6cf57")
 				UiDraw.px_rect(self, e.x - 1, e.y - e.r - 4 - e.z, 2, 1, "#f6cf57")
 
-# drawEyes (js/render.js): occhi dei nemici nell'oscurità
+# drawEyes (js/render.js): enemy eyes in the darkness
 func _eyes() -> void:
 	var p := Run.player
 	var lr := p.light()
@@ -84,28 +84,28 @@ func _eyes() -> void:
 		UiDraw.px_rect(self, e.x + 1, ey, 2, 1, col)
 		UiDraw.alpha = ga
 
-# drawPrompt (js/render.js): suggerimento d'interazione
+# drawPrompt (js/render.js): interaction hint
 func _prompt() -> void:
 	var o: Variant = Run.focus
 	if o == null:
 		return
 	var title := ""
 	var desc := ""
-	var verb := "Interagisci"
+	var verb := "Interact"
 	var col: Variant = Txt.COLORS.w
 	var extra := ""
 	match o.type:
 		"relic":
 			title = Relics.ALL[o.id].name
 			desc = Relics.ALL[o.id].desc
-			verb = "Prendi"
+			verb = "Take"
 			col = Txt.COLORS.y
 			if o.get("group") != null:
-				extra = "^dPuoi sceglierne solo una."
+				extra = "^dYou can only choose one."
 		"chest":
-			title = "Forziere dorato" if o.gold else "Forziere"
-			desc = "Serve una chiave. Contiene tesori preziosi." if o.gold else "Chissà cosa contiene."
-			verb = "Apri"
+			title = "Golden chest" if o.gold else "Chest"
+			desc = "Needs a key. Holds precious treasures." if o.gold else "Who knows what it holds."
+			verb = "Open"
 		"shopitem":
 			var it: Dictionary = o.item
 			match it.kind:
@@ -113,11 +113,11 @@ func _prompt() -> void:
 					title = Cons.ALL[it.id].name
 					desc = Cons.ALL[it.id].desc
 				"heal":
-					title = "Unguento"
-					desc = "Cura il ^y40%^w della vita massima."
+					title = "Salve"
+					desc = "Heals ^y40%^w of max health."
 				"key":
-					title = "Chiave"
-					desc = "Apre forzieri dorati e stanze del tesoro."
+					title = "Key"
+					desc = "Opens golden chests and treasure rooms."
 				_:
 					title = Relics.ALL[it.id].name
 					desc = Relics.ALL[it.id].desc
@@ -126,29 +126,29 @@ func _prompt() -> void:
 		"shrine":
 			match o.kind:
 				"blood":
-					title = "Altare di Sangue"
-					desc = "Offri ^r15^w vita massima in cambio di un dono ^braro^w o migliore."
-					verb = "Offri"
+					title = "Blood Altar"
+					desc = "Offer ^r15^w max health in exchange for a ^brare^w or better perk."
+					verb = "Offer"
 				"fortune":
-					title = "Fontana dei Desideri"
-					desc = "Getta ^y5^w monete e spera. (Usi rimasti: " + str(o.uses) + ")"
-					verb = "Getta"
+					title = "Wishing Fountain"
+					desc = "Throw in ^y5^w coins and hope. (Uses left: " + str(o.uses) + ")"
+					verb = "Throw"
 				"fountain":
-					title = "Fonte Pura"
-					desc = "Purifica una maledizione per ^y20^w monete." if not Run.player.curses.is_empty() else "Ti ristora completamente, una volta."
-					verb = "Bevi"
+					title = "Pure Spring"
+					desc = "Purify a curse for ^y20^w coins." if not Run.player.curses.is_empty() else "Fully restores you, once."
+					verb = "Drink"
 				_:
-					title = "Idolo Proibito"
-					desc = "Ottieni una ^yreliquia^w. Ricevi una ^pmaledizione^w."
-					verb = "Accetta"
+					title = "Forbidden Idol"
+					desc = "Gain a ^yrelic^w. Receive a ^pcurse^w."
+					verb = "Accept"
 			if o.uses <= 0:
-				desc = "^dIl potere si è esaurito."
+				desc = "^dThe power is spent."
 				verb = ""
 			col = Txt.COLORS.p
 		"trapdoor":
-			title = "Botola"
-			desc = "Scendi alla profondità successiva."
-			verb = "Scendi"
+			title = "Trapdoor"
+			desc = "Descend to the next depth."
+			verb = "Descend"
 	var w := 168.0
 	var lines := Txt.wrap(desc, w - 12)
 	var h := 22 + lines.size() * 10 + (10 if extra != "" else 0) + (12 if verb != "" else 0)

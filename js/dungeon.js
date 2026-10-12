@@ -1,11 +1,11 @@
 'use strict';
 // =====================================================================
-//  Generazione delle profondita': mappa a stanze, layout, porte
+// Depth generation: room map, layout, doors
 // =====================================================================
 
-// Quadranti 14x7 (colonna 13 e riga 6 sono gli assi di simmetria).
-// '.' pavimento  '#' roccia  '%' roccia incrinata  'b' barile  'u' urna
-// '^' spuntoni  'o' braciere  '?' roccia casuale
+// 14x7 quadrants (column 13 and row 6 are the symmetry axes).
+// '.' floor  '#' rock  '%' cracked rock  'b' barrel  'u' urn
+// '^' spikes  'o' brazier  '?' random rock
 const QUADS = [
   ['..............', '..............', '..............', '..............', '..............', '..............', '..............'],
   ['..............', '..............', '..............', '.....##.......', '.....##.......', '..............', '..............'],
@@ -37,7 +37,7 @@ const DIRS = {
   w: { dx: -1, dy: 0, opp: 'e', tiles: [[0, 6], [0, 7], [0, 8]] },
   e: { dx: 1, dy: 0, opp: 'w', tiles: [[28, 6], [28, 7], [28, 8]] },
 };
-// punto di ingresso del giocatore quando arriva da una porta
+// player entry point when arriving through a door
 function doorEntry(dir) {
   switch (dir) {
     case 'n': return { x: RX + 14.5 * TS, y: RY + 1.9 * TS };
@@ -52,7 +52,7 @@ function doorCenter(dir) {
 }
 
 // ---------------------------------------------------------------------
-//  Mappa della profondita'
+// Depth map
 // ---------------------------------------------------------------------
 function genFloor(depth, rng, target) {
   const GW = 9, GH = 8;
@@ -78,14 +78,14 @@ function genFloor(depth, rng, target) {
         cells.set(key(nx, ny), n); queue.push(n); added = true;
       }
       if (!added && queue.length === 0 && cells.size < nTarget) {
-        // rimetti in coda una stanza casuale per continuare a crescere
+        // push a random room back on the queue to keep growing
         queue.push(rng.pick([...cells.values()]));
       }
     }
     if (cells.size < nTarget) continue;
     const list = [...cells.values()];
     const nbs = c => [['n', 0, -1], ['s', 0, 1], ['w', -1, 0], ['e', 1, 0]].map(([d, dx, dy]) => [d, cells.get(key(c.gx + dx, c.gy + dy))]).filter(x => x[1]);
-    // distanze BFS
+    // BFS distances
     const distM = new Map([[start, 0]]);
     const bq = [start];
     while (bq.length) { const c = bq.shift(); for (const [, n] of nbs(c)) if (!distM.has(n)) { distM.set(n, distM.get(c) + 1); bq.push(n); } }
@@ -94,7 +94,7 @@ function genFloor(depth, rng, target) {
     if (dead.length < need) continue;
     if (distM.get(dead[0]) < 3) continue;
 
-    // costruisci le stanze
+    // build the rooms
     const rooms = new Map();
     for (const c of list) {
       rooms.set(key(c.gx, c.gy), {
@@ -112,7 +112,7 @@ function genFloor(depth, rng, target) {
     let i = 2;
     if (depth >= 2 && rest[i]) { R(rest[i]).type = 'elite'; i++; }
     if (rest[i]) { R(rest[i]).type = 'shrine'; i++; }
-    // stanza segreta: cella vuota con molte stanze adiacenti
+    // secret room: empty cell with many adjacent rooms
     let best = null, bestN = 1;
     for (let gy = 0; gy < GH; gy++) for (let gx = 0; gx < GW; gx++) {
       if (cells.has(key(gx, gy))) continue;
@@ -126,7 +126,7 @@ function genFloor(depth, rng, target) {
         built: false, visited: false, seen: false, cleared: true, found: false
       });
     }
-    // collega le porte
+    // connect the doors
     for (const r of rooms.values()) {
       for (const d in DIRS) {
         const n = rooms.get(key(r.gx + DIRS[d].dx, r.gy + DIRS[d].dy));
@@ -143,7 +143,7 @@ function genFloor(depth, rng, target) {
 function roomAt(floor, gx, gy) { return floor.map.get(gx + ',' + gy); }
 
 // ---------------------------------------------------------------------
-//  Costruzione di una stanza
+// Room building
 // ---------------------------------------------------------------------
 function tileAt(room, tx, ty) {
   if (tx < 0 || ty < 0 || tx >= RW || ty >= RH) return T.WALL;
@@ -218,7 +218,7 @@ function buildRoom(room, floor) {
     if (t === T.BARREL) room.tileHp[(y + 1) * RW + x + 1] = 18;
     if (t === T.URN) room.tileHp[(y + 1) * RW + x + 1] = 1;
   }
-  // varieta' extra: urne/barili sparsi nelle stanze normali
+  // extra variety: urns/barrels scattered in normal rooms
   if (room.type === 'normal' && rng.chance(0.5)) {
     for (let k = 0; k < rng.int(1, 3); k++) {
       const x = rng.int(2, 26), y = rng.int(2, 12);
@@ -228,7 +228,7 @@ function buildRoom(room, floor) {
       }
     }
   }
-  // porte e spazio libero davanti
+  // doors and free space in front
   for (const d in DIRS) {
     if (!room.doors[d]) continue;
     for (const [tx, ty] of DIRS[d].tiles) {
@@ -237,16 +237,16 @@ function buildRoom(room, floor) {
     }
     clearDoorZone(room, d);
   }
-  // raggiungibilita'
+  // reachability
   if (!checkReachable(room)) {
     for (let y = 1; y < RH - 1; y++) for (let x = 1; x < RW - 1; x++) room.grid[y][x] = T.FLOOR;
     room.tileHp = {};
   }
-  // decorazioni
+  // decorations
   const nDec = rng.int(10, 22);
   for (let k = 0; k < nDec; k++) room.decals.push({ x: rng.int(RX + 18, RX + RW * TS - 18), y: rng.int(RY + 18, RY + RH * TS - 18), k: rng.int(0, 5), s: rng.next() });
 
-  // contenuti
+  // contents
   const c = tileCenter(14, 7);
   switch (room.type) {
     case 'normal': case 'elite': planWaves(room, floor, rng, biome); break;
@@ -319,7 +319,7 @@ function reachTiles(room) {
 }
 
 // ---------------------------------------------------------------------
-//  Ondate di nemici
+// Enemy waves
 // ---------------------------------------------------------------------
 function planWaves(room, floor, rng, biome) {
   const d = floor.depth;
@@ -330,7 +330,7 @@ function planWaves(room, floor, rng, biome) {
   else if (d <= 4) nWaves = rng.chance(0.6) ? 2 : 1;
   else nWaves = rng.chance(0.3) ? 3 : 2;
   if (elite) nWaves = 2;
-  const ard = run ? run.ardore : 0;
+  const ard = run ? run.ardor : 0;
   let eliteChance = [0, 0.06, 0.12, 0.18, 0.24][Math.min(4, d - 1)] + Math.max(0, d - 5) * 0.04;
   if (ard >= 3) eliteChance *= 2;
   for (let w = 0; w < nWaves; w++) {
@@ -355,7 +355,7 @@ function planWaves(room, floor, rng, biome) {
 }
 
 // ---------------------------------------------------------------------
-//  Negozio e santuari
+// Shop and shrines
 // ---------------------------------------------------------------------
 function makeShop(room, floor, rng) {
   const c = tileCenter(14, 7);
@@ -404,7 +404,7 @@ function randomRelics(n, rng) {
 function biomeOf(depth) { return BIOMES[(depth - 1) % BIOMES.length]; }
 
 // ---------------------------------------------------------------------
-//  Rendering dello sfondo della stanza (pre-calcolato)
+// Room background rendering (precomputed)
 // ---------------------------------------------------------------------
 function hash2(x, y, s = 0) { let h = (x * 374761393 + y * 668265263 + s * 1442695041) | 0; h = (h ^ (h >>> 13)) * 1274126177; return ((h ^ (h >>> 16)) >>> 0) / 4294967296; }
 
@@ -414,17 +414,17 @@ function renderRoomBg(room, floor) {
   const c = room.bg.getContext('2d');
   c.imageSmoothingEnabled = false;
   const s = room.seed % 1000;
-  // pavimento
+  // floor
   for (let ty = 0; ty < RH; ty++) for (let tx = 0; tx < RW; tx++) {
     const x = tx * TS, y = ty * TS;
     const h = hash2(tx, ty, s);
     c.fillStyle = biome.floor[Math.floor(h * biome.floor.length)];
     c.fillRect(x, y, TS, TS);
-    // fughe tra le lastre
+    // gaps between the slabs
     c.fillStyle = biome.floorD;
     c.fillRect(x, y + TS - 1, TS, 1); c.fillRect(x + TS - 1, y, 1, TS);
     if (h > 0.55) { c.fillRect(x + 8, y, 1, 8); }
-    // granelli
+    // specks
     for (let k = 0; k < 4; k++) {
       const hx = hash2(tx * 7 + k, ty * 3, s + 9), hy = hash2(tx * 5, ty * 11 + k, s + 3);
       c.fillStyle = k % 2 ? biome.floorD : 'rgba(255,255,255,0.04)';
@@ -432,22 +432,22 @@ function renderRoomBg(room, floor) {
     }
     if (h < 0.08) { c.fillStyle = biome.floorD; c.fillRect(x + 3, y + 5, 5, 1); c.fillRect(x + 7, y + 6, 4, 1); c.fillRect(x + 10, y + 7, 1, 3); }
   }
-  // decorazioni
+  // decorations
   for (const d of room.decals) drawDecal(c, d, biome);
   if (room.tutorial) drawTutorialFloor(c);
-  // muri
+  // walls
   for (let ty = 0; ty < RH; ty++) for (let tx = 0; tx < RW; tx++) {
     const t = room.grid[ty][tx];
     const x = tx * TS, y = ty * TS;
     if (t === T.WALL || t === T.DOOR) drawWallTile(c, room, tx, ty, x, y, biome, s);
   }
-  // ombra dei muri sul pavimento
+  // wall shadow on the floor
   c.fillStyle = 'rgba(0,0,0,0.35)';
   c.fillRect(TS, TS, (RW - 2) * TS, 4);
   c.fillStyle = 'rgba(0,0,0,0.18)';
   c.fillRect(TS, TS + 4, (RW - 2) * TS, 3);
   c.fillRect(TS, TS, 3, (RH - 2) * TS);
-  // rocce
+  // rocks
   for (let ty = 1; ty < RH - 1; ty++) for (let tx = 1; tx < RW - 1; tx++) {
     const t = room.grid[ty][tx];
     if (t === T.ROCK || t === T.CRACK) drawRock(c, tx * TS, ty * TS, biome, t === T.CRACK, hash2(tx, ty, s));
@@ -457,7 +457,7 @@ function renderRoomBg(room, floor) {
 
 function drawWallTile(c, room, tx, ty, x, y, biome, s) {
   c.fillStyle = biome.wallD; c.fillRect(x, y, TS, TS);
-  // mattoni
+  // bricks
   const off = (ty % 2) * 8;
   c.fillStyle = biome.wall;
   for (let by = 0; by < 2; by++) for (let bx = -1; bx < 2; bx++) {
@@ -465,7 +465,7 @@ function drawWallTile(c, room, tx, ty, x, y, biome, s) {
     const rx = Math.max(x, ox), rw = Math.min(x + TS, ox + 7) - rx;
     if (rw > 0) c.fillRect(rx, y + by * 8, rw, 7);
   }
-  // bordo interno illuminato
+  // lit inner edge
   c.fillStyle = biome.wallL;
   if (ty === 0 && tx > 0 && tx < RW - 1) c.fillRect(x, y + TS - 2, TS, 2);
   if (ty === RH - 1 && tx > 0 && tx < RW - 1) c.fillRect(x, y, TS, 1);
@@ -522,9 +522,9 @@ function drawDecal(c, d, biome) {
 
 function drawTutorialFloor(c) {
   const lines = [
-    '^dWASD muoviti   -   MOUSE mira   -   CLIC SINISTRO spara',
-    '^dSPAZIO scatto   -   CLIC DESTRO o F  Vampata (consuma olio)',
-    '^d1 2 3 4 consumabili   -   E interagisci   -   TAB mappa',
+    '^dWASD move   -   MOUSE aim   -   LEFT CLICK shoot',
+    '^dSPACE dash   -   RIGHT CLICK or F  Flare (uses oil)',
+    '^d1 2 3 4 consumables   -   E interact   -   TAB map',
   ];
   c.save(); c.globalAlpha = 0.55;
   lines.forEach((l, i) => Font.draw(c, l, RW * TS / 2, 150 + i * 12, { align: 'center', shadow: false }));

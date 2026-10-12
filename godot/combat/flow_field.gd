@@ -1,6 +1,6 @@
 class_name FlowField
 extends RefCounted
-# Campo di flusso verso il giocatore (inseguimento attorno agli ostacoli).
+# Flow field toward the player (pathing around obstacles).
 
 static func update() -> void:
 	var rw := Consts.RW
@@ -33,7 +33,7 @@ static func update() -> void:
 			Run.flow[nk] = Run.flow[k] + 1
 			q.append(nk)
 
-# cella del campo; null fuori dai limiti (undefined nel JS: ogni confronto è falso)
+# field cell; null out of bounds (undefined in the JS: every comparison is false)
 static func _at(i: int) -> Variant:
 	if i < 0 or i >= Run.flow.size():
 		return null

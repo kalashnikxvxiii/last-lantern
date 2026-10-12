@@ -1,10 +1,10 @@
 shader_type canvas_item;
 render_mode blend_add;
-// Bagliore caldo additivo di drawLighting: gradiente dal colore al nero entro 0,8 r.
+// Additive warm glow from drawLighting: gradient from the color to black within 0.8 r.
 
 uniform int count = 0;
-uniform vec4 lights[128];   // x, y, raggio, alfa
-uniform vec4 colors[128];   // r, g, b, intensità (0 = nessun bagliore)
+uniform vec4 lights[128];   // x, y, radius, alpha
+uniform vec4 colors[128];   // r, g, b, intensity (0 = no glow)
 
 void fragment() {
 	vec2 p = UV * vec2(480.0, 270.0);

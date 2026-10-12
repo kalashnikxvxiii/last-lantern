@@ -1,6 +1,6 @@
 extends Node2D
-# Sfondo della stanza (renderRoomBg in js/dungeon.js): TileMapLayer per pavimento,
-# muri e rocce; decorazioni, testo del tutorial e ombra dei muri disegnati dal codice.
+# Room background (renderRoomBg in js/dungeon.js): TileMapLayer for floor,
+# walls and rocks; decorations, tutorial text and wall shadow drawn by code.
 
 class DrawCall extends Node2D:
 	var fn: Callable
@@ -49,7 +49,7 @@ func show_room(room: Dictionary) -> void:
 	decals.queue_redraw()
 	shadow.queue_redraw()
 
-# drawDecal e drawTutorialFloor (js/dungeon.js), in coordinate della stanza
+# drawDecal and drawTutorialFloor (js/dungeon.js), in room coordinates
 func _draw_decals(ci: CanvasItem) -> void:
 	if shown.is_empty():
 		return
@@ -96,9 +96,9 @@ func _draw_decals(ci: CanvasItem) -> void:
 					UiDraw.px_rect(ci, x + i * 2, y + U.jround(sin(i + d.s * 6) * 2), 2, 1, U.rgba(160, 70, 180, 0.35))
 	if shown.get("tutorial", false):
 		var lines := [
-			"^dWASD muoviti   -   MOUSE mira   -   CLIC SINISTRO spara",
-			"^dSPAZIO scatto   -   CLIC DESTRO o F  Vampata (consuma olio)",
-			"^d1 2 3 4 consumabili   -   E interagisci   -   TAB mappa",
+			"^dWASD move   -   MOUSE aim   -   LEFT CLICK shoot",
+			"^dSPACE dash   -   RIGHT CLICK or F  Flare (uses oil)",
+			"^d1 2 3 4 consumables   -   E interact   -   TAB map",
 		]
 		var ga := UiDraw.alpha
 		UiDraw.alpha = 0.55
@@ -106,7 +106,7 @@ func _draw_decals(ci: CanvasItem) -> void:
 			UiDraw.text(ci, lines[i], Consts.RW * Consts.TS / 2.0, 150 + i * 12, {"align": "center", "shadow": false})
 		UiDraw.alpha = ga
 
-# ombra dei muri sul pavimento (renderRoomBg)
+# wall shadow on the floor (renderRoomBg)
 func _draw_wall_shadow(ci: CanvasItem) -> void:
 	var ts := Consts.TS
 	UiDraw.px_rect(ci, ts, ts, (Consts.RW - 2) * ts, 4, U.rgba(0, 0, 0, 0.35))

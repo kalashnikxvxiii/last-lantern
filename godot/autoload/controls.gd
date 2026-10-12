@@ -1,6 +1,6 @@
 extends Node
-# Input (da Input e Act in js/core.js): tastiera, mouse e gamepad con la stessa
-# mappatura del JS, ultimo dispositivo usato e input simulato per i test.
+# Input (from Input and Act in js/core.js): keyboard, mouse and gamepad with the same
+# mapping as the JS, last used device and simulated input for tests.
 
 const DEAD := 0.22
 const KEYS := {
@@ -128,8 +128,8 @@ func arrow_aim() -> Variant:
 		return atan2(ay, ax)
 	return null
 
-# mira del giocatore (updatePlayer): frecce o stick destro, poi il mouse
-# se è l'ultimo dispositivo o il tasto sinistro è premuto, altrimenti resta
+# player aim (updatePlayer): arrows or right stick, then the mouse
+# if it is the last device or the left button is pressed, otherwise it stays
 func aim_angle(px: float, py: float, current: float) -> float:
 	var ka: Variant = arrow_aim()
 	if ka != null:
@@ -159,10 +159,10 @@ func up() -> bool: return _pressed("nav_up")
 func down() -> bool: return _pressed("nav_down")
 func left() -> bool: return _pressed("nav_left")
 func right() -> bool: return _pressed("nav_right")
-func confirm() -> bool: return _pressed("confirm") and not Input.is_key_pressed(KEY_ALT)   # Alt+Invio: schermo intero
+func confirm() -> bool: return _pressed("confirm") and not Input.is_key_pressed(KEY_ALT)   # Alt+Enter: fullscreen
 func back() -> bool: return _pressed("back")
 func reroll() -> bool: return _pressed("reroll")
-# solo i tasti numerici (Input.hit('Digit' + n) nel JS): la croce del gamepad scorre e basta
+# number keys only (Input.hit('Digit' + n) in the JS): the gamepad d-pad just scrolls
 func digit(i: int) -> bool: return _pressed("digit_%d" % i)
 
 func slot() -> int:

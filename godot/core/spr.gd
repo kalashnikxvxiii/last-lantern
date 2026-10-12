@@ -1,17 +1,17 @@
 class_name Spr
 extends RefCounted
-# Sprite esportati (assets/sprites) e disegno come drawSpr in js/gfx.js.
-# Le sagome bianche per flash e tinta si generano al caricamento.
+# Exported sprites (assets/sprites) and drawing like drawSpr in js/gfx.js.
+# White silhouettes for flash and tint are generated at load time.
 
 const DIR := "res://assets/sprites/"
-static var db: Dictionary = {}   # nome -> {tex, sil, w, h, frames}
+static var db: Dictionary = {}   # name -> {tex, sil, w, h, frames}
 
 static func ensure() -> void:
 	if not db.is_empty():
 		return
 	var j := JSON.new()
 	if j.parse(FileAccess.get_file_as_string(DIR + "manifest.json")) != OK:
-		push_error("manifest degli sprite non leggibile")
+		push_error("sprite manifest not readable")
 		return
 	for name in j.data:
 		var m: Dictionary = j.data[name]
@@ -21,7 +21,7 @@ static func ensure() -> void:
 static func _silhouette(tex: Texture2D) -> Texture2D:
 	var img := tex.get_image()
 	if img == null:
-		return tex   # rendering fittizio (test headless): nessuna sagoma
+		return tex   # dummy rendering (headless test): no silhouette
 	img = img.duplicate()
 	img.decompress()
 	img.convert(Image.FORMAT_RGBA8)
@@ -53,7 +53,7 @@ static func _blit(ci: CanvasItem, tex: Texture2D, src: Rect2, dx: float, dy: flo
 	else:
 		ci.draw_texture_rect_region(tex, Rect2(dx, dy, w, h), src, c)
 
-# centrato su (x, y). o: flip, flash, alpha, scale, tint, tintA
+# centered on (x, y). o: flip, flash, alpha, scale, tint, tintA
 static func draw(ci: CanvasItem, name: String, frame: float, x: float, y: float, o: Dictionary = {}) -> void:
 	ensure()
 	if not db.has(name):
@@ -75,7 +75,7 @@ static func draw(ci: CanvasItem, name: String, frame: float, x: float, y: float,
 		var t := UiDraw.col(o.tint)
 		_blit(ci, s.sil, src, dx, dy, w, h, flip, Color(t.r, t.g, t.b, a * o.get("tintA", 0.5)))
 
-# sagoma colorata (sprTint del JS), disegnata con l'angolo in alto a sinistra in (dx, dy)
+# colored silhouette (JS sprTint), drawn with the top-left corner at (dx, dy)
 static func draw_sil(ci: CanvasItem, name: String, frame: float, dx: float, dy: float, color: Variant, flip: bool = false) -> void:
 	ensure()
 	if not db.has(name):

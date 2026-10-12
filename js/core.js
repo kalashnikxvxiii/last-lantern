@@ -1,12 +1,12 @@
 'use strict';
 // =====================================================================
-//  ULTIMA LANTERNA - core: costanti, utilita', RNG, input
+// LAST LANTERN - core: constants, utilities, RNG, input
 // =====================================================================
 
 const VERSION = 'beta 0.9.0';
 const W = 480, H = 270, TS = 16;
-const RW = 29, RH = 15;          // dimensioni stanza in tile (muri inclusi)
-const RX = 8, RY = 28;           // offset della stanza sullo schermo
+const RW = 29, RH = 15;          // room size in tiles (walls included)
+const RX = 8, RY = 28;           // room offset on screen
 const TAU = Math.PI * 2;
 
 const T = { FLOOR: 0, WALL: 1, ROCK: 2, CRACK: 3, SPIKE: 4, BARREL: 5, BRAZIER: 6, DOOR: 7, URN: 8 };
@@ -26,7 +26,7 @@ function approach(v, t, d) { return v < t ? Math.min(v + d, t) : Math.max(v - d,
 function shuffle(arr) { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; }
 function fmtTime(s) { s = Math.floor(s); const m = Math.floor(s / 60), r = s % 60; return m + ':' + (r < 10 ? '0' : '') + r; }
 
-// Generatore pseudo-casuale con seme (mulberry32)
+// Seeded pseudo-random generator (mulberry32)
 class RNG {
   constructor(seed) { this.s = (seed >>> 0) || 1; }
   next() {
@@ -55,7 +55,7 @@ function weightedPick(list, wf) {
 }
 
 // =====================================================================
-//  Input: tastiera, mouse, gamepad
+// Input: keyboard, mouse, gamepad
 // =====================================================================
 const Input = {
   down: Object.create(null), pressed: Object.create(null),
@@ -115,7 +115,7 @@ const Input = {
   clearAll() { this.pressed = Object.create(null); this.padPressed = []; this.mLp = this.mRp = false; }
 };
 
-// Azioni semantiche
+// Semantic actions
 const Act = {
   move() {
     let x = 0, y = 0;
@@ -162,16 +162,16 @@ const Act = {
 };
 
 // =====================================================================
-//  Salvataggio
+// Save
 // =====================================================================
 const Save = {
-  KEY: 'ultimaLanterna.v1',
+  KEY: 'lastLantern.v1',
   data: null,
   defaults() {
     return {
       settings: { music: 0.5, sfx: 0.7, shake: true, numbers: true, fullscreenHint: true },
-      stats: { runs: 0, wins: 0, bestDepth: 0, kills: 0, bossKills: 0, bestTime: 0, maxArdoreWon: -1 },
-      unlocks: { lanterns: ['custode'], ardore: 0 },
+      stats: { runs: 0, wins: 0, bestDepth: 0, kills: 0, bossKills: 0, bestTime: 0, maxArdorWon: -1 },
+      unlocks: { lanterns: ['warden'], ardor: 0 },
       seen: {}
     };
   },
@@ -183,11 +183,11 @@ const Save = {
     d.settings = Object.assign(def.settings, d.settings || {});
     d.stats = Object.assign(def.stats, d.stats || {});
     d.unlocks = Object.assign(def.unlocks, d.unlocks || {});
-    if (!Array.isArray(d.unlocks.lanterns)) d.unlocks.lanterns = ['custode'];
+    if (!Array.isArray(d.unlocks.lanterns)) d.unlocks.lanterns = ['warden'];
     d.seen = d.seen || {};
     this.data = d;
   },
-  write() { try { localStorage.setItem(this.KEY, JSON.stringify(this.data)); } catch (e) { /* storage non disponibile */ } },
+  write() { try { localStorage.setItem(this.KEY, JSON.stringify(this.data)); } catch (e) { /* storage unavailable */ } },
   unlockLantern(id) {
     if (!this.data.unlocks.lanterns.includes(id)) { this.data.unlocks.lanterns.push(id); this.write(); return true; }
     return false;

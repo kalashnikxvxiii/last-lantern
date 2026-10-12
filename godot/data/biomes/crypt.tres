@@ -5,11 +5,11 @@
 [resource]
 script = ExtResource("1")
 id = "crypt"
-name = "Le Cripte"
+name = "The Crypts"
 music = "crypt"
 boss = "bones"
 dark = 0.68
-lore = "Sotto la città spenta riposano i primi custodi. Le loro ossa non hanno dimenticato come si combatte."
+lore = "Beneath the darkened city rest the first wardens. Their bones have not forgotten how to fight."
 floor = ["#2a2430", "#241f2a", "#2e2834"]
 floor_d = "#1a1520"
 wall = "#3c3448"

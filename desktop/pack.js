@@ -1,6 +1,6 @@
 'use strict';
-// Crea le build desktop per Windows e Linux (x64).
-// Uso: node pack.js <cartella-uscita> [win32|linux ...]
+// Creates the desktop builds for Windows and Linux (x64).
+// Usage: node pack.js <output-folder> [win32|linux ...]
 const { packager } = require('@electron/packager');
 const path = require('path');
 
@@ -14,7 +14,7 @@ const common = {
   asar: true,
   overwrite: true,
   prune: true,
-  appCopyright: 'Ultima Lanterna',
+  appCopyright: 'Last Lantern',
   ignore: [/^\/pack\.js$/, /^\/build\/icon\.ico$/, /^\/node_modules/],
 };
 
@@ -22,22 +22,22 @@ const common = {
   for (const platform of platforms) {
     const opts = Object.assign({}, common, { platform });
     if (platform === 'win32') {
-      opts.executableName = 'Ultima Lanterna';
+      opts.executableName = 'Last Lantern';
       opts.icon = path.join(__dirname, 'build', 'icon.ico');
-      opts.win32metadata = { CompanyName: 'Ultima Lanterna', FileDescription: 'Ultima Lanterna', ProductName: 'Ultima Lanterna', InternalName: 'Ultima Lanterna' };
+      opts.win32metadata = { CompanyName: 'Last Lantern', FileDescription: 'Last Lantern', ProductName: 'Last Lantern', InternalName: 'Last Lantern' };
     } else {
-      opts.executableName = 'ultima-lanterna';
+      opts.executableName = 'last-lantern';
     }
     try {
       const paths = await packager(opts);
       console.log('OK', platform, paths.join(', '));
     } catch (e) {
       if (platform === 'win32' && opts.icon) {
-        // senza Wine non si puo' incorporare l'icona: riprova senza
-        console.warn('Icona Windows non applicata (' + e.message.split('\n')[0] + '), riprovo senza.');
+        // without Wine the icon cannot be embedded: retry without it
+        console.warn('Windows icon not applied (' + e.message.split('\n')[0] + '), retrying without it.');
         delete opts.icon; delete opts.win32metadata;
         const paths = await packager(opts);
-        console.log('OK', platform, paths.join(', '), '(senza icona)');
+        console.log('OK', platform, paths.join(', '), '(no icon)');
       } else throw e;
     }
   }

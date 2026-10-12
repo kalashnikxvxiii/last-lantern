@@ -1,7 +1,7 @@
 class_name WellBg
 extends RefCounted
-# Sfondo del pozzo e braci delle schermate (drawWellBackground, updateEmbers in
-# js/game.js) e lanterna grande (drawBigLantern in js/ui.js).
+# Well background and screen embers (drawWellBackground, updateEmbers in
+# js/game.js) and big lantern (drawBigLantern in js/ui.js).
 
 static var embers: Array = []
 static var _bg: GradientTexture2D
@@ -21,7 +21,7 @@ static func draw(ci: CanvasItem, t: float, arr: Array) -> void:
 		_bg.width = 4
 		_bg.height = 64
 	ci.draw_texture_rect(_bg, Rect2(0, 0, W, H), false)
-	# pareti del pozzo in prospettiva
+	# well walls in perspective
 	for i in 14:
 		var k := fmod(i + t * 0.25, 14.0) / 14.0
 		var y := H * (0.05 + k * k * 1.1)
@@ -54,7 +54,7 @@ static func big_lantern(ci: CanvasItem, x: float, y: float, glass: Variant, swin
 	ci.draw_set_transform(Vector2(x, y), swing)
 	var R := func(a: float, b: float, c: float, d: float, col: Variant) -> void:
 		ci.draw_rect(Rect2(a * s, b * s, c * s, d * s), UiDraw._a(col))
-	# catena
+	# chain
 	for i in 5:
 		R.call(-0.5, -16 + i * 2, 1, 1, "#6b6478")
 	R.call(-3, -6, 6, 1, "#3b3546")

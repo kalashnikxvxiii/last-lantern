@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 id = "skull"
-name = "Teschio Fatuo"
+name = "Wisp Skull"
 spr = "skull"
 hp = 24.0
 spd = 26.0

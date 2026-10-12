@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Genera l'icona del gioco (lanterna in pixel art) in PNG e ICO."""
+"""Generates the game icon (pixel-art lantern) as PNG and ICO."""
 import os
 import sys
 from PIL import Image
@@ -9,13 +9,13 @@ os.makedirs(OUT, exist_ok=True)
 
 PAL = {
     '.': None,
-    'k': (11, 8, 16, 255),     # contorno
-    'g': (59, 53, 70, 255),    # ferro scuro
-    'G': (107, 100, 120, 255), # ferro
-    'y': (246, 207, 87, 255),  # vetro
-    'Y': (255, 242, 168, 255), # vetro chiaro
-    'W': (255, 255, 255, 255), # fiamma
-    'o': (242, 156, 56, 255),  # bagliore
+    'k': (11, 8, 16, 255),     # outline
+    'g': (59, 53, 70, 255),    # dark iron
+    'G': (107, 100, 120, 255), # iron
+    'y': (246, 207, 87, 255),  # glass
+    'Y': (255, 242, 168, 255), # light glass
+    'W': (255, 255, 255, 255), # flame
+    'o': (242, 156, 56, 255),  # glow
 }
 ART = [
     '................',
@@ -44,7 +44,7 @@ def render(size):
             c = PAL[ch]
             if c:
                 base.putpixel((x, y), c)
-    # sfondo scuro con alone caldo
+    # dark background with warm halo
     bg = Image.new('RGBA', (size, size), (0, 0, 0, 0))
     r = size // 2
     for yy in range(size):
@@ -61,4 +61,4 @@ def render(size):
 big = render(512)
 big.save(os.path.join(OUT, 'icon.png'))
 render(256).save(os.path.join(OUT, 'icon.ico'), sizes=[(16, 16), (24, 24), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)])
-print('icona generata in', os.path.abspath(OUT))
+print('icon generated in', os.path.abspath(OUT))

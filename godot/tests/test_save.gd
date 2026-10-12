@@ -1,5 +1,5 @@
 extends TestCase
-# Salvataggio: tollerante come Save.load nel JS.
+# Save: tolerant like Save.load in the JS.
 
 const P := "user://test_save_case.json"
 
@@ -17,51 +17,51 @@ func _write_raw(text: String) -> void:
 	f.store_string(text)
 	f.close()
 
-func test_senza_file_usa_i_default() -> void:
+func test_without_file_uses_defaults() -> void:
 	Save.load_save()
 	eq(Save.data, Save.defaults())
 
-func test_campi_mancanti_presi_dai_default() -> void:
+func test_missing_fields_use_defaults() -> void:
 	_write_raw('{"settings": {"music": 0.2}, "stats": {"runs": 4}}')
 	Save.load_save()
 	eq(Save.data.settings.music, 0.2)
 	eq(Save.data.settings.sfx, 0.7)
 	eq(Save.data.stats.runs, 4)
-	check(typeof(Save.data.stats.runs) == TYPE_INT, "runs deve restare intero")
-	eq(Save.data.unlocks.lanterns, ["custode"])
+	check(typeof(Save.data.stats.runs) == TYPE_INT, "runs must stay an integer")
+	eq(Save.data.unlocks.lanterns, ["warden"])
 	eq(Save.data.seen, {})
 
-func test_file_corrotto_usa_i_default() -> void:
-	_write_raw("{non è json")
+func test_corrupt_file_uses_defaults() -> void:
+	_write_raw("{not json")
 	Save.load_save()
 	eq(Save.data, Save.defaults())
 
-func test_lanterne_non_array_ripristinate() -> void:
-	_write_raw('{"unlocks": {"lanterns": "custode", "ardore": 2}}')
+func test_non_array_lanterns_restored() -> void:
+	_write_raw('{"unlocks": {"lanterns": "warden", "ardor": 2}}')
 	Save.load_save()
-	eq(Save.data.unlocks.lanterns, ["custode"])
-	eq(Save.data.unlocks.ardore, 2)
+	eq(Save.data.unlocks.lanterns, ["warden"])
+	eq(Save.data.unlocks.ardor, 2)
 
-func test_scrittura_e_rilettura() -> void:
+func test_write_and_reread() -> void:
 	Save.load_save()
 	Save.data.stats.kills = 12
-	check(Save.unlock_lantern("pellegrino"), "prima volta: sbloccata")
-	check(not Save.unlock_lantern("pellegrino"), "seconda volta: già sbloccata")
+	check(Save.unlock_lantern("pilgrim"), "first time: unlocked")
+	check(not Save.unlock_lantern("pilgrim"), "second time: already unlocked")
 	Save.load_save()
 	eq(Save.data.stats.kills, 12)
-	eq(Save.data.unlocks.lanterns, ["custode", "pellegrino"])
+	eq(Save.data.unlocks.lanterns, ["warden", "pilgrim"])
 
 func test_write_failure_is_silent() -> void:
 	allow_errors()
-	Save.path = "user://cartella_inesistente/sotto/save.json"
+	Save.path = "user://missing_folder/sub/save.json"
 	Save.data = Save.defaults()
 	Save.data.stats.runs = 3
-	check(not Save.write(), "la scrittura deve fallire")
-	eq(Save.data.stats.runs, 3, "i dati in memoria restano")
+	check(not Save.write(), "the write must fail")
+	eq(Save.data.stats.runs, 3, "the in-memory data stays")
 
-func test_scrittura_atomica_non_distrugge_il_salvataggio() -> void:
-	# il salvataggio passa da un file temporaneo: se non si può scrivere,
-	# il file buono resta com'era e write() segnala il fallimento
+func test_atomic_write_does_not_destroy_the_save() -> void:
+	# the save goes through a temporary file: if it cannot be written,
+	# the good file stays as it was and write() reports the failure
 	allow_errors()
 	Save.load_save()
 	Save.data.stats.runs = 5
@@ -69,7 +69,7 @@ func test_scrittura_atomica_non_distrugge_il_salvataggio() -> void:
 	var tmp := ProjectSettings.globalize_path(P + ".new")
 	DirAccess.make_dir_absolute(tmp)
 	Save.data.stats.runs = 9
-	check(not Save.write(), "il temporaneo non si può creare")
+	check(not Save.write(), "the temporary file cannot be created")
 	DirAccess.remove_absolute(tmp)
 	Save.load_save()
-	eq(Save.data.stats.runs, 5, "il salvataggio precedente è intatto")
+	eq(Save.data.stats.runs, 5, "the previous save is intact")

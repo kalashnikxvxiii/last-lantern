@@ -1,5 +1,5 @@
 extends TestCase
-# Avvio della run, ingresso nelle stanze, porte e transizioni, movimento del giocatore.
+# Run start, entering rooms, doors and transitions, player movement.
 
 func before() -> void:
 	TH.new_run(7)
@@ -8,7 +8,7 @@ func after() -> void:
 	Controls.sim.clear()
 	Run.reset()
 
-func test_avvio_della_run() -> void:
+func test_run_start() -> void:
 	var p := Run.player
 	eq(p.hp, p.stats.maxHp)
 	eq(p.oil, p.stats.maxOil)
@@ -18,12 +18,12 @@ func test_avvio_della_run() -> void:
 	check(Run.room.visited and Run.room.built)
 	check(Run.room.get("tutorial", false))
 	eq(Music.track_name, "crypt")
-	eq(Run.toasts.back().text, "Trova il guardiano e scendi più in basso.")
+	eq(Run.toasts.back().text, "Find the warden and descend deeper.")
 	var runs: int = Save.data.stats.runs
 	TH.new_run(8)
 	eq(Save.data.stats.runs, runs + 1)
 
-func test_ingresso_da_una_porta() -> void:
+func test_entering_through_a_door() -> void:
 	var start := Run.room
 	var d: String = start.doors.keys()[0]
 	var n: Dictionary = start.doors[d]
@@ -32,9 +32,9 @@ func test_ingresso_da_una_porta() -> void:
 	var e := RoomU.door_entry(RoomU.DIRS[d].opp)
 	eq([Run.player.x, Run.player.y], [e.x, e.y])
 	if n.type == "normal":
-		check(n.combat, "stanza normale: combattimento")
+		check(n.combat, "normal room: combat")
 
-func test_porta_aperta_e_transizione() -> void:
+func test_open_door_and_transition() -> void:
 	var start := Run.room
 	var d: String = start.doors.keys()[0]
 	var dc := RoomU.door_center(d)
@@ -54,9 +54,9 @@ func test_porta_aperta_e_transizione() -> void:
 	check(Run.trans != null and Run.trans.kind == "room")
 	for i in 9:
 		Flow.update_trans(Consts.DT)
-	check(is_same(Run.room, start.doors[d]), "dopo 0,13 s si cambia stanza")
+	check(is_same(Run.room, start.doors[d]), "after 0.13 s the room changes")
 
-func test_movimento_e_scatto() -> void:
+func test_movement_and_dash() -> void:
 	var p := Run.player
 	var x0 := p.x
 	Controls.sim = {"move": Vector2(1, 0)}
@@ -67,7 +67,7 @@ func test_movimento_e_scatto() -> void:
 	eq(p.dash_charges, 0)
 	near(p.dash_t, 0.16 - Consts.DT, 1e-9)
 
-func test_scena_di_gioco_si_avvia() -> void:
+func test_game_scene_starts() -> void:
 	var play: Node = load("res://scenes/play.tscn").instantiate()
 	(Engine.get_main_loop() as SceneTree).root.add_child(play)
 	for i in 30:
@@ -75,4 +75,4 @@ func test_scena_di_gioco_si_avvia() -> void:
 	check(Run.player.get_parent() == play.get_node("World/Actors"))
 	play.queue_free()
 	await (Engine.get_main_loop() as SceneTree).process_frame
-	check(Run.player.get_parent() == null, "il giocatore resta vivo dopo la scena")
+	check(Run.player.get_parent() == null, "the player stays alive after the scene")

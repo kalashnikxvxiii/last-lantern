@@ -1,6 +1,6 @@
 class_name MapDraw
 extends RefCounted
-# Minimappa e mappa completa (drawMinimap, drawFullMap, roomKnown in js/ui.js).
+# Minimap and full map (drawMinimap, drawFullMap, roomKnown in js/ui.js).
 
 static var ROOM_MARK := {"boss": "#e0574a", "treasure": "#f6cf57", "shop": "#c49a6a", "shrine": "#c57ae0", "elite": "#ff3a5a", "secret": "#8a8294", "start": "#6b6478"}
 
@@ -13,7 +13,7 @@ static func minimap(ci: CanvasItem, x0: float, y0: float, full: bool) -> void:
 	var p := Run.player
 	if p.stats.hideMap and not full:
 		UiDraw.px_rect(ci, x0, y0, 80, 23, "#0b0810")
-		UiDraw.text(ci, "Nebbia", x0 + 40, y0 + 8, {"align": "center", "color": "#55505e"})
+		UiDraw.text(ci, "Fog", x0 + 40, y0 + 8, {"align": "center", "color": "#55505e"})
 		return
 	var cur := Run.room
 	var cw := 22 if full else 14
@@ -44,7 +44,7 @@ static func minimap(ci: CanvasItem, x0: float, y0: float, full: bool) -> void:
 			fill = "#d8b46a"
 		UiDraw.px_rect(ci, x, y, cw, ch, "#6b6478")
 		UiDraw.px_rect(ci, x + 1, y + 1, cw - 2, ch - 2, fill)
-		# corridoi
+		# corridors
 		for d in r.doors:
 			var n: Dictionary = r.doors[d]
 			if not RoomU.door_visible(r, d) or not room_known(n):
@@ -70,9 +70,9 @@ static func full_map(ci: CanvasItem) -> void:
 	var x := Consts.W / 2.0 - w / 2.0
 	var y := Consts.H / 2.0 - h / 2.0
 	UiDraw.panel(ci, x, y, w, h)
-	UiDraw.text(ci, "Mappa - " + DB.biome_of(Run.depth).name, Consts.W / 2.0, y + 8, {"align": "center", "color": "#e8dcc0"})
+	UiDraw.text(ci, "Map - " + DB.biome_of(Run.depth).name, Consts.W / 2.0, y + 8, {"align": "center", "color": "#e8dcc0"})
 	minimap(ci, x + 15, y + 24, true)
-	var leg := [["boss", "Guardiano"], ["treasure", "Tesoro"], ["shop", "Mercante"], ["shrine", "Santuario"], ["elite", "Sfida"], ["secret", "Segreto"]]
+	var leg := [["boss", "Warden"], ["treasure", "Treasure"], ["shop", "Merchant"], ["shrine", "Shrine"], ["elite", "Challenge"], ["secret", "Secret"]]
 	for i in leg.size():
 		var lx := x + 14 + (i % 3) * 82
 		var ly := y + h - 28 + (i / 3) * 11

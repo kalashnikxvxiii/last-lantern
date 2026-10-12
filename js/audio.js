@@ -1,6 +1,6 @@
 'use strict';
 // =====================================================================
-//  Audio sintetizzato: effetti sonori e musica generativa (WebAudio)
+// Synthesized audio: sound effects and generative music (WebAudio)
 // =====================================================================
 
 const Sound = {
@@ -116,7 +116,7 @@ const Sound = {
 };
 
 // =====================================================================
-//  Musica generativa: drone + arpeggi + percussioni in base all'intensita'
+// Generative music: drone + arpeggios + percussion based on intensity
 // =====================================================================
 const TRACKS = {
   title:  { root: 110.0, scale: [0, 2, 3, 5, 7, 8, 10], tempo: 64, chords: [0, 5, 3, 4], wave: 'sawtooth' },
@@ -198,7 +198,7 @@ const Music = {
     const c = Sound.ctx, tr = this.track, I = this.intensity;
     if (s % 16 === 0) this.chord = tr.chords[(s / 16 | 0) % tr.chords.length];
     const ch = this.chord;
-    // pluck arpeggiato
+    // arpeggiated pluck
     const pProb = I === 0 ? 0.3 : I === 1 ? 0.5 : 0.65;
     if (Math.random() < pProb || (s % 8 === 0)) {
       const tones = [0, 2, 4, 7];
@@ -213,7 +213,7 @@ const Music = {
       o.connect(lp); lp.connect(g); g.connect(this.bus); g.connect(this.delayIn);
       o.start(t); o.stop(t + 0.65);
     }
-    // basso
+    // bass
     if (I >= 1 && s % 4 === 0) {
       const f = this.noteFreq(ch, 0);
       const o = c.createOscillator(), g = c.createGain(), lp = c.createBiquadFilter();
@@ -222,7 +222,7 @@ const Music = {
       g.gain.exponentialRampToValueAtTime(0.0001, t + 0.35);
       o.connect(lp); lp.connect(g); g.connect(this.bus); o.start(t); o.stop(t + 0.4);
     }
-    // cassa
+    // kick drum
     if (I >= 1 && (s % 4 === 0 || (I >= 2 && s % 4 === 2 && Math.random() < 0.5))) {
       const o = c.createOscillator(), g = c.createGain();
       o.frequency.setValueAtTime(110, t); o.frequency.exponentialRampToValueAtTime(38, t + 0.15);
@@ -230,7 +230,7 @@ const Music = {
       g.gain.exponentialRampToValueAtTime(0.0001, t + 0.2);
       o.connect(g); g.connect(this.bus); o.start(t); o.stop(t + 0.25);
     }
-    // charleston
+    // hi-hat
     if (I >= 1 && s % 2 === 1) {
       const src = c.createBufferSource(); src.buffer = Sound.noiseBuf;
       const f = c.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 6000;
