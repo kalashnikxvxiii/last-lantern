@@ -5,3 +5,12 @@ desktop/build/
 node_modules/
 godot/.godot/
 .superpowers/
+
+# Markdown files are ignored (keeps third-party/AI-generated notes and design
+# docs out of the repo). Only the files below are tracked.
+*.md
+!README.md
+!CONTRIBUTING.md
+docs/*
+!docs/playtest-checklist.md
+!docs/porting-conventions.md
