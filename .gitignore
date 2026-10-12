@@ -14,6 +14,7 @@ godot/.godot/
 !CODE_OF_CONDUCT.md
 !SECURITY.md
 !AGENTS.md
+!CLAUDE.md
 !.github/**/*.md
 docs/*
 !docs/playtest-checklist.md
