@@ -25,6 +25,9 @@ static func collect() -> Array:
 			"explosion":
 				if f.t < 0.3:
 					L.append({"x": f.x, "y": f.y, "r": f.r * 2.5, "a": 1.0, "col": "#f6cf57", "ga": 0.25})
+			"beam":
+				if f.t > f.warm:
+					L.append({"x": f.x + cos(f.ang) * 60, "y": f.y + sin(f.ang) * 60, "r": 90.0, "a": 0.6, "col": null})
 			"bomb":
 				L.append({"x": f.x, "y": f.y, "r": 14.0, "a": 0.5, "col": null})
 	for o in room.objects:

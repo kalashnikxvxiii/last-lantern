@@ -90,6 +90,27 @@ static func update(dt: float) -> void:
 						Status.add(p, "burn", 2)
 				if U.random() < 0.25:
 					Particles.add({"x": f.x + U.rnd(-f.r, f.r) * 0.7, "y": f.y + U.rnd(-3, 3), "vy": -25.0, "life": 0.45, "color": U.pick(["#f29c38", "#f6cf57", "#b5571f"])})
+			"beam":
+				var be = f.owner
+				if be.dead or be.dying != null:
+					f.dead = true
+				else:
+					f.x = be.x
+					f.y = be.y
+					if f.t > f.warm:
+						f.ang += f.rot * dt
+						# collision with the player: point-segment distance
+						var ex: float = f.x + cos(f.ang) * f.len
+						var ey: float = f.y + sin(f.ang) * f.len
+						var d := point_seg_dist(p.x, p.y, f.x, f.y, ex, ey)
+						if d < f.w / 2 + 2:
+							Combat.hurt_player(f.dmg, f.src)
+						if U.random() < 0.5:
+							var k := U.rnd(0.1, 1)
+							Particles.add({"x": lerpf(f.x, ex, k), "y": lerpf(f.y, ey, k), "vx": U.rnd(-20, 20), "vy": U.rnd(-20, 20), "life": 0.3, "color": "#e0a0ff", "above": true})
+					else:
+						# during the warning the beam slowly follows the player
+						f.ang += f.rot * dt * 0.15
 			"spawn":
 				if f.t >= f.life:
 					var sp: Dictionary = f.spec
