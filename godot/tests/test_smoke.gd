@@ -45,3 +45,11 @@ func test_stanza_di_combattimento_ripulita() -> void:
 	Flow.enter_room(room, null)
 	check(fight(5400, func(): return room.cleared), "stanza ripulita entro 90 s simulati")
 	check(Run.kills > 0)
+func test_guardiano_sconfitto() -> void:
+	TH.new_run(23)
+	var p := Run.player
+	p.perks = {"multishot": 3, "dmg": 5, "rate": 5}
+	p.relics = ["r_anvil"]
+	p.recalc_stats()
+	TH.enter("boss")
+	check(fight(20000, func(): return Run.room.objects.any(func(o): return o.type == "trapdoor")), "guardiano sconfitto")

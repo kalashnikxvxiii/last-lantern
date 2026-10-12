@@ -311,3 +311,29 @@ static func roll_dice() -> void:
 			U.later(0.7, func(): Run.toast("Maledizione: " + Curses.ALL[c].name, "#c57ae0", Curses.ALL[c].desc))
 			Sfx.play("curse")
 	Sfx.play("pickup")
+
+static func on_boss_defeated(e) -> void:
+	var room := Run.room
+	var p := Run.player
+	room.cleared = true
+	room.combat = false
+	var c := RoomU.tile_center(14, 7)
+	var final_boss: bool = e.bid == "devourer" and not Run.won
+	if not final_boss:
+		room.objects.append({"type": "trapdoor", "x": c.x, "y": c.y + 34})
+	var r: Array = RoomBuilder.random_relics(1)
+	if not r.is_empty():
+		room.objects.append({"type": "relic", "id": r[0], "x": c.x, "y": c.y - 16})
+	for i in 2:
+		room.pickups.append(Pickups.make("heart", e.x, e.y))
+	for i in 6 + Run.depth * 2:
+		room.pickups.append(Pickups.make("coin5" if U.random() < 0.2 else "coin", e.x, e.y))
+	for i in 10:
+		room.pickups.append(Pickups.make("xp", e.x, e.y, {"value": e.xp / 10}))
+	p.heal(U.jround(p.stats.maxHp * 0.3), true)
+	p.add_oil(p.stats.maxOil)
+	Run.toast(e.display_name + " è caduto", "#f6cf57", "Una botola si apre verso il basso.")
+	check_unlocks()
+	if e.bid == "devourer" and not Run.won:
+		Run.won = true
+		Run.victory_t = 3.2

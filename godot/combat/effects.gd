@@ -93,11 +93,16 @@ static func update(dt: float) -> void:
 			"spawn":
 				if f.t >= f.life:
 					var sp: Dictionary = f.spec
-					var e := Enemy.make(sp.type, f.x, f.y, sp.get("mod"), {"summoned": sp.get("summoned", false)})
-					if sp.get("summoner") != null:
-						e.summoner = sp.summoner
-					e.summoned = sp.get("summoned", false)
-					Run.add_enemy(e)
+					if sp.type == "BOSS":
+						var b := Boss.make_boss(sp.boss, f.x, f.y)
+						Run.add_enemy(b)
+						Run.boss_ref = b
+					else:
+						var e := Enemy.make(sp.type, f.x, f.y, sp.get("mod"), {"summoned": sp.get("summoned", false)})
+						if sp.get("summoner") != null:
+							e.summoner = sp.summoner
+						e.summoned = sp.get("summoned", false)
+						Run.add_enemy(e)
 					Particles.burst(f.x, f.y, 10, ["#c57ae0", "#4b2a5c", "#e8e4dc"], 60, 0.4)
 		if f.t >= f.life:
 			f.dead = true

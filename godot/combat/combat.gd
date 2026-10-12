@@ -132,6 +132,9 @@ static func hit_enemy(e, dmg: float, o: Dictionary = {}) -> void:
 static func kill_enemy(e, o: Dictionary = {}) -> void:
 	if e.dead:
 		return
+	if e.boss:
+		e.start_death()
+		return
 	e.dead = true
 	Run.kills += 1
 	var p := Run.player
