@@ -158,10 +158,8 @@ static func update_trans(dt: float) -> void:
 		if tr.kind == "room":
 			enter_room(tr.to, tr.dir)
 		else:
-			# the vertical slice ends after the first warden
-			Run.trans = null
-			Game.set_scene("demo_end")
-			return
+			Run.depth += 1
+			new_floor()
 	if tr.t >= half * 2:
 		Run.trans = null
 

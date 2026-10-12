@@ -1,5 +1,5 @@
 extends TestCase
-# Screens, unlocks, end of the demo, auto-pause.
+# Screens, unlocks, victory, auto-pause.
 
 func after() -> void:
 	Run.reset()
@@ -38,12 +38,15 @@ func test_the_warden_unlocks_the_pilgrim() -> void:
 	check(Save.data.unlocks.lanterns.has("pilgrim"))
 	check(Run.new_unlocks.has("Pilgrim's Lantern"))
 
-func test_demo_end_records_the_kills() -> void:
+func test_victory_records_the_win_and_unlocks_ardor() -> void:
 	TH.new_run(92)
-	Run.kills = 7
-	var k0: int = Save.data.stats.kills
-	var sc: Node = load(Game.SCENES.demo_end).instantiate()
+	Run.time = 600.0
+	var w0: int = Save.data.stats.wins
+	Save.data.unlocks.ardor = 0
+	var sc: Node = load(Game.SCENES.victory).instantiate()
 	(Engine.get_main_loop() as SceneTree).root.add_child(sc)
-	eq(Save.data.stats.kills, k0 + 7)
+	eq(Save.data.stats.wins, w0 + 1)
+	eq(Save.data.unlocks.ardor, 1)
+	check(Run.new_unlocks.has("Ardor 1"))
 	sc.queue_free()
 	await (Engine.get_main_loop() as SceneTree).process_frame

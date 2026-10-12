@@ -25,6 +25,9 @@ func _ready() -> void:
 		if e.get_parent() == null:
 			actors.add_child(e)
 	mode = "play"
+	if Game.scene_arg == "continue":
+		Run.victory_t = 0.0
+		Music.play(DB.biome_of(Run.depth).music)
 	_dev_sim()
 
 func _exit_tree() -> void:
@@ -197,7 +200,7 @@ func update_play(dt: float) -> void:
 	if Run.player.dead:
 		Run.death_t += dt
 		Flow.update_game(dt * 0.25)
-		if Run.death_t > 2.4 and Game.SCENES.has("gameover"):
+		if Run.death_t > 2.4:
 			Game.set_scene("gameover")
 		return
 	if Run.lock_fire and not Controls.mouse_left():
@@ -207,8 +210,7 @@ func update_play(dt: float) -> void:
 		Run.victory_t -= dt
 		if Run.victory_t <= 0:
 			Run.victory_t = 0.0
-			if Game.SCENES.has("victory"):
-				Game.set_scene("victory")
+			Game.set_scene("victory")
 			return
 	if Run.pending_levels > 0 and not Run.room.combat and Run.trans == null:
 		Run.level_delay -= dt
