@@ -47,12 +47,20 @@ static func _ints(d: Dictionary) -> Dictionary:
 			d[k] = int(d[k])
 	return d
 
+# scrive in un file temporaneo e lo sostituisce al salvataggio solo se tutto è
+# andato bene: con il disco pieno il salvataggio precedente resta intatto
+# (come localStorage.setItem nel JS, che fallisce senza toccare il valore vecchio)
 func write() -> bool:
-	var f := FileAccess.open(path, FileAccess.WRITE)
+	var tmp := path + ".new"
+	var f := FileAccess.open(tmp, FileAccess.WRITE)
 	if f == null:
 		return false   # storage non disponibile: come nel JS si ignora
 	f.store_string(JSON.stringify(data))
+	var ok := f.get_error() == OK
 	f.close()
+	if not ok or DirAccess.rename_absolute(tmp, path) != OK:
+		DirAccess.remove_absolute(tmp)
+		return false
 	return true
 
 func unlock_lantern(id: String) -> bool:

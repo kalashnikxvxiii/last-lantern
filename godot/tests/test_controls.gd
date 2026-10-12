@@ -30,3 +30,27 @@ func test_pressioni_simulate_durano_un_tick() -> void:
 	Controls.end_tick()
 	check(not Controls.dash())
 	eq(Controls.slot(), -1)
+
+func test_alt_invio_non_conferma() -> void:
+	await (Engine.get_main_loop() as SceneTree).process_frame
+	# come sulla tastiera vera: prima Alt, poi Invio con il modificatore
+	var alt := InputEventKey.new()
+	alt.keycode = KEY_ALT
+	alt.physical_keycode = KEY_ALT
+	alt.pressed = true
+	Input.parse_input_event(alt)
+	var ev := InputEventKey.new()
+	ev.keycode = KEY_ENTER
+	ev.physical_keycode = KEY_ENTER
+	ev.alt_pressed = true
+	ev.pressed = true
+	Input.parse_input_event(ev)
+	Input.flush_buffered_events()
+	check(not Controls.confirm(), "Alt+Invio è lo schermo intero")
+	var up := ev.duplicate()
+	up.pressed = false
+	Input.parse_input_event(up)
+	var alt_up := alt.duplicate()
+	alt_up.pressed = false
+	Input.parse_input_event(alt_up)
+	Input.flush_buffered_events()

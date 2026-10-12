@@ -63,3 +63,20 @@ func test_opzioni_volume() -> void:
 	Controls.sim = {"pressed": ["nav_right"]}
 	m.update()
 	eq(Save.data.settings.music, 0.6)
+
+func test_croce_del_gamepad_scorre_le_carte_senza_sceglierle() -> void:
+	Run.pending_levels = 1
+	play.open_level_up()
+	play.lock = 0.0
+	var ev := InputEventJoypadButton.new()
+	ev.button_index = JOY_BUTTON_DPAD_RIGHT
+	ev.pressed = true
+	Input.parse_input_event(ev)
+	Input.flush_buffered_events()
+	play.tick(Consts.DT)
+	var up := ev.duplicate()
+	up.pressed = false
+	Input.parse_input_event(up)
+	Input.flush_buffered_events()
+	eq(play.mode, "levelup", "la croce non deve scegliere un dono")
+	eq(play.sel, 1)

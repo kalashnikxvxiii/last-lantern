@@ -20,6 +20,8 @@ var frames := 0
 
 class ErrorLogger extends Logger:
 	func _log_error(function: String, file: String, line: int, code: String, rationale: String, editor_notify: bool, error_type: int, script_backtrace: Array[ScriptBacktrace]) -> void:
+		if error_type == ERROR_TYPE_WARNING:
+			return   # gli avvisi non sono errori del gioco
 		var g := (Engine.get_main_loop() as SceneTree).root.get_node_or_null("Game")
 		if g != null and g.error == "":
 			g.error = rationale if rationale != "" else code

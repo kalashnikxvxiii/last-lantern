@@ -11,6 +11,7 @@ const KEYS := {
 	"slot_1": [KEY_1, KEY_KP_1], "slot_2": [KEY_2, KEY_KP_2], "slot_3": [KEY_3, KEY_KP_3], "slot_4": [KEY_4, KEY_KP_4],
 	"nav_up": [KEY_UP, KEY_W], "nav_down": [KEY_DOWN, KEY_S], "nav_left": [KEY_LEFT, KEY_A], "nav_right": [KEY_RIGHT, KEY_D],
 	"confirm": [KEY_ENTER, KEY_KP_ENTER, KEY_SPACE, KEY_E], "back": [KEY_ESCAPE, KEY_BACKSPACE], "reroll": [KEY_R],
+	"digit_1": [KEY_1], "digit_2": [KEY_2], "digit_3": [KEY_3], "digit_4": [KEY_4],
 }
 const PAD := {
 	"dash": [JOY_BUTTON_A, JOY_BUTTON_LEFT_SHOULDER], "flare": [JOY_BUTTON_B, JOY_BUTTON_RIGHT_SHOULDER],
@@ -158,10 +159,11 @@ func up() -> bool: return _pressed("nav_up")
 func down() -> bool: return _pressed("nav_down")
 func left() -> bool: return _pressed("nav_left")
 func right() -> bool: return _pressed("nav_right")
-func confirm() -> bool: return _pressed("confirm")
+func confirm() -> bool: return _pressed("confirm") and not Input.is_key_pressed(KEY_ALT)   # Alt+Invio: schermo intero
 func back() -> bool: return _pressed("back")
 func reroll() -> bool: return _pressed("reroll")
-func digit(i: int) -> bool: return _pressed("slot_%d" % i)
+# solo i tasti numerici (Input.hit('Digit' + n) nel JS): la croce del gamepad scorre e basta
+func digit(i: int) -> bool: return _pressed("digit_%d" % i)
 
 func slot() -> int:
 	for i in 4:

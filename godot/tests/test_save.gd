@@ -58,3 +58,18 @@ func test_write_failure_is_silent() -> void:
 	Save.data.stats.runs = 3
 	check(not Save.write(), "la scrittura deve fallire")
 	eq(Save.data.stats.runs, 3, "i dati in memoria restano")
+
+func test_scrittura_atomica_non_distrugge_il_salvataggio() -> void:
+	# il salvataggio passa da un file temporaneo: se non si può scrivere,
+	# il file buono resta com'era e write() segnala il fallimento
+	allow_errors()
+	Save.load_save()
+	Save.data.stats.runs = 5
+	check(Save.write())
+	var tmp := ProjectSettings.globalize_path(P + ".new")
+	DirAccess.make_dir_absolute(tmp)
+	Save.data.stats.runs = 9
+	check(not Save.write(), "il temporaneo non si può creare")
+	DirAccess.remove_absolute(tmp)
+	Save.load_save()
+	eq(Save.data.stats.runs, 5, "il salvataggio precedente è intatto")
