@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EnemyDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/enemy_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "grub"
+name = "Grub"
+spr = "grub"
+hp = 26.0
+spd = 38.0
+dmg = 9.0
+r = 6.0
+ai = "chaser"
+xp = 2.0
+side = true
+split = "grubling"
+split_n = 2

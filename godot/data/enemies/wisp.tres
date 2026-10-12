@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="EnemyDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/enemy_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "wisp"
+name = "Black Flame"
+spr = "wisp"
+hp = 10.0
+spd = 88.0
+dmg = 12.0
+r = 4.0
+ai = "kamikaze"
+fly = true
+xp = 0.5

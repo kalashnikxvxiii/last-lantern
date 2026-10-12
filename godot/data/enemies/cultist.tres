@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EnemyDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/enemy_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "cultist"
+name = "Cultist"
+spr = "cultist"
+hp = 62.0
+spd = 30.0
+dmg = 11.0
+r = 6.0
+ai = "summoner"
+xp = 5.0
+keep = 110.0
+summon = "wisp"
+shot = {"kind": "orb", "col": "red", "spd": 100.0, "cd": 2.8, "n": 3, "spread": 0.3}

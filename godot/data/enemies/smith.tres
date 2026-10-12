@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="EnemyDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/enemy_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "smith"
+name = "Corrupted Smith"
+spr = "smith"
+hp = 95.0
+spd = 26.0
+dmg = 15.0
+r = 7.0
+ai = "shielder"
+xp = 5.0
+shield = true

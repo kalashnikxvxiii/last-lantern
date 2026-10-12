@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="EnemyDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/enemy_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "spore"
+name = "Sporangium"
+spr = "spore"
+hp = 42.0
+spd = 0.0
+dmg = 8.0
+r = 7.0
+ai = "turret"
+xp = 3.0
+death_cloud = true
+shot = {"kind": "spore", "spd": 52.0, "cd": 2.8, "ring": 8, "status": "poison"}

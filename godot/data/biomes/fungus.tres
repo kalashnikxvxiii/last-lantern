@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="BiomeDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/biome_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "fungus"
+name = "The Fungal Caves"
+music = "fungus"
+boss = "mycel"
+dark = 0.72
+lore = "The dark breathes here. Spores seek warm flesh and never stop growing."
+floor = ["#1f2a22", "#1b251e", "#243026"]
+floor_d = "#141c16"
+wall = "#2f3e30"
+wall_d = "#1c261d"
+wall_l = "#46604a"
+accent = "#a33a7a"
+pool = [["grub", 2.0, 3.0], ["spore", 2.5, 2.0], ["hopper", 3.0, 2.0], ["moth", 2.0, 2.5], ["rat", 1.0, 1.0], ["bat", 1.0, 1.0], ["skeleton", 2.0, 1.0]]
+deco = "shrooms"

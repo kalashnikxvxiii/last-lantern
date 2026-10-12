@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="EnemyDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/enemy_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "eye"
+name = "Eye of the Well"
+spr = "eye"
+hp = 78.0
+spd = 16.0
+dmg = 10.0
+r = 7.0
+ai = "spinner"
+fly = true
+xp = 6.0
+shot = {"kind": "orb", "col": "red", "spd": 82.0, "cd": 0.17, "arms": 3, "status": "fragile"}

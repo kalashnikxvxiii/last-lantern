@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="BiomeDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/biome_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "heart"
+name = "The Heart of the Well"
+music = "heart"
+boss = "devourer"
+dark = 0.85
+lore = "Here the First Flame was devoured. Only the last lantern can rekindle it."
+floor = ["#221824", "#1d141f", "#281c2a"]
+floor_d = "#130c15"
+wall = "#382238"
+wall_d = "#20121f"
+wall_l = "#56345a"
+accent = "#c57ae0"
+pool = [["cultist", 4.0, 2.0], ["knight", 5.0, 1.2], ["eye", 4.5, 1.5], ["drowned", 3.0, 1.5], ["shade", 3.5, 1.5], ["automaton", 3.0, 1.5], ["hopper", 3.0, 1.0], ["jelly", 3.5, 1.0], ["ghoul", 3.0, 1.0]]
+deco = "veins"

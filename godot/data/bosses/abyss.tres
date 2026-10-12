@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="BossDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/boss_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "abyss"
+name = "The Voice of the Abyss"
+title = "Priestess of the Black Waters"
+spr = "boss_abyss"
+hp = 2800.0
+r = 12.0
+spd = 0.0
+phases = [{"at": 1.0, "gap": 0.9, "pats": [{"p": "teleport", "n": 7, "spread": 0.9, "spd": 115.0, "kind": "ice", "status": "chill"}, {"p": "ring", "n": 16, "count": 3, "gap": 0.7, "spd": 52.0, "kind": "ice", "status": "chill"}, {"p": "beam", "count": 2, "warm": 1.0, "dur": 2.6, "rot": 0.85}, {"p": "summon", "type": "jelly", "count": 2, "cap": 3}]}, {"at": 0.5, "gap": 0.55, "pats": [{"p": "darkpulse"}, {"p": "spiral", "arms": 5, "rate": 9.0, "rot": -1.4, "dur": 3.5, "spd": 60.0, "kind": "ice", "status": "chill"}, {"p": "beam", "count": 3, "warm": 0.9, "dur": 3.0, "rot": 1.1}, {"p": "teleport", "n": 9, "spread": 1.1, "spd": 125.0, "kind": "ice", "status": "chill"}, {"p": "wall", "count": 3, "kind": "ice", "status": "chill"}]}]

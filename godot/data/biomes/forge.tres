@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="BiomeDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/biome_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "forge"
+name = "The Sunken Foundry"
+music = "forge"
+boss = "forge"
+dark = 0.75
+lore = "Lanterns were forged here. Now the furnaces burn for a different master."
+floor = ["#2c2220", "#26201e", "#32261f"]
+floor_d = "#1a1412"
+wall = "#463026"
+wall_d = "#2a1c16"
+wall_l = "#6a4a36"
+accent = "#f29c38"
+pool = [["automaton", 3.0, 2.5], ["turret", 3.0, 2.0], ["slag", 2.5, 2.5], ["smith", 4.0, 1.2], ["spark", 1.5, 2.5], ["ghoul", 3.0, 1.0], ["moth", 2.0, 1.0]]
+deco = "cracks"
+barrels = true
