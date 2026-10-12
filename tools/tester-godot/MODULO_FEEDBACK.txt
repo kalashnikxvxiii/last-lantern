@@ -1,0 +1,54 @@
+ULTIMA LANTERNA - modulo di feedback ({VERSION})
+Scrivi sotto ogni domanda. Va bene anche rispondere solo ad alcune.
+
+------------------------------------------------------------
+IL TUO COMPUTER
+------------------------------------------------------------
+Sistema (Windows 10 o 11):
+Scheda video (se la conosci):
+Il gioco girava fluido? (sì / a tratti scatti / lento):
+Hai usato tastiera e mouse o un gamepad (quale)?:
+
+------------------------------------------------------------
+LE TUE PARTITE
+------------------------------------------------------------
+Quante partite hai fatto:
+Hai raggiunto la fine della demo?:
+Hai giocato anche la versione precedente? Differenze notate:
+Cosa ti ha ucciso più spesso:
+
+------------------------------------------------------------
+DIFFICOLTÀ (da 1 = troppo facile a 5 = frustrante)
+------------------------------------------------------------
+Stanze normali:
+Il Custode delle Ossa (guardiano):
+Un momento in cui ti sei sentito trattato ingiustamente:
+
+------------------------------------------------------------
+CHIAREZZA
+------------------------------------------------------------
+Hai capito subito a cosa serve l'olio della lanterna?:
+Hai usato la Vampata? Ti è sembrata utile?:
+Doni, reliquie o consumabili poco chiari o inutili:
+Hai trovato una stanza segreta?:
+
+------------------------------------------------------------
+PROBLEMI E BUG
+------------------------------------------------------------
+Descrivi cosa è successo e cosa stavi facendo.
+Se puoi, indica il seme della partita (pausa, in basso a sinistra)
+e allega screenshot o il file godot.log (vedi LEGGIMI.txt).
+
+1.
+
+2.
+
+3.
+
+------------------------------------------------------------
+IN GENERALE
+------------------------------------------------------------
+La cosa che ti è piaciuta di più:
+La cosa che ti è piaciuta di meno:
+Ci rigiocheresti? Perché?:
+Altro:

@@ -1,0 +1,83 @@
+ULTIMA LANTERNA - versione di prova {VERSION} (Godot, Windows)
+==================================================
+
+Grazie per aver accettato di provare il gioco!
+
+Ultima Lanterna è un roguelike d'azione: scendi nel Pozzo con una lanterna,
+attraversi stanze generate a caso e affronti un guardiano alla fine.
+
+Questa è la nuova versione del gioco, rifatta con il motore Godot. Per ora
+contiene solo la prima profondità, Le Cripte, fino al primo guardiano: dopo
+averlo sconfitto e preso la botola compare la schermata "Fine della demo".
+Una partita dura circa 10-15 minuti.
+
+
+AVVIARE IL GIOCO
+----------------
+
+  1. Estrai tutto lo zip in una cartella (tasto destro > "Estrai tutto").
+     Non avviarlo da dentro lo zip.
+  2. Apri la cartella e fai doppio clic su "Ultima Lanterna.exe".
+  3. Il gioco non è firmato digitalmente, quindi Windows potrebbe mostrare
+     "Windows ha protetto il PC". Clicca "Ulteriori informazioni" e poi
+     "Esegui comunque".
+
+Serve Windows 10 o 11 a 64 bit con una scheda video che supporti Vulkan
+(quasi tutte quelle degli ultimi dieci anni).
+
+Schermo intero: F11 oppure Alt+Invio (anche dal menu Opzioni).
+
+
+COMANDI
+-------
+
+  W A S D ............ muoversi
+  Mouse .............. mirare (oppure le frecce)
+  Clic sinistro ...... sparare (oppure tenere premute le frecce)
+  Spazio / Shift ..... scatto, non si subiscono danni durante lo scatto
+  Clic destro / F .... Vampata: onda di fuoco, consuma olio
+  1 2 3 4 ............ usare i consumabili
+  E .................. interagire (forzieri, reliquie, mercante, botola)
+  Tab / M ............ mappa
+  Esc / P ............ pausa, equipaggiamento, statistiche
+
+  Il gamepad funziona: stick sinistro per muoversi, stick destro per mirare
+  e sparare, A scatto, B Vampata, X interagire, croce per i consumabili.
+
+
+COSA CI INTERESSA SAPERE
+------------------------
+
+  - Il gioco si avvia? Gira fluido? Con che computer?
+  - Se hai giocato anche la versione precedente: se movimento, sparo,
+    luce e suoni ti sembrano uguali o diversi, e in cosa.
+  - La difficoltà: dove sei morto, se è stato frustrante o troppo facile.
+  - Qualsiasi cosa strana: nemici bloccati, porte che non si aprono, testi
+    tagliati, suoni fastidiosi, schermate vuote.
+
+Compila il file MODULO_FEEDBACK.txt e rimandalo, anche solo in parte.
+
+
+COME SEGNALARE UN PROBLEMA
+--------------------------
+
+  - Fai uno screenshot con Win+Shift+S.
+  - Annota il "seme" della partita: si legge in pausa (Esc) in basso a
+    sinistra e nella schermata di fine partita. Con il seme possiamo
+    ricreare la stessa mappa.
+  - Se compare una barra rossa in basso con scritto "Errore", fotografala:
+    è il report più prezioso che puoi mandarci.
+  - Il gioco scrive un registro da allegare. Incolla questo percorso nella
+    barra di Esplora file:
+      %APPDATA%\Ultima Lanterna Godot\logs
+    e allega il file godot.log.
+
+
+SALVATAGGI
+----------
+
+Il gioco salva da solo le statistiche, le lanterne sbloccate e le opzioni
+(non la partita in corso), in:
+  %APPDATA%\Ultima Lanterna Godot
+Per ricominciare da zero cancella quella cartella. I salvataggi della
+versione precedente restano separati e non vengono toccati.

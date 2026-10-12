@@ -22,6 +22,9 @@ In `godot/` c'è il porting in Godot 4.7. Per ora contiene la prima profondità 
 
 Test: `tools/test.sh`. Argomenti di sviluppo dopo `--`, ad esempio `godot --path godot -- --test=boss --seed=7`.
 Gli asset in `godot/assets/` sono stati esportati una volta dal codice JS con `tools/export_assets/` e ora si modificano direttamente.
+Pacchetto Windows per i tester della versione Godot: `python3 tools/build_godot.py` (risultato in `dist/godot/`).
+
+Per contribuire leggi [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Comandi
 

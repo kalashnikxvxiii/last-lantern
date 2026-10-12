@@ -6,6 +6,11 @@ config_version=5
 
 config/name="Ultima Lanterna"
 run/main_scene="res://ui/screens/boot.tscn"
+config/version="godot 0.1.0"
+config/icon="res://icon.png"
+config/windows_native_icon="res://icon.ico"
+config/use_custom_user_dir=true
+config/custom_user_dir_name="Ultima Lanterna Godot"
 config/features=PackedStringArray("4.7")
 
 [debug]
