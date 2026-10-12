@@ -16,7 +16,7 @@ and visit `http://localhost:8000`.
 
 ## Godot version (in development)
 
-`godot/` holds the port to Godot 4.7. For now it contains the first complete depth, up to the warden.
+`godot/` holds the port to Godot 4.7: the whole game, from the Crypts to the Light Devourer and the Infinite Abyss.
 
     godot --path godot
 

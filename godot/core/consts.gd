@@ -2,7 +2,7 @@ class_name Consts
 extends RefCounted
 # Shared constants (from js/core.js).
 
-const VERSION := "godot 0.1.0"
+const VERSION := "godot 0.2.0"
 const W := 480
 const H := 270
 const TS := 16
