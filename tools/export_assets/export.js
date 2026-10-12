@@ -41,7 +41,9 @@ async function exportFont() {
   const fnt = [
     'info face="lanterna" size=8 bold=0 italic=0 charset="" unicode=1 stretchH=100 smooth=0 aa=1 padding=0,0,0,0 spacing=1,1',
     'common lineHeight=10 base=7 scaleW=' + total + ' scaleH=8 pages=1 packed=0',
-    'page id=0 file="lanterna.png"',
+    // pagina separata: l'importatore BMFont di Godot marca la sua texture come "skip",
+    // mentre lanterna.png deve restare una texture normale per UiDraw
+    'page id=0 file="lanterna_page.png"',
     'chars count=' + (chars.length + 1),
     'char id=32 x=0 y=0 width=0 height=0 xoffset=0 yoffset=0 xadvance=4 page=0 chnl=15',
   ];
@@ -54,6 +56,7 @@ async function exportFont() {
     x += g.w + 1;
   }
   await exporter.write('font/lanterna.png', toB64(cv));
+  await exporter.write('font/lanterna_page.png', toB64(cv));
   await exporter.writeText('font/glyphs.json', JSON.stringify(map));
   await exporter.writeText('font/lanterna.fnt', fnt.join('\n') + '\n');
   exporter.log('glifi esportati: ' + chars.length);

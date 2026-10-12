@@ -14,6 +14,15 @@ python3 -m http.server 8000
 
 e poi visita `http://localhost:8000`.
 
+## Versione Godot (in sviluppo)
+
+In `godot/` c'è il porting in Godot 4.7. Per ora contiene la prima profondità completa, fino al guardiano.
+
+    godot --path godot
+
+Test: `tools/test.sh`. Argomenti di sviluppo dopo `--`, ad esempio `godot --path godot -- --test=boss --seed=7`.
+Gli asset in `godot/assets/` sono stati esportati una volta dal codice JS con `tools/export_assets/` e ora si modificano direttamente.
+
 ## Comandi
 
 | Azione | Tastiera e mouse | Gamepad |

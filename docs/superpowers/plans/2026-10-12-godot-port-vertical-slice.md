@@ -2832,7 +2832,7 @@ Le tabelle restano nell'**ordine esatto del JS** (le scelte casuali pesate dipen
 
 **Interfaces:**
 - Produces:
-  - `Stats`: `base() -> Dictionary` (le 66 chiavi di `baseStats`), `static var RARITY` (`[{name, col, w}]`), `depth_hp(d)`, `depth_dmg(d)`, `xp_need(L)`.
+  - `Stats`: `base() -> Dictionary` (le 71 chiavi di `baseStats`), `static var RARITY` (`[{name, col, w}]`), `depth_hp(d)`, `depth_dmg(d)`, `xp_need(L)`.
   - `Perks.ALL` (id → `{name, rar, max, icon, desc}`, con `onTake: true` per `hp`), `Perks.apply(id, s, n)`, `Perks.on_take(id, p)`.
   - `Relics.ALL` (id → `{name, icon, desc}`, più `curse` e `onTake` dove presenti), `Relics.apply(id, s)`, `Relics.on_take(id, p)`.
   - `Curses.ALL` (id → `{name, desc}`), `Curses.apply(id, s)`.

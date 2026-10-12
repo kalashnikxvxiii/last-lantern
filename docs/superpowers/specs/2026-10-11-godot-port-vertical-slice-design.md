@@ -1,7 +1,7 @@
 # Ultima Lanterna in Godot — Vertical slice (Profondità 1)
 
 Data: 2026-10-11
-Stato: in revisione
+Stato: implementata (vertical slice)
 
 ## 1. Obiettivo
 
