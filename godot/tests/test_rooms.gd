@@ -17,7 +17,8 @@ func test_rooms_like_the_js() -> void:
 		Run.active = true
 		Run.player = Player.new()
 		Run.player.recalc_stats()
-		var f := FloorGen.gen_floor(1, RNG.new(int(g.seed)))
+		Run.depth = int(g.depth)
+		var f := FloorGen.gen_floor(int(g.depth), RNG.new(int(g.seed)))
 		for i in f.rooms.size():
 			var r: Dictionary = f.rooms[i]
 			RoomBuilder.build_room(r, f)
@@ -28,7 +29,7 @@ func test_rooms_like_the_js() -> void:
 				"reach": null if r.reach == null else r.reach.keys()}
 			var d := TestCase.diff(got, e, "room %s" % e.key)
 			if d != "":
-				fail("seed %d: %s" % [g.seed, d])
+				fail("depth %d seed %d: %s" % [g.depth, g.seed, d])
 				return
 
 func test_base_prices() -> void:

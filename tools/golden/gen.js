@@ -67,16 +67,20 @@ function floorJson(depth, seed) {
 function genFloors() {
   const out = [];
   for (let s = 1; s <= 50; s++) out.push(floorJson(1, s));
-  for (let s = 1; s <= 10; s++) { out.push(floorJson(2, s)); out.push(floorJson(3, s)); }
+  for (let d = 2; d <= 7; d++) for (let s = 1; s <= 10; s++) out.push(floorJson(d, s));
   return out;
 }
 
 function genRooms() {
   const out = [];
-  for (let s = 1; s <= 20; s++) {
+  const cases = [];
+  for (let s = 1; s <= 20; s++) cases.push([1, s]);
+  for (let d = 2; d <= 6; d++) for (let s = 1; s <= 3; s++) cases.push([d, s]);
+  for (const [depth, s] of cases) {
     seedRandom(s * 7919);
     makeRun();
-    const f = genFloor(1, new RNG(s));
+    run.depth = depth;
+    const f = genFloor(depth, new RNG(s));
     const rooms = [];
     for (const r of f.rooms) {
       buildRoom(r, f);
@@ -84,7 +88,7 @@ function genRooms() {
         objects: r.objects, pickups: r.pickups, decals: r.decals, waves: r.waves, tutorial: !!r.tutorial,
         reach: r.reach ? [...r.reach] : null });
     }
-    out.push({ seed: s, rooms });
+    out.push({ seed: s, depth, rooms });
   }
   return out;
 }
@@ -161,7 +165,7 @@ function genEnemies() {
   const enemies = [], bosses = [];
   const F = ['hp', 'maxHp', 'spd', 'dmg', 'xp', 'r', 'fly', 'shotCd', 'anim', 't', 'stun', 'elite', 'mod'];
   let seed = 1;
-  for (const type of ['rat', 'bat', 'skeleton', 'skull', 'ghoul']) for (let depth = 1; depth <= 3; depth++)
+  for (const type of Object.keys(ENEMIES)) for (const depth of [1, 3, 6])
     for (const mod of [null, ...Object.keys(ELITE_MODS)]) for (const small of [false, true]) {
       seedRandom(seed); makeRun(); run.depth = depth; recalcStats();
       const e = makeEnemy(type, 100, 100, mod, small ? { small: true } : {});
@@ -169,10 +173,10 @@ function genEnemies() {
       fields.elite = !!e.elite;
       enemies.push({ seed, type, depth, mod, small, fields }); seed++;
     }
-  for (let depth = 1; depth <= 2; depth++) {
-    makeRun(); run.depth = depth;
-    const b = makeBoss('bones', 100, 100);
-    bosses.push({ id: 'bones', depth, fields: { hp: b.hp, maxHp: b.maxHp, spd: b.spd, dmg: b.dmg, xp: b.xp, r: b.r } });
+  for (const id of Object.keys(BOSSES)) for (const depth of [1, 2, 6]) for (const ardor of [0, 3]) {
+    makeRun(); run.depth = depth; run.ardor = ardor;
+    const b = makeBoss(id, 100, 100);
+    bosses.push({ id, depth, ardor, fields: { hp: b.hp, maxHp: b.maxHp, spd: b.spd, dmg: b.dmg, xp: b.xp, r: b.r } });
   }
   return { enemies, bosses };
 }
