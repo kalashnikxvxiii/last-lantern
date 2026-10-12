@@ -88,4 +88,19 @@ func dev_start() -> void:
 		Run.pending_levels = int(dev.lv)
 	if dev.has("coins"):
 		Run.player.coins = int(dev.coins)
+	# --spawn=rat,bat: nemici nella stanza corrente, per provare le IA
+	if dev.has("spawn"):
+		Run.room.combat = true
+		Run.room.waves = []
+		var tiles: Array = []
+		for t in RoomU.reach_tiles(Run.room):
+			var tc := RoomU.tile_center(t.x, t.y)
+			if U.dist(tc.x, tc.y, Run.player.x, Run.player.y) > 60:
+				tiles.append(t)
+		for type in str(dev.spawn).split(","):
+			var t: Vector2i = U.pick(tiles)
+			var c := RoomU.tile_center(t.x, t.y)
+			var e := Enemy.make(type, c.x, c.y)
+			e.stun = 0.5
+			Run.add_enemy(e)
 	set_scene("play")

@@ -178,6 +178,7 @@ static func update_game(dt: float) -> void:
 	if Run.flow_t <= 0:
 		FlowField.update()
 		Run.flow_t = 0.18
+	Enemy.update_all(dt)
 	Bullets.update_player(dt)
 	Bullets.update_enemy(dt)
 	Effects.update(dt)

@@ -138,7 +138,7 @@ func add_enemy(e) -> void:
 func clear_enemies() -> void:
 	for e in enemies:
 		if is_instance_valid(e):
-			e.queue_free() if e.is_inside_tree() else e.free()
+			_free_node(e)
 	enemies = []
 
 # run.enemies = run.enemies.filter(e => !e.dead), liberando i nodi
@@ -146,7 +146,13 @@ func prune_enemies() -> void:
 	var alive: Array = []
 	for e in enemies:
 		if e.dead:
-			e.queue_free() if e.is_inside_tree() else e.free()
+			_free_node(e)
 		else:
 			alive.append(e)
 	enemies = alive
+
+static func _free_node(n: Node) -> void:
+	if n.is_inside_tree():
+		n.queue_free()
+	else:
+		n.free()
