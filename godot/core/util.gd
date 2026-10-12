@@ -112,3 +112,9 @@ static func rgba(r: int, g: int, b: int, a: float) -> Color:
 static func later(sec: float, fn: Callable) -> void:
 	var tree := Engine.get_main_loop() as SceneTree
 	tree.create_timer(sec).timeout.connect(fn)
+
+# numero come lo stampa il JS: niente ".0" per i valori interi
+static func num(v: Variant) -> String:
+	if typeof(v) == TYPE_FLOAT and v == floorf(v) and absf(v) < 1e15:
+		return str(int(v))
+	return str(v)

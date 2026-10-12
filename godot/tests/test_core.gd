@@ -45,3 +45,8 @@ func test_sequenza_casuale_globale() -> void:
 
 func test_rng_seme_zero_diventa_uno() -> void:
 	eq(RNG.new(0).next(), RNG.new(1).next())
+
+func test_numeri_come_il_js() -> void:
+	eq(U.num(100.0), "100")
+	eq(U.num(3), "3")
+	eq(U.num(2.5), "2.5")
