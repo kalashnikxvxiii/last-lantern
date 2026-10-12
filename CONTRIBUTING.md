@@ -22,7 +22,7 @@ Le nuove funzioni si fanno in Godot. Nel JS si correggono solo i bug della beta.
 ## Primo avvio
 
 ```bash
-git clone <repository> && cd Game1
+git clone https://github.com/kalashnikxvxiii/ultima-lanterna.git && cd ultima-lanterna
 godot --headless --path godot --import   # la prima volta registra le classi
 godot --path godot                       # avvia il gioco
 tools/test.sh                            # esegue tutti i test
@@ -117,3 +117,11 @@ Apri una issue con:
 - il seme della partita (si legge in pausa);
 - uno screenshot;
 - se c'è, il registro degli errori: `%APPDATA%\Ultima Lanterna Godot\logs\godot.log` su Windows, `~/.local/share/Ultima Lanterna Godot/logs/godot.log` su Linux.
+
+## Comportamento
+
+Sii gentile e costruttivo nelle issue e nelle revisioni. Critica il codice, non le persone.
+
+## Licenza
+
+Contribuendo accetti che il tuo lavoro sia distribuito con la [licenza MIT](LICENSE) del progetto.

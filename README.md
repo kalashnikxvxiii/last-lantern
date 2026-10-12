@@ -82,3 +82,7 @@ js/game.js        scene, flusso di gioco, ciclo principale
 desktop/          involucro Electron (main.js) e script di impacchettamento
 tools/            build dei pacchetti, generatore dell'icona, testi per i tester
 ```
+
+## Licenza
+
+[MIT](LICENSE)

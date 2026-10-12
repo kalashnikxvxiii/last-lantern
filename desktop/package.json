@@ -6,7 +6,7 @@
   "main": "main.js",
   "private": true,
   "author": "Ultima Lanterna",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "devDependencies": {
     "electron": "43.0.0",
     "@electron/packager": "20.3.0"

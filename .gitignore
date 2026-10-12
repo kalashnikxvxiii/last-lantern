@@ -4,3 +4,4 @@ desktop/game/
 desktop/build/
 node_modules/
 godot/.godot/
+.superpowers/
