@@ -3,7 +3,14 @@ extends Node
 # (setScene, boot e devStart in js/game.js).
 
 var SCENES := {
+	"title": "res://ui/screens/title.tscn",
+	"options": "res://ui/screens/options.tscn",
+	"select": "res://ui/screens/select.tscn",
+	"records": "res://ui/screens/records.tscn",
+	"help": "res://ui/screens/help.tscn",
 	"play": "res://scenes/play.tscn",
+	"gameover": "res://ui/screens/gameover.tscn",
+	"demo_end": "res://ui/screens/demo_end.tscn",
 }
 var scene_name := ""
 var scene_arg: Variant = null
@@ -24,6 +31,11 @@ func _ready() -> void:
 	dev = parse_args(OS.get_cmdline_user_args())
 	if DisplayServer.get_name() != "headless":
 		DisplayServer.window_set_min_size(Vector2i(Consts.W, Consts.H))
+	get_window().focus_exited.connect(_on_focus_lost)
+	var layer := CanvasLayer.new()
+	layer.layer = 100
+	layer.add_child(ErrorBar.new())
+	add_child(layer)
 
 static func parse_args(args: PackedStringArray) -> Dictionary:
 	var d := {}
@@ -42,7 +54,42 @@ func set_scene(name: String, arg: Variant = null) -> void:
 
 # chiamata dalla scena di avvio
 func boot() -> void:
-	dev_start()
+	if dev.has("test") or dev.has("spawn") or dev.has("seed"):
+		dev_start()
+	elif dev.has("scene"):
+		set_scene(str(dev.scene))
+	else:
+		set_scene("title")
+
+# pausa automatica quando la finestra perde il fuoco (boot in js/game.js)
+static func should_autopause(scene: String, mode: Variant, dead: bool, victory_t: float) -> bool:
+	return scene == "play" and mode == "play" and not dead and victory_t == 0.0
+
+func _on_focus_lost() -> void:
+	var sc := get_tree().current_scene
+	if sc != null and Run.active and Run.player != null and should_autopause(scene_name, sc.get("mode"), Run.player.dead, Run.victory_t):
+		sc.open_pause()
+
+# F11 e Alt+Invio: schermo intero (come desktop/main.js)
+func _input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_F11 or (event.keycode == KEY_ENTER and event.alt_pressed):
+			var fs := DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN
+			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED if fs else DisplayServer.WINDOW_MODE_FULLSCREEN)
+			get_viewport().set_input_as_handled()
+
+# barra degli errori (frame() in js/game.js), sopra ogni schermata
+class ErrorBar extends Node2D:
+	func _process(_delta: float) -> void:
+		queue_redraw()
+	func _draw() -> void:
+		var g := get_node("/root/Game")
+		if g.error == "":
+			return
+		UiDraw.px_rect(self, 0, Consts.H - 32, Consts.W, 32, "#300810")
+		UiDraw.text(self, "Errore: " + g.error.substr(0, 70), 4, Consts.H - 29, {"color": "#ff8080"})
+		var seed_txt := ("  seme " + str(Run.seed)) if Run.active else ""
+		UiDraw.text(self, "Fai uno screenshot e invialo insieme al modulo di feedback. " + Consts.VERSION + seed_txt, 4, Consts.H - 16, {"color": "#e8c0c0"})
 
 func _process(_delta: float) -> void:
 	if dev.has("screenshot") and scene_name != "":

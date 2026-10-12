@@ -104,3 +104,25 @@ static func stats_panel(ci: CanvasItem, x: float, y: float, w: float, h: float) 
 	for i in rows.size():
 		UiDraw.text(ci, rows[i][0], x + 8, y + 20 + i * 10, {"color": "#8a8294"})
 		UiDraw.text(ci, rows[i][1], x + w - 8, y + 20 + i * 10, {"align": "right", "color": "#e8dcc0"})
+
+# riepilogo della discesa (runSummaryRows, drawSummary, drawIconsRow in js/game.js)
+static func summary_rows() -> Array:
+	return [["Profondità raggiunta", Run.depth], ["Livello", Run.player.level], ["Nemici sconfitti", Run.kills],
+		["Stanze ripulite", Run.rooms_cleared], ["Monete raccolte", Run.coins_total], ["Tempo", U.fmt_time(Run.time)]]
+
+static func summary(ci: CanvasItem, x: float, y: float) -> void:
+	var rows := summary_rows()
+	for i in rows.size():
+		UiDraw.text(ci, rows[i][0], x, y + i * 12, {"color": "#a8a0b0"})
+		UiDraw.text(ci, str(rows[i][1]), x + 170, y + i * 12, {"align": "right", "color": "#e8dcc0"})
+
+static func icons_row(ci: CanvasItem, x: float, y: float, max_w: float) -> void:
+	var ents := build_entries()
+	var cols := int(floor(max_w / 20))
+	for i in mini(ents.size(), cols * 3):
+		var e: Dictionary = ents[i]
+		var cx := x + (i % cols) * 20
+		var cy := y + (i / cols) * 20
+		UiDraw.px_rect(ci, cx, cy, 18, 18, "#0b0810")
+		UiDraw.px_rect(ci, cx + 1, cy + 1, 16, 16, "#1a0d22" if e.kind == "curse" else "#1a141f")
+		Spr.draw(ci, e.icon, 0, cx + 9, cy + 9)
