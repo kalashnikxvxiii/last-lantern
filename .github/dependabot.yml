@@ -1,0 +1,12 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+  - package-ecosystem: npm
+    directory: /desktop
+    schedule:
+      interval: monthly
+    # Electron and the packager only matter for the JS tester packages
+    open-pull-requests-limit: 2

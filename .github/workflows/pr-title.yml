@@ -1,0 +1,23 @@
+name: PR title
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  pull-requests: read
+
+jobs:
+  title:
+    name: Check the PR title
+    runs-on: ubuntu-latest
+    steps:
+      - name: Title is a short, readable sentence
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          len=${#TITLE}
+          if [ "$len" -lt 10 ] || [ "$len" -gt 72 ]; then
+            echo "::error::The PR title must be 10-72 characters (now $len). Say what changes, e.g. \"Ghoul: the charge stops against rocks\"."
+            exit 1
+          fi

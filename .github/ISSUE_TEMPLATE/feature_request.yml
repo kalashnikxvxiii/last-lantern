@@ -1,0 +1,27 @@
+name: Idea or feature
+description: Suggest something new for the game or the tooling
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem or opportunity do you see?
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you do about it?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you considered
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Notes
+      options:
+        - label: I know new features go into the Godot port, not the JS version
+          required: true

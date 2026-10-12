@@ -11,6 +11,9 @@ godot/.godot/
 *.md
 !README.md
 !CONTRIBUTING.md
+!CODE_OF_CONDUCT.md
+!SECURITY.md
+!.github/**/*.md
 docs/*
 !docs/playtest-checklist.md
 !docs/porting-conventions.md
