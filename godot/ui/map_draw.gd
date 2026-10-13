@@ -1,6 +1,6 @@
 class_name MapDraw
 extends RefCounted
-# Minimap and full map (drawMinimap, drawFullMap, roomKnown in js/ui.js).
+# Minimap and full map (drawMinimap, drawFullMap, roomKnown, roomsVisible in js/ui.js).
 
 static var ROOM_MARK := {"boss": "#e0574a", "treasure": "#f6cf57", "shop": "#c49a6a", "shrine": "#c57ae0", "elite": "#ff3a5a", "secret": "#8a8294", "start": "#6b6478"}
 
@@ -9,9 +9,11 @@ static func room_known(r: Dictionary) -> bool:
 		return r.found or r.get("mapped", false) or bool(Run.player.stats.mapReveal)
 	return r.seen or bool(Run.player.stats.mapReveal)
 
+static func rooms_visible() -> bool:
+	return not Run.player.stats.hideMap
+
 static func minimap(ci: CanvasItem, x0: float, y0: float, full: bool) -> void:
-	var p := Run.player
-	if p.stats.hideMap and not full:
+	if not rooms_visible():
 		UiDraw.px_rect(ci, x0, y0, 80, 23, "#0b0810")
 		UiDraw.text(ci, "Fog", x0 + 40, y0 + 8, {"align": "center", "color": "#55505e"})
 		return
@@ -71,6 +73,9 @@ static func full_map(ci: CanvasItem) -> void:
 	var y := Consts.H / 2.0 - h / 2.0
 	UiDraw.panel(ci, x, y, w, h)
 	UiDraw.text(ci, "Map - " + DB.biome_of(Run.depth).name, Consts.W / 2.0, y + 8, {"align": "center", "color": "#e8dcc0"})
+	if not rooms_visible():
+		UiDraw.text(ci, "Fog", Consts.W / 2.0, y + h / 2.0 - 4.0, {"align": "center", "color": "#55505e"})
+		return
 	minimap(ci, x + 15, y + 24, true)
 	var leg := [["boss", "Warden"], ["treasure", "Treasure"], ["shop", "Merchant"], ["shrine", "Shrine"], ["elite", "Challenge"], ["secret", "Secret"]]
 	for i in leg.size():

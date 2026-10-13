@@ -25,7 +25,7 @@ function drawNotices(ctx) {
   let y = 36;
   for (const t of run.toasts) {
     const a = t.t < 0.2 ? t.t / 0.2 : t.t > t.life - 0.5 ? (t.life - t.t) / 0.5 : 1;
-    const w = Math.max(Font.width(t.text), t.sub ? Math.min(260, Font.width(t.sub)) : 0) + 16;
+    const w = Math.max(Font.width(t.text), t.sub ? Font.width(t.sub) : 0) + 16;
     ctx.save(); ctx.globalAlpha = a;
     const h = t.sub ? 26 : 15;
     panel(ctx, W / 2 - w / 2, y, w, h, { alpha: 0.88 });
@@ -152,9 +152,10 @@ function roomKnown(r) {
   if (r.type === 'secret') return r.found || r.mapped || run.player.stats.mapReveal;
   return r.seen || run.player.stats.mapReveal;
 }
+// Fog hides the rooms on every map, the minimap and the full one alike
+function roomsVisible() { return !run.player.stats.hideMap; }
 function drawMinimap(ctx, x0, y0, full) {
-  const p = run.player;
-  if (p.stats.hideMap && !full) {
+  if (!roomsVisible()) {
     pxRect(ctx, x0, y0, 80, 23, '#0b0810');
     Font.draw(ctx, 'Fog', x0 + 40, y0 + 8, { align: 'center', color: '#55505e' });
     return;
@@ -196,6 +197,7 @@ function drawFullMap(ctx) {
   const x = W / 2 - w / 2, y = H / 2 - h / 2;
   panel(ctx, x, y, w, h);
   Font.draw(ctx, 'Map - ' + biomeOf(run.depth).name, W / 2, y + 8, { align: 'center', color: '#e8dcc0' });
+  if (!roomsVisible()) { Font.draw(ctx, 'Fog', W / 2, y + h / 2 - 4, { align: 'center', color: '#55505e' }); return; }
   drawMinimap(ctx, x + 15, y + 24, true);
   const leg = [['boss', 'Warden'], ['treasure', 'Treasure'], ['shop', 'Merchant'], ['shrine', 'Shrine'], ['elite', 'Challenge'], ['secret', 'Secret']];
   leg.forEach(([k, n], i) => {
