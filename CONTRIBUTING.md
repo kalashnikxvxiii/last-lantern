@@ -54,7 +54,7 @@ During play press **F1** (or **`**) to open the cheat panel; the game stays paus
 | Build | add or remove perks, relics (with their curse) and curses, give consumables, switch lantern, clear the build |
 | World | kill all, clear the room, freeze enemies, spawn any enemy (optionally elite) or warden, go to a room type or depth, reveal the map, game speed (x0.25 to x4), debug readout |
 
-The panel works in debug builds (editor and `godot --path godot`). In an exported build start it with `-- --cheats`. `--cheat-panel=World` opens a page right away (useful with `--screenshot`). Active cheats are shown in red in the bottom right corner, so screenshots taken with cheats on are recognizable. The code is in `autoload/cheats.gd` (state and actions) and `ui/cheat_menu.gd` (pages).
+The panel works in debug builds (editor and `godot --path godot`) and in the `Last Lantern Dev` executables (see [Executables](#executables)). In any other exported build start it with `-- --cheats`. `--cheat-panel=World` opens a page right away (useful with `--screenshot`). Active cheats are shown in red in the bottom right corner, so screenshots taken with cheats on are recognizable. The code is in `autoload/cheats.gd` (state and actions) and `ui/cheat_menu.gd` (pages).
 
 ## Structure of `godot/`
 
@@ -122,6 +122,10 @@ The assets in `godot/assets/` were generated once from the JS code and are now *
 
 - **Godot version (Windows):** `python3 tools/build_godot.py`. Runs the tests, exports and creates `dist/godot/LastLantern-<version>-Windows.zip` with the tester instructions (`tools/tester-godot/`). The version number is `VERSION` in `godot/core/consts.gd`.
 - **JS version (Windows, Linux, browser):** `python3 tools/build.py` (see [README.md](README.md)).
+
+## Executables
+
+`python3 tools/export_godot.py` exports two executables per platform into `dist/godot/bin/<platform>/`: `Last Lantern` (normal start) and `Last Lantern Dev` (cheat panel on, F1 during play). It runs on Windows and Linux and exports both platforms; pass `windows` or `linux` to export only one. Each platform needs its Godot 4.7.2 export templates (Editor > Manage Export Templates); a platform without them is reported and skipped. The Dev executables come from the `Windows Desktop Dev` and `Linux Dev` presets, which add the `cheats` feature tag. Both executables use the real save file.
 
 ## Reporting a bug
 

@@ -1,7 +1,8 @@
 extends Node
 # Developer cheats: toggles read by the game logic and actions on the current run.
 # Godot-only, there is no JS counterpart. Enabled in debug builds (editor and
-# "godot --path godot") and in exported builds started with "-- --cheats".
+# "godot --path godot"), in the "Dev" exports (feature tag "cheats") and in
+# exported builds started with "-- --cheats".
 # The panel that drives them is ui/cheat_menu.gd (F1 or ` during play).
 
 const SPEEDS := [0.25, 0.5, 1.0, 2.0, 4.0]
@@ -16,7 +17,7 @@ var info := false       # debug readout over the game
 var speed_i := 2        # index in SPEEDS
 
 func _ready() -> void:
-	enabled = OS.is_debug_build() or Game.dev.has("cheats")
+	enabled = OS.is_debug_build() or OS.has_feature("cheats") or Game.dev.has("cheats")
 
 func reset() -> void:
 	god = false
