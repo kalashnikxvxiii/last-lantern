@@ -33,6 +33,10 @@ The JavaScript code in `js/` is the **source of truth** for gameplay behavior. W
 | `a === b` between JS objects (rooms, fx, pickups) | `is_same(a, b)`: in GDScript `==` between `Dictionary` or `Array` compares the **contents**; the same goes for `Array.has`, `erase`, `find` |
 | logical coordinates and values | separate `float`s (`x`, `y`): `Vector2` is 32-bit and loses precision; use it only for exact values (tile centers) or for drawing |
 
+## Rendering
+
+The game draws in a 480x270 coordinate space, but the window renders at its own resolution (`window/stretch/mode="canvas_items"`). Pixel art stays blocky because `UiDraw` and `Spr` draw on whole logical pixels with nearest filtering; shaders, smooth textures (`UiDraw.glow`) and arcs get the full screen resolution. Keep game drawing on whole logical pixels; use the extra resolution only for light and effects.
+
 ## Name map
 
 | JS | GDScript |

@@ -76,9 +76,13 @@ static func glow(ci: CanvasItem, x: float, y: float, r: float, color: Variant, a
 		t.fill = GradientTexture2D.FILL_RADIAL
 		t.fill_from = Vector2(0.5, 0.5)
 		t.fill_to = Vector2(1.0, 0.5)
-		t.width = 64
-		t.height = 64
-		_glow_tex = t
+		t.width = 128
+		t.height = 128
+		# smooth halo even though the rest of the game is drawn with nearest filtering
+		var ct := CanvasTexture.new()
+		ct.diffuse_texture = t
+		ct.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+		_glow_tex = ct
 	var k := col(color)
 	ci.draw_texture_rect(_glow_tex, Rect2(x - r, y - r, r * 2, r * 2), false, Color(k.r, k.g, k.b, a * alpha))
 
