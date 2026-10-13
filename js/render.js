@@ -363,7 +363,7 @@ function drawObjects(ctx, room) {
         // merchant's lantern
         pxRect(ctx, o.x + 8, o.y - 2, 3, 4, '#f6cf57'); pxRect(ctx, o.x + 8, o.y - 3, 3, 1, '#3b3546');
         if (dist(o.x, o.y, run.player.x, run.player.y) < 70) {
-          const w = Math.min(200, Font.width(o.line) + 12);
+          const w = Font.width(o.line) + 12;
           panel(ctx, o.x - w / 2, o.y - 34, w, 16, { alpha: 0.9 });
           Font.draw(ctx, o.line, o.x, o.y - 30, { align: 'center', color: '#e8dcc0' });
         }
