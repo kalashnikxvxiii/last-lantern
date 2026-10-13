@@ -1,7 +1,7 @@
 class_name Menu
 extends RefCounted
 # Generic menu (class Menu in js/ui.js): keyboard, mouse, gamepad.
-# Entries: {label: String | Callable, value: Callable, adjust: Callable, action: Callable, disabled: bool}
+# Entries: {label: String | Callable, value: Callable, adjust: Callable, action: Callable, disabled: bool | Callable}
 
 var items: Array
 var sel := 0
@@ -20,7 +20,7 @@ func _step(d: int) -> void:
 	var n := items.size()
 	for k in n:
 		sel = (sel + d + n) % n
-		if not items[sel].get("disabled", false) or o.get("allowDisabled", false):
+		if not is_disabled(items[sel]) or o.get("allowDisabled", false):
 			break
 	Sfx.play("select")
 
@@ -30,7 +30,7 @@ func update() -> void:
 	if Controls.down():
 		_step(1)
 	var it: Variant = items[sel] if sel < items.size() else null
-	if it != null and it.has("adjust"):
+	if it != null and it.has("adjust") and not is_disabled(it):
 		if Controls.left():
 			it.adjust.call(-1)
 			Sfx.play("select")
@@ -44,21 +44,26 @@ func update() -> void:
 	for i in rects.size():
 		var r: Rect2 = rects[i]
 		if r.has_point(m):
-			var allowed: bool = not items[i].get("disabled", false) or o.get("allowDisabled", false)
+			var allowed: bool = not is_disabled(items[i]) or o.get("allowDisabled", false)
 			if moved and sel != i and allowed:
 				sel = i
 				Sfx.play("select")
 			if Controls.mouse_left_pressed():
-				if items[i].has("adjust"):
+				if items[i].has("adjust") and not is_disabled(items[i]):
 					items[i].adjust.call(1 if m.x > r.position.x + r.size.x / 2 else -1)
 					Sfx.play("select")
-				elif not items[i].get("disabled", false) and items[i].has("action"):
+				elif not is_disabled(items[i]) and items[i].has("action"):
 					Sfx.play("confirm")
 					items[i].action.call()
 				return
-	if Controls.confirm() and it != null and not it.get("disabled", false) and it.has("action"):
+	if Controls.confirm() and it != null and not is_disabled(it) and it.has("action"):
 		Sfx.play("confirm")
 		it.action.call()
+
+# Godot-only: "disabled" can be a Callable, for entries that depend on other settings
+static func is_disabled(it: Dictionary) -> bool:
+	var d: Variant = it.get("disabled", false)
+	return d.call() if d is Callable else d
 
 static func label_of(it: Dictionary) -> String:
 	var label: String = it.label.call() if it.label is Callable else it.label
@@ -74,7 +79,7 @@ func draw(ci: CanvasItem, x: float, y: float, oo: Dictionary = {}) -> void:
 		var it: Dictionary = items[i]
 		var is_sel := i == sel
 		var label := label_of(it)
-		var col: Variant = "#55505e" if it.get("disabled", false) else (UiDraw.UI.sel if is_sel else "#c8c0d0")
+		var col: Variant = "#55505e" if is_disabled(it) else (UiDraw.UI.sel if is_sel else "#c8c0d0")
 		var w := Txt.width(label)
 		var lx := x - w / 2 if align == "center" else x
 		var yy := y + i * lh
