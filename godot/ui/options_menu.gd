@@ -191,6 +191,7 @@ func _graphics(on_back: Callable) -> Menu:
 		_entry("Brightness", _percent("brightness")),
 		_entry("Contrast", _percent("contrast")),
 		_entry("Saturation", _percent("saturation")),
+		_entry("Bloom", _choice(Bloom.LEVELS.keys(), "bloom", func(): pass, func(v: String): return v.capitalize())),
 		_entry("Show FPS", _toggle("showFps")),
 		{"label": "Back", "action": on_back},
 	])

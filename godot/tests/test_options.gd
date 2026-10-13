@@ -140,3 +140,33 @@ func test_defaults() -> void:
 	eq(s.scaling, "fit")
 	eq(s.brightness, 1.0)
 	eq(s.showFps, false)
+
+func test_bloom_setting() -> void:
+	eq(Save.defaults().settings.bloom, "medium")
+	Save.data.settings.bloom = "medium"
+	var m := _open("Graphics", "Bloom")
+	check(m.menu().sel >= 0, "the Graphics tab has a Bloom entry")
+	eq(Menu.label_of(m.menu().current()), "Bloom   Medium")
+	_press(m, "nav_right")
+	eq(Save.data.settings.bloom, "high")
+	_press(m, "nav_right")
+	eq(Save.data.settings.bloom, "high", "the choice stops at the last level")
+	for i in 3:
+		_press(m, "nav_left")
+	eq(Save.data.settings.bloom, "off")
+
+func test_bloom_layer() -> void:
+	TH.new_run(5)
+	var play: Node = load("res://scenes/play.tscn").instantiate()
+	(Engine.get_main_loop() as SceneTree).root.add_child(play)
+	var b: Bloom = play.get_node("OverlayLayer/Bloom")
+	Save.data.settings.bloom = "off"
+	b._process(0.0)
+	check(not b.visible, "bloom off: the layer is hidden")
+	Save.data.settings.bloom = "high"
+	b._process(0.0)
+	check(b.visible)
+	eq((b.material as ShaderMaterial).get_shader_parameter("intensity"), Bloom.LEVELS.high)
+	play.queue_free()
+	await (Engine.get_main_loop() as SceneTree).process_frame
+	Run.reset()
