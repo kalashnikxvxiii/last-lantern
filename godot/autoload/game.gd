@@ -33,6 +33,7 @@ func _ready() -> void:
 	dev = parse_args(OS.get_cmdline_user_args())
 	if DisplayServer.get_name() != "headless":
 		DisplayServer.window_set_min_size(Vector2i(Consts.W, Consts.H))
+		Panels.apply_resolution()
 	get_window().focus_exited.connect(_on_focus_lost)
 	var layer := CanvasLayer.new()
 	layer.layer = 100
