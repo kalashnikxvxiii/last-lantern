@@ -11,12 +11,15 @@ func _process(_delta: float) -> void:
 func _draw() -> void:
 	if not Run.active:
 		return
+	if Cheats.enabled and not Run.room.is_empty():
+		CheatMenu.draw_info(self)
 	match play.mode:
 		"levelup": _level_up()
 		"pause": _pause(false)
 		"build": _pause(true)
 		"map": MapDraw.full_map(self)
 		"options": _options()
+		"cheats": CheatMenu.draw(self, play.cheat_menu, play.cheat_page)
 
 func _level_up() -> void:
 	var more := "   (" + str(Run.pending_levels - 1) + " pending)" if Run.pending_levels > 1 else ""

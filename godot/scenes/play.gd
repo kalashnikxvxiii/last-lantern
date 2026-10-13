@@ -14,6 +14,8 @@ var build_sel := 0
 var build_rects: Array = []
 var map_from := "play"
 var opt_menu: Menu
+var cheat_menu: Menu
+var cheat_page := "main"
 @onready var world: Node2D = $World
 @onready var actors: Node2D = $World/Actors
 
@@ -40,7 +42,18 @@ func _exit_tree() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 func _physics_process(_delta: float) -> void:
-	tick(Consts.DT)
+	var sp := Cheats.speed() if mode == "play" else 1.0
+	if sp < 1:
+		tick(Consts.DT * sp)
+	else:
+		# fast forward: the presses of this frame count only in the first tick
+		var scene := Game.scene_name
+		for i in int(sp):
+			Controls.held_only = i > 0
+			tick(Consts.DT)
+			if mode != "play" or Game.scene_name != scene:
+				break
+		Controls.held_only = false
 	Controls.end_tick()
 
 func _process(_delta: float) -> void:
@@ -86,6 +99,17 @@ func tick(dt: float) -> void:
 				mode = "pause"
 				return
 			opt_menu.update()
+		"cheats":
+			if Controls.cheats() or (Controls.pause() and not Controls.back()):
+				close_cheats()
+				return
+			if Controls.back():
+				if cheat_page == "main":
+					close_cheats()
+				else:
+					open_cheats("main", cheat_page)
+				return
+			cheat_menu.update()
 
 func open_level_up() -> void:
 	var p := Run.player
@@ -115,6 +139,18 @@ func choose_perk(id: String) -> void:
 	Run.level_delay = 0.35
 	p.fire_cd = 0.25
 	Controls.sim.erase("pressed")
+
+# developer cheat panel (Godot only): pages in ui/cheat_menu.gd
+func open_cheats(page: String = "main", from: String = "") -> void:
+	mode = "cheats"
+	cheat_page = page
+	cheat_menu = CheatMenu.page(page, self)
+	if from != "":
+		cheat_menu.sel = maxi(0, CheatMenu.PAGES.find(from))
+
+func close_cheats() -> void:
+	mode = "play"
+	Run.lock_fire = true
 
 func open_pause() -> void:
 	mode = "pause"
@@ -190,6 +226,9 @@ func update_play(dt: float) -> void:
 		mode = "map"
 		map_from = "play"
 		return
+	if Cheats.enabled and Controls.cheats() and not Run.player.dead:
+		open_cheats()
+		return
 	Flow.update_common(dt)
 	if Run.trans != null:
 		Flow.update_trans(dt)
@@ -206,6 +245,7 @@ func update_play(dt: float) -> void:
 	if Run.lock_fire and not Controls.mouse_left():
 		Run.lock_fire = false
 	Flow.update_game(dt)
+	Cheats.tick()
 	if Run.victory_t > 0:
 		Run.victory_t -= dt
 		if Run.victory_t <= 0:
@@ -236,3 +276,5 @@ func _dev_sim() -> void:
 	if Game.dev.has("map"):
 		mode = "map"
 		map_from = "play"
+	if Game.dev.has("cheat-panel") and Cheats.enabled:
+		open_cheats(str(Game.dev["cheat-panel"]) if Game.dev["cheat-panel"] is String else "main")
