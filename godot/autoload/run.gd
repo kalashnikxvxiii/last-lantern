@@ -47,7 +47,12 @@ var forced_choices: Variant = null
 var blood_paid := 0
 var abandoned := false
 var win_recorded := false
+var slot := -1   # save slot of the run (RunSave), -1 = not saved
 var actors: Node2D = null   # game scene node that hosts the actors
+
+# on quit: frees the actors the game scene let go and the rooms' circular references
+func _exit_tree() -> void:
+	reset()
 
 func reset() -> void:
 	if player != null and is_instance_valid(player):
@@ -105,6 +110,7 @@ func reset() -> void:
 	blood_paid = 0
 	abandoned = false
 	win_recorded = false
+	slot = -1
 
 # notifications (toast and banner in js/ui.js)
 func toast(text: String, col: Variant = "#ece6d8", sub: String = "") -> void:

@@ -5,6 +5,7 @@ extends Node
 var SCENES := {
 	"title": "res://ui/screens/title.tscn",
 	"options": "res://ui/screens/options.tscn",
+	"slots": "res://ui/screens/slots.tscn",
 	"select": "res://ui/screens/select.tscn",
 	"records": "res://ui/screens/records.tscn",
 	"help": "res://ui/screens/help.tscn",
@@ -83,6 +84,12 @@ func _on_focus_lost() -> void:
 	var sc := get_tree().current_scene
 	if sc != null and Run.active and Run.player != null and should_autopause(scene_name, sc.get("mode"), Run.player.dead, Run.victory_t):
 		sc.open_pause()
+
+# Godot-only: closing the window during a run saves it in its slot
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_CLOSE_REQUEST and Run.active and Run.player != null \
+			and should_autopause(scene_name, "play", Run.player.dead, Run.victory_t):
+		RunSave.save(Run.slot)
 
 # F11 and Alt+Enter: fullscreen (as in desktop/main.js)
 func _input(event: InputEvent) -> void:

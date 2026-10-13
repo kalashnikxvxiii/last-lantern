@@ -3,7 +3,7 @@ extends Screen
 
 func enter() -> void:
 	menu = Menu.new([
-		{"label": "New descent", "action": func(): Game.set_scene("select")},
+		{"label": "Descend", "action": func(): Game.set_scene("slots")},
 		{"label": "How to play", "action": func(): Game.set_scene("help")},
 		{"label": "Archive", "action": func(): Game.set_scene("records")},
 		{"label": "Options", "action": func(): Game.set_scene("options")},

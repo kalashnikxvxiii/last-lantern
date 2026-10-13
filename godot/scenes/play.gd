@@ -166,6 +166,12 @@ func open_pause() -> void:
 		{"label": "Options", "action": func():
 			mode = "options"
 			opt_menu = OptionsMenu.new(func(): mode = "pause")},
+		{"label": "Save and leave", "disabled": Run.slot < 0, "action": func():
+			if RunSave.save(Run.slot):
+				Game.set_scene("title")
+			else:
+				mode = "play"
+				Run.toast("Could not save the descent", "#e0574a")},
 		{"label": func(): return "Sure? The descent will be lost" if confirm_quit else "Abandon the descent", "action": func():
 			if not confirm_quit:
 				confirm_quit = true

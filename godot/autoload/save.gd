@@ -56,14 +56,17 @@ static func _ints(d: Dictionary) -> Dictionary:
 # went well: with a full disk the previous save stays intact
 # (like localStorage.setItem in the JS, which fails without touching the old value)
 func write() -> bool:
-	var tmp := path + ".new"
+	return write_file(path, JSON.stringify(data).to_utf8_buffer())
+
+static func write_file(dest: String, bytes: PackedByteArray) -> bool:
+	var tmp := dest + ".new"
 	var f := FileAccess.open(tmp, FileAccess.WRITE)
 	if f == null:
 		return false   # storage unavailable: ignored, as in the JS
-	f.store_string(JSON.stringify(data))
+	f.store_buffer(bytes)
 	var ok := f.get_error() == OK
 	f.close()
-	if not ok or DirAccess.rename_absolute(tmp, path) != OK:
+	if not ok or DirAccess.rename_absolute(tmp, dest) != OK:
 		DirAccess.remove_absolute(tmp)
 		return false
 	return true

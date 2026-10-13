@@ -5,6 +5,7 @@ static var ard := 0
 
 func enter() -> void:
 	var un: Dictionary = Save.data.unlocks
+	var slot: int = Game.scene_arg if Game.scene_arg is int else -1   # chosen in the slots screen
 	ard = mini(un.ardor, ard)
 	var items: Array = []
 	for L in DB.lanterns():
@@ -13,17 +14,19 @@ func enter() -> void:
 		items.append({"label": L.name if open else "Sealed lantern", "L": L, "disabled": not open,
 			"action": func():
 				Flow.start_run(id, ard)
+				Run.slot = slot
+				RunSave.save(slot)
 				Game.set_scene("play")})
 	if un.ardor > 0:
 		items.append({"label": "Ardor", "value": func(): return str(ard),
 			"adjust": func(d): ard = clampi(ard + d, 0, un.ardor),
 			"action": func(): ard = (ard + 1) % (un.ardor + 1)})
-	items.append({"label": "Back", "action": func(): Game.set_scene("title")})
+	items.append({"label": "Back", "action": func(): Game.set_scene("slots")})
 	menu = Menu.new(items, {"allowDisabled": true})
 
 func update(_dt: float) -> void:
 	if Controls.back():
-		Game.set_scene("title")
+		Game.set_scene("slots")
 		return
 	menu.update()
 

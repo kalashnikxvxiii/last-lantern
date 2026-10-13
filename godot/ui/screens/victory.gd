@@ -27,6 +27,7 @@ func enter() -> void:
 		{"label": "Return to the surface", "action": func():
 			Save.data.stats.kills += Run.kills
 			Save.write()
+			RunSave.erase(Run.slot)
 			Game.set_scene("title")},
 	])
 

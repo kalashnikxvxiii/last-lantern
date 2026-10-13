@@ -5,11 +5,12 @@ func enter() -> void:
 	var st: Dictionary = Save.data.stats
 	st.kills += Run.kills
 	Save.write()
+	RunSave.erase(Run.slot)
 	Flow.check_unlocks()
 	Music.play("title")
 	Music.set_intensity(0)
 	menu = Menu.new([
-		{"label": "New descent", "action": func(): Game.set_scene("select")},
+		{"label": "New descent", "action": func(): Game.set_scene("slots")},
 		{"label": "Main menu", "action": func(): Game.set_scene("title")},
 	])
 
