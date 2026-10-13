@@ -7,6 +7,8 @@ var choices: Array = []
 var sel := 0
 var lock := 0.0
 var card_rects: Array = []
+var card_hover := -1
+var card_lit_prev := true
 var reroll_rect := Rect2()
 var pause_menu: Menu
 var confirm_quit := false
@@ -124,6 +126,8 @@ func open_level_up() -> void:
 	sel = 0
 	lock = 0.45
 	card_rects = []
+	card_hover = -1
+	card_lit_prev = true
 	Sfx.play("levelup")
 
 func choose_perk(id: String) -> void:
@@ -191,23 +195,38 @@ func update_level_up(dt: float) -> void:
 		sel = (sel + 1) % n
 		Sfx.play("select")
 	var m := Controls.mouse_pos()
-	for i in card_rects.size():
-		if card_rects[i].has_point(m):
-			if sel != i and Time.get_ticks_msec() - Controls.mouse_moved_at < 100:
-				sel = i
-				Sfx.play("select")
-			if Controls.mouse_left_pressed() and lock <= 0:
-				choose_perk(choices[i])
-				Run.lock_fire = true
-				return
+	var mouse := Controls.device() == "mouse"
+	card_hover = -1
+	if mouse:
+		for i in card_rects.size():
+			if (card_rects[i] as Rect2).has_point(m):
+				card_hover = i
+				break
+	# hovering moves the cursor: the flame only lights the card under the mouse
+	if mouse and card_hover >= 0 and sel != card_hover:
+		sel = card_hover
+		Sfx.play("select")
+	var lit_now := (card_hover >= 0) if mouse else true
+	if mouse and card_hover >= 0 and Controls.mouse_left_pressed() and lock <= 0:
+		choose_perk(choices[card_hover])
+		Run.lock_fire = true
+		return
 	if lock > 0:
+		card_lit_prev = lit_now
 		return
 	for i in n:
 		if Controls.digit(i + 1):
 			choose_perk(choices[i])
 			return
 	if Controls.confirm():
-		choose_perk(choices[sel])
+		# with the mouse off the cards nothing is lit: confirm brings the cursor
+		# back to the first card instead of picking the hidden one
+		if card_lit_prev:
+			choose_perk(choices[sel])
+		else:
+			sel = 0
+			Sfx.play("select")
+		card_lit_prev = lit_now
 		return
 	# rematch
 	var clicked := Controls.mouse_left_pressed() and reroll_rect.has_point(m)
@@ -222,6 +241,7 @@ func update_level_up(dt: float) -> void:
 			lock = 0.2
 		else:
 			Sfx.play("deny")
+	card_lit_prev = lit_now
 
 # updatePlay (js/game.js:335-357)
 func update_play(dt: float) -> void:

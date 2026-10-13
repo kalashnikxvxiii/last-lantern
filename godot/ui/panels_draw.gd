@@ -2,7 +2,7 @@ class_name PanelsDraw
 extends RefCounted
 # Perk cards, equipment and stats (js/ui.js).
 
-static func perk_cards(ci: CanvasItem, choices: Array, sel: int, title: String, sub: String) -> Array:
+static func perk_cards(ci: CanvasItem, choices: Array, lit: int, title: String, sub: String) -> Array:
 	var W := Consts.W
 	var ga := UiDraw.alpha
 	UiDraw.alpha = 0.78
@@ -24,7 +24,7 @@ static func perk_cards(ci: CanvasItem, choices: Array, sel: int, title: String, 
 		var P: Dictionary = Perks.ALL[id]
 		var R: Dictionary = Stats.RARITY[P.rar]
 		var x := x0 + i * (cw + gap)
-		var is_sel := i == sel
+		var is_sel := i == lit
 		var y := y0 - (4 if is_sel else 0)
 		rects.append(Rect2(x, y, cw, chh))
 		UiDraw.panel(ci, x, y, cw, chh, {"hi": R.col if is_sel else UiDraw.UI.brass, "border": R.col if is_sel else UiDraw.UI.brassD, "alpha": 0.97})

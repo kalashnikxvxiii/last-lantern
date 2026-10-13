@@ -25,7 +25,6 @@ const PAD := {
 const MOUSE := {"fire": [MOUSE_BUTTON_LEFT], "flare": [MOUSE_BUTTON_RIGHT]}
 
 var last_device := "kb"
-var mouse_moved_at := 0
 var sim: Dictionary = {}
 var held_only := false   # extra ticks of the same frame (cheat fast forward): no new presses
 
@@ -59,7 +58,6 @@ func _input(event: InputEvent) -> void:
 		last_device = "kb"
 	elif event is InputEventMouseMotion:
 		last_device = "mouse"
-		mouse_moved_at = Time.get_ticks_msec()
 	elif event is InputEventMouseButton and event.pressed:
 		last_device = "mouse"
 	elif event is InputEventJoypadButton and event.pressed:
