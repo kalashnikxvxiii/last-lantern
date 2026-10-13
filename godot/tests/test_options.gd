@@ -185,3 +185,9 @@ func test_shadow_settings() -> void:
 	m = _open("Graphics", "Ambient occlusion")
 	_press(m, "confirm")
 	eq(Save.data.settings.ao, false)
+
+func test_tabs_fit_the_panel() -> void:
+	var m := OptionsMenu.new(func(): pass)
+	for t in OptionsMenu.TABS.size():
+		m.tab = t
+		check(m.menu().items.size() <= OptionsMenu.MAX_ENTRIES, OptionsMenu.TABS[t] + " fits the panel")

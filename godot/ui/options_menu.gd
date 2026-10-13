@@ -8,6 +8,7 @@ extends RefCounted
 const TABS := ["Display", "Graphics", "Audio", "Gameplay"]
 const W := 300.0
 const H := 196.0
+const MAX_ENTRIES := 8   # more do not fit above the hint
 
 var tab := 0
 var on_tabs := false
@@ -183,6 +184,7 @@ func _display(on_back: Callable) -> Menu:
 				Save.write(),
 			"action": noop},
 		_entry("Scaling", _choice(Display.SCALINGS, "scaling", func(): Display.apply_scaling(), func(v): return {"fit": "Fit", "integer": "Pixel perfect"}.get(v, v))),
+		_entry("Show FPS", _toggle("showFps")),
 		{"label": "Back", "action": on_back},
 	])
 
@@ -194,7 +196,7 @@ func _graphics(on_back: Callable) -> Menu:
 		_entry("Bloom", _choice(Bloom.LEVELS.keys(), "bloom", func(): pass, func(v: String): return v.capitalize())),
 		_entry("Shadows", _choice(Lighting.SHADOW_STEPS.keys(), "shadows", func(): pass, func(v: String): return v.capitalize())),
 		_entry("Ambient occlusion", _toggle("ao")),
-		_entry("Show FPS", _toggle("showFps")),
+		_entry("Particles", _choice(AmbientFx.AMOUNT.keys(), "particles", func(): pass, func(v: String): return v.capitalize())),
 		{"label": "Back", "action": on_back},
 	])
 

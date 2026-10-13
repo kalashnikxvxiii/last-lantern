@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scenes/play.gd" id="1"]
 [ext_resource type="Script" path="res://world/room_view.gd" id="2"]
@@ -9,6 +9,8 @@
 [ext_resource type="Script" path="res://ui/hud.gd" id="7"]
 [ext_resource type="Script" path="res://ui/panels.gd" id="8"]
 [ext_resource type="Script" path="res://world/bloom.gd" id="9"]
+[ext_resource type="Script" path="res://world/ambient_fx.gd" id="10"]
+[ext_resource type="Script" path="res://world/sparks.gd" id="11"]
 
 [node name="Play" type="Node"]
 script = ExtResource("1")
@@ -24,6 +26,9 @@ script = ExtResource("3")
 [node name="Actors" type="Node2D" parent="World"]
 y_sort_enabled = true
 
+[node name="AmbientAir" type="GPUParticles2D" parent="World"]
+script = ExtResource("10")
+
 [node name="Air" type="Node2D" parent="World"]
 script = ExtResource("5")
 
@@ -35,6 +40,13 @@ layer = 2
 
 [node name="Overlay" type="Node2D" parent="OverlayLayer"]
 script = ExtResource("6")
+
+[node name="AmbientGlow" type="GPUParticles2D" parent="OverlayLayer"]
+script = ExtResource("10")
+glow = true
+
+[node name="Sparks" type="Node2D" parent="OverlayLayer"]
+script = ExtResource("11")
 
 [node name="Bloom" type="ColorRect" parent="OverlayLayer"]
 script = ExtResource("9")
