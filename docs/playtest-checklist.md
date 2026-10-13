@@ -52,6 +52,7 @@ Items already checked were verified during development with automated tests (`to
 - [ ] Options tabs: Q/TAB, PageUp/PageDown, LB/RB, the mouse and the tab row all switch tab
 - [ ] Display tab: window mode (also exclusive), resolution only in a window, VSync, FPS limit, pixel-perfect scaling, all kept after a restart
 - [ ] Picture tab: brightness, contrast and saturation on the game and the HUD, CRT filter on every screen, FPS counter
+- [ ] Quality (Low, Medium, High, Ultra): sets bloom, shadows, ambient occlusion and particles together; a hand-made mix shows Custom; first boot picks High on a dedicated card, Medium on an integrated one
 - [ ] Bloom: Off, Low, Medium, High in game and on the title; Off gives the original picture; the HUD and the in-game panels never glow
 - [ ] Shadows (Off, Low, High): rocks, walls and barrels cast soft shadows from the lantern and the braziers, also after a barrel or rock breaks; Off gives the original lighting
 - [ ] Ambient occlusion: the floor darkens next to walls and rocks
