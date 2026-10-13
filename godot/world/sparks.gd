@@ -7,7 +7,7 @@ extends Node2D
 
 const POOL := 24
 const MAX := 48                    # sparks per burst at most
-const SHARE := {"off": 0.0, "low": 0.35, "high": 0.7}   # sparks per burst particle
+const SHARE := {"off": 0.0, "low": 0.35, "high": 0.7, "ultra": 1.0}   # sparks per burst particle
 
 static var current: Sparks = null
 static var _palettes: Dictionary = {}   # burst colors -> color ramp

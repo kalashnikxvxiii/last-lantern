@@ -33,6 +33,7 @@ func _ready() -> void:
 	dev = parse_args(OS.get_cmdline_user_args())
 	if DisplayServer.get_name() != "headless":
 		DisplayServer.window_set_min_size(Vector2i(Consts.W, Consts.H))
+		Quality.first_boot(RenderingServer.get_video_adapter_type())
 	var env := WorldEnvironment.new()
 	env.environment = Display.environment()
 	add_child(env)

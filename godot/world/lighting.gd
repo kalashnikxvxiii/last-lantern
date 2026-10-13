@@ -6,7 +6,7 @@ extends CanvasLayer
 const MAX_LIGHTS := 128
 const OCC_RES := 4                 # occluder mask texels per tile
 const SHADOW_MIN_R := 40.0         # smaller lights (projectiles, pickups) cast no shadow
-const SHADOW_STEPS := {"off": 0, "low": 12, "high": 24}
+const SHADOW_STEPS := {"off": 0, "low": 12, "high": 24, "ultra": 40}
 const AO := 0.35
 var light := ColorRect.new()
 var vignette := ColorRect.new()
