@@ -33,7 +33,10 @@ func _ready() -> void:
 	dev = parse_args(OS.get_cmdline_user_args())
 	if DisplayServer.get_name() != "headless":
 		DisplayServer.window_set_min_size(Vector2i(Consts.W, Consts.H))
-		Panels.apply_resolution()
+	var env := WorldEnvironment.new()
+	env.environment = Display.environment()
+	add_child(env)
+	Display.apply_all()
 	get_window().focus_exited.connect(_on_focus_lost)
 	var layer := CanvasLayer.new()
 	layer.layer = 100
@@ -77,8 +80,7 @@ func _on_focus_lost() -> void:
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_F11 or (event.keycode == KEY_ENTER and event.alt_pressed):
-			var fs := DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN
-			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED if fs else DisplayServer.WINDOW_MODE_FULLSCREEN)
+			Display.toggle_fullscreen()
 			get_viewport().set_input_as_handled()
 
 # error bar (frame() in js/game.js), above every screen
@@ -86,6 +88,8 @@ class ErrorBar extends Node2D:
 	func _process(_delta: float) -> void:
 		queue_redraw()
 	func _draw() -> void:
+		if Save.data.settings.showFps:
+			UiDraw.text(self, str(int(Engine.get_frames_per_second())) + " FPS", Consts.W - 3, Consts.H - 10, {"align": "right", "color": "#8a8294"})
 		var g := get_node("/root/Game")
 		if g.error == "":
 			return
