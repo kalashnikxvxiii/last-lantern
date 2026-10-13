@@ -38,6 +38,13 @@ func _ready() -> void:
 	add_child(env)
 	Display.apply_all()
 	get_window().focus_exited.connect(_on_focus_lost)
+	var crt_layer := CanvasLayer.new()
+	crt_layer.name = "CrtLayer"
+	crt_layer.layer = 99   # above every screen, below the error bar
+	var crt := Crt.new()
+	crt.name = "Crt"
+	crt_layer.add_child(crt)
+	add_child(crt_layer)
 	var layer := CanvasLayer.new()
 	layer.layer = 100
 	layer.add_child(ErrorBar.new())

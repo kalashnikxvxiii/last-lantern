@@ -33,7 +33,7 @@ func _open(tab: String, label: String) -> OptionsMenu:
 	return m
 
 func test_the_tabs() -> void:
-	eq(OptionsMenu.TABS, ["Display", "Graphics", "Audio", "Gameplay"])
+	eq(OptionsMenu.TABS, ["Display", "Picture", "Graphics", "Audio", "Gameplay"])
 	var m := OptionsMenu.new(func(): pass)
 	eq(m.tab, 0)
 	for t in OptionsMenu.TABS.size():
@@ -118,7 +118,7 @@ func test_pixel_scaling() -> void:
 
 func test_brightness() -> void:
 	Save.data.settings.brightness = 1.0
-	var m := _open("Graphics", "Brightness")
+	var m := _open("Picture", "Brightness")
 	_press(m, "nav_right")
 	near(Save.data.settings.brightness, 1.1, 1e-6)
 	near(Display.environment().adjustment_brightness, 1.1, 1e-6)

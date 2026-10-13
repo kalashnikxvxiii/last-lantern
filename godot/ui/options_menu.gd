@@ -1,11 +1,11 @@
 class_name OptionsMenu
 extends RefCounted
 # Options shared by pause and title, split into tabs (makeOptionsMenu in js/game.js
-# has a single list: the Display and Graphics tabs are Godot-only).
+# has a single list: the Display, Picture and Graphics tabs are Godot-only).
 # Q/TAB, PageUp/PageDown or the shoulder buttons switch tab; up from the first
 # entry focuses the tab row, where left and right switch tab too.
 
-const TABS := ["Display", "Graphics", "Audio", "Gameplay"]
+const TABS := ["Display", "Picture", "Graphics", "Audio", "Gameplay"]
 const W := 300.0
 const H := 196.0
 const MAX_ENTRIES := 8   # more do not fit above the hint
@@ -17,7 +17,7 @@ var tab_rects: Array = []
 var last_m := Vector2(-1, -1)
 
 func _init(on_back: Callable) -> void:
-	menus = [_display(on_back), _graphics(on_back), _audio(on_back), _gameplay(on_back)]
+	menus = [_display(on_back), _picture(on_back), _graphics(on_back), _audio(on_back), _gameplay(on_back)]
 
 func menu() -> Menu:
 	return menus[tab]
@@ -184,19 +184,27 @@ func _display(on_back: Callable) -> Menu:
 				Save.write(),
 			"action": noop},
 		_entry("Scaling", _choice(Display.SCALINGS, "scaling", func(): Display.apply_scaling(), func(v): return {"fit": "Fit", "integer": "Pixel perfect"}.get(v, v))),
+		{"label": "Back", "action": on_back},
+	])
+
+func _picture(on_back: Callable) -> Menu:
+	return Menu.new([
+		_entry("Brightness", _percent("brightness")),
+		_entry("Contrast", _percent("contrast")),
+		_entry("Saturation", _percent("saturation")),
+		_entry("CRT filter", _toggle("crt")),
 		_entry("Show FPS", _toggle("showFps")),
 		{"label": "Back", "action": on_back},
 	])
 
 func _graphics(on_back: Callable) -> Menu:
 	return Menu.new([
-		_entry("Brightness", _percent("brightness")),
-		_entry("Contrast", _percent("contrast")),
-		_entry("Saturation", _percent("saturation")),
 		_entry("Bloom", _choice(Bloom.LEVELS.keys(), "bloom", func(): pass, func(v: String): return v.capitalize())),
 		_entry("Shadows", _choice(Lighting.SHADOW_STEPS.keys(), "shadows", func(): pass, func(v: String): return v.capitalize())),
 		_entry("Ambient occlusion", _toggle("ao")),
 		_entry("Particles", _choice(AmbientFx.AMOUNT.keys(), "particles", func(): pass, func(v: String): return v.capitalize())),
+		_entry("Color grading", _toggle("grading")),
+		_entry("Screen effects", _toggle("screenFx")),
 		{"label": "Back", "action": on_back},
 	])
 
