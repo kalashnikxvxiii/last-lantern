@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scenes/play.gd" id="1"]
 [ext_resource type="Script" path="res://world/room_view.gd" id="2"]
@@ -11,6 +11,7 @@
 [ext_resource type="Script" path="res://world/bloom.gd" id="9"]
 [ext_resource type="Script" path="res://world/ambient_fx.gd" id="10"]
 [ext_resource type="Script" path="res://world/sparks.gd" id="11"]
+[ext_resource type="Script" path="res://world/post_fx.gd" id="12"]
 
 [node name="Play" type="Node"]
 script = ExtResource("1")
@@ -47,6 +48,9 @@ glow = true
 
 [node name="Sparks" type="Node2D" parent="OverlayLayer"]
 script = ExtResource("11")
+
+[node name="PostFx" type="ColorRect" parent="OverlayLayer"]
+script = ExtResource("12")
 
 [node name="Bloom" type="ColorRect" parent="OverlayLayer"]
 script = ExtResource("9")

@@ -14,7 +14,8 @@ static func defaults() -> Dictionary:
 			# Godot-only display and graphics settings (Display)
 			"windowMode": "windowed", "vsync": "on", "fpsCap": 0, "scaling": "fit",
 			"brightness": 1.0, "contrast": 1.0, "saturation": 1.0, "showFps": false,
-			"bloom": "medium", "shadows": "high", "ao": true, "particles": "high"},
+			"bloom": "medium", "shadows": "high", "ao": true, "particles": "high",
+			"grading": true, "screenFx": true, "crt": false},
 		"stats": {"runs": 0, "wins": 0, "bestDepth": 0, "kills": 0, "bossKills": 0, "bestTime": 0, "maxArdorWon": -1},
 		"unlocks": {"lanterns": ["warden"], "ardor": 0},
 		"seen": {},
