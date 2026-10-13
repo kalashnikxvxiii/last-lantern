@@ -31,6 +31,7 @@ static func burst(x: float, y: float, n: int, color: Variant, spd: float = 60.0,
 			"grav": o.get("grav", 0.0), "drag": o.get("drag"), "glow": o.get("glow", false),
 			"shrink": o.get("shrink", true) != false, "above": o.get("above", false),
 		})
+	Sparks.burst(x, y, n, color, spd, life)   # Godot-only, visual randomness only
 
 static func update(dt: float) -> void:
 	var i := list.size() - 1
