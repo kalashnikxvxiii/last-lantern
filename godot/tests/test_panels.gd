@@ -42,8 +42,8 @@ func test_pause_and_abandon() -> void:
 	Controls.sim = {"pressed": ["pause"]}
 	play.tick(Consts.DT)
 	eq(play.mode, "pause")
-	eq(play.pause_menu.items.size(), 5)
-	play.pause_menu.sel = 4
+	eq(play.pause_menu.items.size(), 6)
+	play.pause_menu.sel = 5
 	Controls.sim = {"pressed": ["confirm"]}
 	play.tick(Consts.DT)
 	check(play.confirm_quit, "first confirmation")
