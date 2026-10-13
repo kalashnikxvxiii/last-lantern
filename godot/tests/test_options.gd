@@ -170,3 +170,18 @@ func test_bloom_layer() -> void:
 	play.queue_free()
 	await (Engine.get_main_loop() as SceneTree).process_frame
 	Run.reset()
+
+func test_shadow_settings() -> void:
+	eq(Save.defaults().settings.shadows, "high")
+	eq(Save.defaults().settings.ao, true)
+	Save.data.settings.shadows = "high"
+	var m := _open("Graphics", "Shadows")
+	check(m.menu().sel >= 0, "the Graphics tab has a Shadows entry")
+	_press(m, "nav_left")
+	eq(Save.data.settings.shadows, "low")
+	_press(m, "nav_left")
+	eq(Save.data.settings.shadows, "off")
+	Save.data.settings.ao = true
+	m = _open("Graphics", "Ambient occlusion")
+	_press(m, "confirm")
+	eq(Save.data.settings.ao, false)

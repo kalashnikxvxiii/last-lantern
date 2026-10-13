@@ -192,6 +192,8 @@ func _graphics(on_back: Callable) -> Menu:
 		_entry("Contrast", _percent("contrast")),
 		_entry("Saturation", _percent("saturation")),
 		_entry("Bloom", _choice(Bloom.LEVELS.keys(), "bloom", func(): pass, func(v: String): return v.capitalize())),
+		_entry("Shadows", _choice(Lighting.SHADOW_STEPS.keys(), "shadows", func(): pass, func(v: String): return v.capitalize())),
+		_entry("Ambient occlusion", _toggle("ao")),
 		_entry("Show FPS", _toggle("showFps")),
 		{"label": "Back", "action": on_back},
 	])
