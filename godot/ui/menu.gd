@@ -7,7 +7,9 @@ var items: Array
 var sel := 0
 var rects: Array = []
 var o: Dictionary
-var last_m := Vector2(-1, -1)
+var hover := -1          # entry under the mouse, -1 when it is off them
+var show_cursor := true  # the options tab row hides the entry cursor
+var lit_prev := true     # an entry was lit on the previous tick
 
 func _init(items_: Array, o_: Dictionary = {}) -> void:
 	items = items_
@@ -25,11 +27,23 @@ func _step(d: int) -> void:
 	Sfx.play("select")
 
 func update() -> void:
+	var m := Controls.mouse_pos()
+	var mouse := Controls.device() == "mouse"
+	# the entry under the mouse, if any
+	hover = -1
+	for i in rects.size():
+		if (rects[i] as Rect2).has_point(m):
+			hover = i
+			break
+	# hovering moves the cursor: with the mouse the flame only lights what it is over
+	if mouse and hover >= 0 and sel != hover and (not is_disabled(items[hover]) or o.get("allowDisabled", false)):
+		sel = hover
+		Sfx.play("select")
 	if Controls.up():
 		_step(-1)
 	if Controls.down():
 		_step(1)
-	var it: Variant = items[sel] if sel < items.size() else null
+	var it: Variant = items[sel] if sel >= 0 and sel < items.size() else null
 	if it != null and it.has("adjust") and not is_disabled(it):
 		if Controls.left():
 			it.adjust.call(-1)
@@ -37,28 +51,28 @@ func update() -> void:
 		if Controls.right():
 			it.adjust.call(1)
 			Sfx.play("select")
-	# mouse
-	var m := Controls.mouse_pos()
-	var moved := m != last_m
-	last_m = m
-	for i in rects.size():
-		var r: Rect2 = rects[i]
-		if r.has_point(m):
-			var allowed: bool = not is_disabled(items[i]) or o.get("allowDisabled", false)
-			if moved and sel != i and allowed:
-				sel = i
-				Sfx.play("select")
-			if Controls.mouse_left_pressed():
-				if items[i].has("adjust") and not is_disabled(items[i]):
-					items[i].adjust.call(1 if m.x > r.position.x + r.size.x / 2 else -1)
-					Sfx.play("select")
-				elif not is_disabled(items[i]) and items[i].has("action"):
-					Sfx.play("confirm")
-					items[i].action.call()
-				return
-	if Controls.confirm() and it != null and not is_disabled(it) and it.has("action"):
-		Sfx.play("confirm")
-		it.action.call()
+	# click: only on the entry under the mouse
+	if mouse and hover >= 0 and Controls.mouse_left_pressed():
+		var hit: Dictionary = items[hover]
+		var r: Rect2 = rects[hover]
+		if hit.has("adjust") and not is_disabled(hit):
+			hit.adjust.call(1 if m.x > r.position.x + r.size.x / 2 else -1)
+			Sfx.play("select")
+		elif not is_disabled(hit) and hit.has("action"):
+			Sfx.play("confirm")
+			hit.action.call()
+		lit_prev = true
+		return
+	if Controls.confirm():
+		# with the mouse off every entry nothing is lit: confirm brings the cursor
+		# back to the first entry instead of pressing the hidden one
+		if not lit_prev:
+			sel = 0
+			Sfx.play("select")
+		elif it != null and not is_disabled(it) and it.has("action"):
+			Sfx.play("confirm")
+			it.action.call()
+	lit_prev = (hover >= 0) if mouse else true
 
 # Godot-only: "disabled" can be a Callable, for entries that depend on other settings
 static func is_disabled(it: Dictionary) -> bool:
@@ -74,10 +88,11 @@ static func label_of(it: Dictionary) -> String:
 func draw(ci: CanvasItem, x: float, y: float, oo: Dictionary = {}) -> void:
 	var lh: float = oo.get("lineH", 14)
 	var align: String = oo.get("align", "center")
+	var mouse := Controls.device() == "mouse"
 	rects = []
 	for i in items.size():
 		var it: Dictionary = items[i]
-		var is_sel := i == sel
+		var is_sel := show_cursor and (i == hover if mouse else i == sel)
 		var label := label_of(it)
 		var col: Variant = "#55505e" if is_disabled(it) else (UiDraw.UI.sel if is_sel else "#c8c0d0")
 		var w := Txt.width(label)
