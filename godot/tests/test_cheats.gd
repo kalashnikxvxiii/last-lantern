@@ -125,3 +125,19 @@ func test_game_speed() -> void:
 	t = Run.time
 	play._physics_process(0.0)
 	near(Run.time - t, Consts.DT * 0.25, 1e-6)
+
+# the "Dev" export presets turn the cheats on through the "cheats" feature tag
+func test_dev_presets_enable_cheats() -> void:
+	var cfg := ConfigFile.new()
+	eq(cfg.load("res://export_presets.cfg"), OK)
+	var names := {}
+	for s in cfg.get_sections():
+		if s.ends_with(".options"):
+			continue
+		var name: String = cfg.get_value(s, "name")
+		var features: String = cfg.get_value(s, "custom_features", "")
+		names[name] = true
+		eq("cheats" in features.split(","), name.ends_with(" Dev"), name)
+	for p in ["Windows Desktop", "Linux"]:
+		check(names.has(p), p)
+		check(names.has(p + " Dev"), p + " Dev")
