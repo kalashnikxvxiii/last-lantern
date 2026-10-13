@@ -60,7 +60,7 @@ Last Lantern is a 2D pixel-art roguelike. `js/` is the original JavaScript game 
 godot --path godot -- --test=boss --seed=7 --sim=300 --screenshot=/tmp/shot.png --shot-after=5
 ```
 
-Arguments: `--test=fight|boss|shop|treasure|elite|shrine|secret`, `--seed=`, `--spawn=rat,ghoul`, `--perks=`, `--relics=`, `--lv=`, `--coins=`, `--lantern=`, `--ardor=`, `--sim=N`, `--fire`, `--pause`, `--map`, `--scene=`.
+Arguments: `--test=fight|boss|shop|treasure|elite|shrine|secret`, `--seed=`, `--spawn=rat,ghoul`, `--perks=`, `--relics=`, `--lv=`, `--coins=`, `--lantern=`, `--ardor=`, `--sim=N`, `--fire`, `--pause`, `--map`, `--scene=`, `--cheats`, `--cheat-panel=Player|Build|World` (F1 opens the cheat panel during play, see CONTRIBUTING.md).
 
 **These runs write to the real save file** (`~/.local/share/Last Lantern Godot/save.json` on Linux, `%APPDATA%\Last Lantern Godot\save.json` on Windows). They can bump statistics and unlock lanterns. Back the file up before a session of dev runs and restore it afterwards. The tests use a separate `test_save.json`.
 

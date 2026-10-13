@@ -11,6 +11,7 @@ const KEYS := {
 	"slot_1": [KEY_1, KEY_KP_1], "slot_2": [KEY_2, KEY_KP_2], "slot_3": [KEY_3, KEY_KP_3], "slot_4": [KEY_4, KEY_KP_4],
 	"nav_up": [KEY_UP, KEY_W], "nav_down": [KEY_DOWN, KEY_S], "nav_left": [KEY_LEFT, KEY_A], "nav_right": [KEY_RIGHT, KEY_D],
 	"confirm": [KEY_ENTER, KEY_KP_ENTER, KEY_SPACE, KEY_E], "back": [KEY_ESCAPE, KEY_BACKSPACE], "reroll": [KEY_R],
+	"cheats": [KEY_F1, KEY_QUOTELEFT],
 	"digit_1": [KEY_1], "digit_2": [KEY_2], "digit_3": [KEY_3], "digit_4": [KEY_4],
 }
 const PAD := {
@@ -25,6 +26,7 @@ const MOUSE := {"fire": [MOUSE_BUTTON_LEFT], "flare": [MOUSE_BUTTON_RIGHT]}
 var last_device := "kb"
 var mouse_moved_at := 0
 var sim: Dictionary = {}
+var held_only := false   # extra ticks of the same frame (cheat fast forward): no new presses
 
 func _ready() -> void:
 	for a in KEYS:
@@ -73,6 +75,8 @@ func mouse_pos() -> Vector2:
 	return get_viewport().get_mouse_position()
 
 func _pressed(a: String) -> bool:
+	if held_only:
+		return false
 	return a in sim.get("pressed", []) or Input.is_action_just_pressed(a)
 
 func _pad() -> int:
@@ -162,6 +166,7 @@ func right() -> bool: return _pressed("nav_right")
 func confirm() -> bool: return _pressed("confirm") and not Input.is_key_pressed(KEY_ALT)   # Alt+Enter: fullscreen
 func back() -> bool: return _pressed("back")
 func reroll() -> bool: return _pressed("reroll")
+func cheats() -> bool: return _pressed("cheats")
 # number keys only (Input.hit('Digit' + n) in the JS): the gamepad d-pad just scrolls
 func digit(i: int) -> bool: return _pressed("digit_%d" % i)
 

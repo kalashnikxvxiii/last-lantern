@@ -229,13 +229,17 @@ func tick(dt: float) -> void:
 	if Run.pull != null:
 		mvx += Run.pull.x
 		mvy += Run.pull.y
-	var bx := Coll.move_axis(self, mvx * dt, 0, false)
-	var by := Coll.move_axis(self, mvy * dt, 1, false)
-	# corner sliding (helps line up with doors)
-	if bx and absf(mvy) < 1:
-		Coll.nudge(self, 0, mvx)
-	if by and absf(mvx) < 1:
-		Coll.nudge(self, 1, mvy)
+	if Cheats.noclip:
+		x = clampf(x + mvx * dt, Consts.RX + r, Consts.RX + Consts.RW * Consts.TS - r)
+		y = clampf(y + mvy * dt, Consts.RY + r, Consts.RY + Consts.RH * Consts.TS - r)
+	else:
+		var bx := Coll.move_axis(self, mvx * dt, 0, false)
+		var by := Coll.move_axis(self, mvy * dt, 1, false)
+		# corner sliding (helps line up with doors)
+		if bx and absf(mvy) < 1:
+			Coll.nudge(self, 0, mvx)
+		if by and absf(mvx) < 1:
+			Coll.nudge(self, 1, mvy)
 
 	# fire
 	fire_cd -= dt

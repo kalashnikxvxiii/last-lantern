@@ -44,6 +44,18 @@ godot --path godot -- --scene=title --screenshot=/tmp/title.png --shot-after=40
 
 `--test` values: `fight`, `boss`, `shop`, `treasure`, `elite`, `shrine`, `secret`. Other arguments: `--depth=N` (start from that depth), `--lantern=`, `--ardor=`, `--sim=N` (simulated ticks), `--fire` (shoot the first enemy during `--sim`), `--pause`, `--map`. These runs write to the local save, like a real game.
 
+### Cheat panel
+
+During play press **F1** (or **`**) to open the cheat panel; the game stays paused while it is open. Arrows or WASD move, LEFT/RIGHT cycle a list or flip a toggle, ENTER applies, ESC goes back, F1 closes.
+
+| Page | What it does |
+|---|---|
+| Player | god mode, infinite oil, noclip, one-hit kills, heal and refill, coins, keys, level up, die |
+| Build | add or remove perks, relics (with their curse) and curses, give consumables, switch lantern, clear the build |
+| World | kill all, clear the room, freeze enemies, spawn any enemy (optionally elite) or warden, go to a room type or depth, reveal the map, game speed (x0.25 to x4), debug readout |
+
+The panel works in debug builds (editor and `godot --path godot`). In an exported build start it with `-- --cheats`. `--cheat-panel=World` opens a page right away (useful with `--screenshot`). Active cheats are shown in red in the bottom right corner, so screenshots taken with cheats on are recognizable. The code is in `autoload/cheats.gd` (state and actions) and `ui/cheat_menu.gd` (pages).
+
 ## Structure of `godot/`
 
 | Folder | Contents |

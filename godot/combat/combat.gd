@@ -4,7 +4,7 @@ extends RefCounted
 
 static func hurt_player(amount: float, src: String = "", o: Dictionary = {}) -> bool:
 	var p := Run.player
-	if p.dead or Run.victory_t != 0:
+	if p.dead or Run.victory_t != 0 or Cheats.god:
 		return false
 	var dot: bool = o.get("dot", false)
 	if not dot:
@@ -104,6 +104,8 @@ static func hit_enemy(e, dmg: float, o: Dictionary = {}) -> void:
 		dmg *= 0.7
 	if e.frozen > 0:
 		dmg *= 1.15
+	if Cheats.one_shot:
+		dmg = maxf(dmg, e.hp)
 	e.hp -= dmg
 	Run.dmg_dealt += dmg
 	if dot == null:
