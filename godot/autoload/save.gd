@@ -13,7 +13,8 @@ static func defaults() -> Dictionary:
 		"settings": {"music": 0.5, "sfx": 0.7, "shake": true, "numbers": true, "fullscreenHint": true, "res": 2,
 			# Godot-only display and graphics settings (Display)
 			"windowMode": "windowed", "vsync": "on", "fpsCap": 0, "scaling": "fit",
-			"brightness": 1.0, "contrast": 1.0, "saturation": 1.0, "showFps": false},
+			"brightness": 1.0, "contrast": 1.0, "saturation": 1.0, "showFps": false,
+			"bloom": "medium"},
 		"stats": {"runs": 0, "wins": 0, "bestDepth": 0, "kills": 0, "bossKills": 0, "bestTime": 0, "maxArdorWon": -1},
 		"unlocks": {"lanterns": ["warden"], "ardor": 0},
 		"seen": {},
