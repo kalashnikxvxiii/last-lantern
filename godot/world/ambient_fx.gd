@@ -7,7 +7,7 @@ extends GPUParticles2D
 
 @export var glow := false
 
-const AMOUNT := {"off": 0.0, "low": 0.5, "high": 1.0}
+const AMOUNT := {"off": 0.0, "low": 0.5, "high": 1.0, "ultra": 1.5}
 
 # per biome: amount, colors, velocity (vx, vy, random speed added or removed),
 # lifetime, size range, turbulence

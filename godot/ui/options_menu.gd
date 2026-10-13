@@ -198,7 +198,13 @@ func _picture(on_back: Callable) -> Menu:
 	])
 
 func _graphics(on_back: Callable) -> Menu:
+	var noop := func() -> void: pass
 	return Menu.new([
+		{"label": "Quality", "value": func(): return Quality.current().capitalize(),
+			"adjust": func(d: int) -> void:
+				Quality.apply(Quality.step(d))
+				Save.write(),
+			"action": noop},
 		_entry("Bloom", _choice(Bloom.LEVELS.keys(), "bloom", func(): pass, func(v: String): return v.capitalize())),
 		_entry("Shadows", _choice(Lighting.SHADOW_STEPS.keys(), "shadows", func(): pass, func(v: String): return v.capitalize())),
 		_entry("Ambient occlusion", _toggle("ao")),
