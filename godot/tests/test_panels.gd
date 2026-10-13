@@ -64,6 +64,23 @@ func test_volume_options() -> void:
 	m.update()
 	eq(Save.data.settings.music, 0.6)
 
+func test_resolution_slider() -> void:
+	var m := Panels.make_options_menu(func(): pass)
+	var idx := -1
+	for i in m.items.size():
+		if m.items[i].label == "Resolution":
+			idx = i
+	check(idx >= 0, "the options menu has a Resolution slider")
+	m.sel = idx
+	Save.data.settings.res = 2
+	Controls.sim = {"pressed": ["nav_right"]}
+	m.update()
+	eq(Save.data.settings.res, 3, "right moves to the next classic resolution")
+	Save.data.settings.res = 0
+	Controls.sim = {"pressed": ["nav_left"]}
+	m.update()
+	eq(Save.data.settings.res, 0, "the slider stays at the smallest resolution")
+
 func test_gamepad_dpad_scrolls_the_cards_without_choosing() -> void:
 	Run.pending_levels = 1
 	play.open_level_up()

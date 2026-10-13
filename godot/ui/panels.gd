@@ -72,6 +72,62 @@ func _options() -> void:
 	UiDraw.text(self, "Options", Consts.W / 2.0, 62, {"align": "center", "color": "#f6cf57", "scale": 2})
 	play.opt_menu.draw(self, Consts.W / 2.0, 96, {"lineH": 16})
 
+# options shared by pause and title (makeOptionsMenu in js/game.js); the
+# Resolution slider is Godot-only: it picks one of the classic sizes, up to
+# the current screen's maximum, and the window can't be resized by dragging
+static func classic_resolutions() -> Array:
+	return [
+		{"w": 1280, "h": 720},
+		{"w": 1366, "h": 768},
+		{"w": 1600, "h": 900},
+		{"w": 1920, "h": 1080},
+		{"w": 2560, "h": 1440},
+		{"w": 3840, "h": 2160},
+	]
+
+static func available_resolutions() -> Array:
+	if DisplayServer.get_name() == "headless":
+		return classic_resolutions()   # the tests never open a window
+	var max_v := DisplayServer.screen_get_size(DisplayServer.window_get_current_screen())
+	var out: Array = []
+	for r in classic_resolutions():
+		if r.w <= max_v.x and r.h <= max_v.y:
+			out.append(r)
+	if out.is_empty():
+		out = [classic_resolutions()[0]]
+	return out
+
+static func saved_resolution_index() -> int:
+	return int(Save.data.settings.get("res", 2))
+
+# position of the saved resolution inside avail, clamped to its largest entry
+static func res_pos(avail: Array) -> int:
+	var saved := saved_resolution_index()
+	if saved < classic_resolutions().size():
+		var i: int = avail.find(classic_resolutions()[saved])
+		if i >= 0:
+			return i
+	return avail.size() - 1
+
+# slider bar, same look as the volume bars
+static func res_bar(idx: int, n: int) -> String:
+	var frac := float(idx) / maxf(float(n) - 1.0, 1.0)
+	var filled := 10 if n == 1 else int(round(frac * 10))
+	return "[" + "#".repeat(filled) + "-".repeat(10 - filled) + "]"
+
+# applies the saved resolution to the window (called at boot and when the
+# slider moves), centered on the current screen
+static func apply_resolution() -> void:
+	if DisplayServer.get_name() == "headless" or DisplayServer.window_get_mode() != DisplayServer.WINDOW_MODE_WINDOWED:
+		return
+	var avail := available_resolutions()
+	var r: Dictionary = avail[res_pos(avail)]
+	var size := Vector2i(r.w, r.h)
+	var root: Window = (Engine.get_main_loop() as SceneTree).root
+	var scr := DisplayServer.window_get_current_screen()
+	root.size = size
+	root.position = DisplayServer.screen_get_position(scr) + (DisplayServer.screen_get_size(scr) - size) / 2
+
 # options shared by pause and title (makeOptionsMenu in js/game.js)
 static func make_options_menu(on_back: Callable) -> Menu:
 	var s: Dictionary = Save.data.settings
@@ -107,6 +163,18 @@ static func make_options_menu(on_back: Callable) -> Menu:
 			"action": func():
 				s.numbers = not s.numbers
 				Save.write()},
+		{"label": "Resolution", "value": func() -> String:
+			var avail := Panels.available_resolutions()
+			var i := Panels.res_pos(avail)
+			var r: Dictionary = avail[i]
+			return str(r.w) + "x" + str(r.h) + "  " + Panels.res_bar(i, avail.size()),
+			"adjust": func(d):
+				var avail := Panels.available_resolutions()
+				var i: int = clampi(Panels.res_pos(avail) + d, 0, avail.size() - 1)
+				Save.data.settings.res = Panels.classic_resolutions().find(avail[i])
+				Panels.apply_resolution()
+				Save.write(),
+			"action": noop},
 		{"label": "Fullscreen", "action": func():
 			var fs := DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED if fs else DisplayServer.WINDOW_MODE_FULLSCREEN)},
