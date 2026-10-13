@@ -8,7 +8,7 @@ static func draw(ci: CanvasItem) -> void:
 	var y := 36.0
 	for t in Run.toasts:
 		var a: float = t.t / 0.2 if t.t < 0.2 else ((t.life - t.t) / 0.5 if t.t > t.life - 0.5 else 1.0)
-		var w := maxf(Txt.width(t.text), minf(260, Txt.width(t.sub)) if t.sub != "" else 0.0) + 16
+		var w := UiDraw.panel_width(t.text, t.sub, 16.0)
 		UiDraw.alpha = ga * a
 		var h := 26 if t.sub != "" else 15
 		UiDraw.panel(ci, W / 2.0 - w / 2, y, w, h, {"alpha": 0.88})

@@ -239,10 +239,6 @@ func _objects(room: Dictionary) -> void:
 				# merchant's lantern
 				UiDraw.px_rect(self, o.x + 8, o.y - 2, 3, 4, "#f6cf57")
 				UiDraw.px_rect(self, o.x + 8, o.y - 3, 3, 1, "#3b3546")
-				if U.dist(o.x, o.y, Run.player.x, Run.player.y) < 70:
-					var w := minf(200, Txt.width(o.line) + 12)
-					UiDraw.panel(self, o.x - w / 2, o.y - 34, w, 16, {"alpha": 0.9})
-					UiDraw.text(self, o.line, o.x, o.y - 30, {"align": "center", "color": "#e8dcc0"})
 			"trapdoor":
 				var x: float = o.x - 12
 				var y: float = o.y - 12

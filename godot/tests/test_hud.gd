@@ -23,6 +23,13 @@ func test_known_rooms() -> void:
 	Run.player.stats.mapReveal = 1
 	check(MapDraw.room_known(any))
 
+func test_fog_hides_the_whole_map() -> void:
+	TH.new_run(73)
+	Run.player.stats.hideMap = 0
+	check(MapDraw.rooms_visible(), "no fog: rooms visible")
+	Run.player.stats.hideMap = 1
+	check(not MapDraw.rooms_visible(), "Fog hides the rooms on every map")
+
 func test_hud_draws() -> void:
 	TH.new_run(72)
 	var play: Node = load("res://scenes/play.tscn").instantiate()

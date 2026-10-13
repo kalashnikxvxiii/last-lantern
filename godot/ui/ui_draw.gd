@@ -124,6 +124,11 @@ static func keycap(ci: CanvasItem, x: float, y: float, label: String, o: Diction
 	text(ci, label, x + floor(w / 2), y + 1, {"align": "center", "color": "#f2ead8", "shadow": false})
 	return w
 
+# Smallest panel width that holds `text` and the optional `sub`, plus `pad`
+# (in the JS the merchant bubble and the toast sub were capped and overflowed).
+static func panel_width(text: String, sub: String, pad: float) -> float:
+	return maxf(Txt.width(text), Txt.width(sub) if sub != "" else 0.0) + pad
+
 static func bar(ci: CanvasItem, x: float, y: float, w: float, h: float, frac: float, c: Variant, bg: Variant = "#120d16", hi: Variant = null) -> void:
 	frac = clampf(frac, 0, 1)
 	px_rect(ci, x - 1, y - 1, w + 2, h + 2, "#0a070d")

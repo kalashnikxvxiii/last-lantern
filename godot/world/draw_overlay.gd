@@ -1,6 +1,7 @@
 extends Node2D
 # Overlay visible even in the dark (drawWorld in js/render.js): telegraphs, eyes,
-# enemy projectiles, high particles, floating numbers, interaction prompt.
+# enemy projectiles, high particles, floating numbers, interaction prompt,
+# merchant's speech bubble.
 
 func _process(_delta: float) -> void:
 	queue_redraw()
@@ -14,6 +15,17 @@ func _draw() -> void:
 	Particles.draw(self, true)
 	Floaters.draw(self)
 	_prompt()
+	_bubbles()
+
+# merchant's speech bubble (drawObjects in js/render.js); drawn in the overlay,
+# above the actors, so the player does not cover it
+func _bubbles() -> void:
+	for o in Run.room.objects:
+		if o.type != "merchant" or U.dist(o.x, o.y, Run.player.x, Run.player.y) >= 70:
+			continue
+		var w := UiDraw.panel_width(o.line, "", 12.0)
+		UiDraw.panel(self, o.x - w / 2, o.y - 34, w, 16, {"alpha": 0.9})
+		UiDraw.text(self, o.line, o.x, o.y - 30, {"align": "center", "color": "#e8dcc0"})
 
 # drawEnemyBullets (js/render.js)
 func _enemy_bullets() -> void:
