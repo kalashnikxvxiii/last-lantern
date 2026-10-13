@@ -50,11 +50,12 @@ Items already checked were verified during development with automated tests (`to
 ## Saving and options
 - [ ] Music and effects volume, shake, damage numbers, fullscreen (also F11 and Alt+Enter)
 - [ ] Options tabs: Q/TAB, PageUp/PageDown, LB/RB, the mouse and the tab row all switch tab
-- [ ] Display tab: window mode (also exclusive), resolution only in a window, VSync, FPS limit, pixel-perfect scaling, all kept after a restart
-- [ ] Graphics tab: brightness, contrast and saturation on the game and the HUD, FPS counter
+- [ ] Display tab: window mode (also exclusive), resolution only in a window, VSync, FPS limit, pixel-perfect scaling, FPS counter, all kept after a restart
+- [ ] Graphics tab: brightness, contrast and saturation on the game and the HUD
 - [ ] Bloom: Off, Low, Medium, High in game and on the title; Off gives the original picture; the HUD and the in-game panels never glow
 - [ ] Shadows (Off, Low, High): rocks, walls and barrels cast soft shadows from the lantern and the braziers, also after a barrel or rock breaks; Off gives the original lighting
 - [ ] Ambient occlusion: the floor darkens next to walls and rocks
+- [ ] Particles (Off, Low, High): ambient motes of each biome (crypt dust, fungal spores, forge embers and ash, abyss bubbles, violet motes in the heart), sparks from fire, crits, explosions and flares; Off removes both
 - [ ] Archive updated between sessions (close and reopen)
 - [ ] Auto-pause when the window loses focus
 
