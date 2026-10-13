@@ -8,6 +8,7 @@ var menu: Menu
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	add_child(Bloom.new())   # drawn after paint()
 	enter()
 
 func _physics_process(dt: float) -> void:

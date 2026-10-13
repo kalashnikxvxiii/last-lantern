@@ -52,6 +52,7 @@ Items already checked were verified during development with automated tests (`to
 - [ ] Options tabs: Q/TAB, PageUp/PageDown, LB/RB, the mouse and the tab row all switch tab
 - [ ] Display tab: window mode (also exclusive), resolution only in a window, VSync, FPS limit, pixel-perfect scaling, all kept after a restart
 - [ ] Graphics tab: brightness, contrast and saturation on the game and the HUD, FPS counter
+- [ ] Bloom: Off, Low, Medium, High in game and on the title; Off gives the original picture; the HUD and the in-game panels never glow
 - [ ] Archive updated between sessions (close and reopen)
 - [ ] Auto-pause when the window loses focus
 
