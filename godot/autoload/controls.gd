@@ -11,7 +11,7 @@ const KEYS := {
 	"slot_1": [KEY_1, KEY_KP_1], "slot_2": [KEY_2, KEY_KP_2], "slot_3": [KEY_3, KEY_KP_3], "slot_4": [KEY_4, KEY_KP_4],
 	"nav_up": [KEY_UP, KEY_W], "nav_down": [KEY_DOWN, KEY_S], "nav_left": [KEY_LEFT, KEY_A], "nav_right": [KEY_RIGHT, KEY_D],
 	"confirm": [KEY_ENTER, KEY_KP_ENTER, KEY_SPACE, KEY_E], "back": [KEY_ESCAPE, KEY_BACKSPACE], "reroll": [KEY_R],
-	"cheats": [KEY_F1, KEY_QUOTELEFT],
+	"cheats": [KEY_F1, KEY_QUOTELEFT], "tab_prev": [KEY_Q, KEY_PAGEUP], "tab_next": [KEY_TAB, KEY_PAGEDOWN],
 	"digit_1": [KEY_1], "digit_2": [KEY_2], "digit_3": [KEY_3], "digit_4": [KEY_4],
 }
 const PAD := {
@@ -20,6 +20,7 @@ const PAD := {
 	"slot_1": [JOY_BUTTON_DPAD_UP], "slot_2": [JOY_BUTTON_DPAD_RIGHT], "slot_3": [JOY_BUTTON_DPAD_DOWN], "slot_4": [JOY_BUTTON_DPAD_LEFT],
 	"nav_up": [JOY_BUTTON_DPAD_UP], "nav_down": [JOY_BUTTON_DPAD_DOWN], "nav_left": [JOY_BUTTON_DPAD_LEFT], "nav_right": [JOY_BUTTON_DPAD_RIGHT],
 	"confirm": [JOY_BUTTON_A], "back": [JOY_BUTTON_B], "reroll": [JOY_BUTTON_Y],
+	"tab_prev": [JOY_BUTTON_LEFT_SHOULDER], "tab_next": [JOY_BUTTON_RIGHT_SHOULDER],
 }
 const MOUSE := {"fire": [MOUSE_BUTTON_LEFT], "flare": [MOUSE_BUTTON_RIGHT]}
 
@@ -167,6 +168,8 @@ func confirm() -> bool: return _pressed("confirm") and not Input.is_key_pressed(
 func back() -> bool: return _pressed("back")
 func reroll() -> bool: return _pressed("reroll")
 func cheats() -> bool: return _pressed("cheats")
+func tab_prev() -> bool: return _pressed("tab_prev")
+func tab_next() -> bool: return _pressed("tab_next")
 # number keys only (Input.hit('Digit' + n) in the JS): the gamepad d-pad just scrolls
 func digit(i: int) -> bool: return _pressed("digit_%d" % i)
 

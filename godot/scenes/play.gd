@@ -13,7 +13,7 @@ var confirm_quit := false
 var build_sel := 0
 var build_rects: Array = []
 var map_from := "play"
-var opt_menu: Menu
+var opt_menu: OptionsMenu
 var cheat_menu: Menu
 var cheat_page := "main"
 @onready var world: Node2D = $World
@@ -165,7 +165,7 @@ func open_pause() -> void:
 			map_from = "pause"},
 		{"label": "Options", "action": func():
 			mode = "options"
-			opt_menu = Panels.make_options_menu(func(): mode = "pause")},
+			opt_menu = OptionsMenu.new(func(): mode = "pause")},
 		{"label": func(): return "Sure? The descent will be lost" if confirm_quit else "Abandon the descent", "action": func():
 			if not confirm_quit:
 				confirm_quit = true

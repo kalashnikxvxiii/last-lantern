@@ -49,6 +49,9 @@ Items already checked were verified during development with automated tests (`to
 
 ## Saving and options
 - [ ] Music and effects volume, shake, damage numbers, fullscreen (also F11 and Alt+Enter)
+- [ ] Options tabs: Q/TAB, PageUp/PageDown, LB/RB, the mouse and the tab row all switch tab
+- [ ] Display tab: window mode (also exclusive), resolution only in a window, VSync, FPS limit, pixel-perfect scaling, all kept after a restart
+- [ ] Graphics tab: brightness, contrast and saturation on the game and the HUD, FPS counter
 - [ ] Archive updated between sessions (close and reopen)
 - [ ] Auto-pause when the window loses focus
 
