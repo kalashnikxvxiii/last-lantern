@@ -8,6 +8,9 @@ const OCC_RES := 4                 # occluder mask texels per tile
 const SHADOW_MIN_R := 40.0         # smaller lights (projectiles, pickups) cast no shadow
 const SHADOW_STEPS := {"off": 0, "low": 12, "high": 24, "ultra": 40}
 const AO := 0.35
+# how glossy each depth's surfaces are: 0 is dry rock (the colored glow only warms
+# the colors it falls on), 1 is polished (the glow is laid over them, as in the JS)
+const SHEEN := {"crypt": 0.0, "fungus": 0.25, "forge": 0.4, "abyss": 0.3, "heart": 0.45}
 var light := ColorRect.new()
 var vignette := ColorRect.new()
 var occ_tex: ImageTexture
@@ -23,6 +26,9 @@ func _ready() -> void:
 		m.shader = load("res://shaders/%s.gdshader" % pair[1])
 		rect.material = m
 		add_child(rect)
+
+static func sheen(biome: String) -> float:
+	return SHEEN.get(biome, 0.0)
 
 static func ambient(dark_: float, depth: int, cleared: bool, is_boss: bool, oil_empty: bool, combat: bool) -> float:
 	var amb := dark_ + minf(0.08, maxf(0.0, depth - 5) * 0.015)
@@ -57,6 +63,7 @@ func refresh(offset: Vector2) -> void:
 	m.set_shader_parameter("count", n)
 	m.set_shader_parameter("lights", pos)
 	m.set_shader_parameter("colors", cols)
+	m.set_shader_parameter("sheen", sheen(DB.biome_of(Run.depth).id))
 	# shadows and ambient occlusion
 	var steps: int = SHADOW_STEPS.get(str(Save.data.settings.shadows), 0)
 	var ao: float = AO if Save.data.settings.ao else 0.0

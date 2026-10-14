@@ -58,3 +58,19 @@ func test_shadow_casters_come_first() -> void:
 	eq(n, 2, "only the large lights cast shadows")
 	eq([L[0].r, L[1].r], [72.0, 90.0], "large lights first, in their order")
 	eq([L[2].r, L[3].r], [12.0, 16.0], "then the others, in their order")
+
+# --- Godot-only materials: dry stone stays matte, wet and metal surfaces shine ---
+
+func test_every_biome_has_a_sheen() -> void:
+	for id in ["crypt", "fungus", "forge", "abyss", "heart"]:
+		var s := Lighting.sheen(id)
+		check(s >= 0.0 and s <= 1.0, id)
+	eq(Lighting.sheen("crypt"), 0.0, "the crypts are dry rock")
+	check(Lighting.sheen("forge") > Lighting.sheen("crypt"), "the forge shines more")
+
+func test_walls_take_the_biome_material() -> void:
+	var v := View3D.new()
+	var m := v.build_solids(Run.room).surface_get_material(0) as StandardMaterial3D
+	near(m.roughness, 1.0, 1e-6, "rock is fully rough")
+	near(m.metallic_specular, 0.0, 1e-6, "and gives no highlights")
+	v.free()

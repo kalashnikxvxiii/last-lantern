@@ -8,6 +8,9 @@ render_mode blend_premul_alpha;
 // dst * (1 - a) + DARK * a + glow, the same as the two JS layers.
 // Godot-only: the first shadow_n lights cast soft shadows through the occluder
 // mask (walls, rocks, barrels), and ambient occlusion darkens the floor next to them.
+// Godot-only: the glow depends on the material. On matte rock (sheen 0) it tints
+// the colors under it, so dark cracks stay dark; on glossy ground (sheen 1) it is
+// added over them like in the JS.
 
 uniform float amb = 0.68;
 uniform int count = 0;
@@ -18,11 +21,14 @@ uniform int shadow_steps = 0;
 uniform float ao = 0.0;
 uniform sampler2D occ : filter_linear, repeat_disable;
 uniform vec2 room_pos;      // top-left corner of the room on screen
+uniform float sheen = 1.0;
+uniform sampler2D screen_tex : hint_screen_texture, filter_nearest;
 
 const vec3 DARK = vec3(5.0, 3.0, 9.0) / 255.0;
 const float R0 = 0.12;
 const float R1 = 0.12 + 0.55 * 0.88;   // second gradient stop
 const vec2 ROOM = vec2(29.0 * 16.0, 15.0 * 16.0);
+const float DIFFUSE = 4.0;   // matte glow on a typical floor (albedo ~0.25) as bright as the added one
 
 float falloff(float k) {
 	if (k <= R0) return 1.0;
@@ -84,5 +90,6 @@ void fragment() {
 		if (C.a > 0.0 && d < r) sum += C.rgb * C.a * (1.0 - d / r) * vis;
 	}
 	if (ao > 0.0 && self_occ < 0.5) a = 1.0 - (1.0 - a) * (1.0 - ao * ambient_occlusion(p));
+	if (sheen < 1.0) sum *= mix(texture(screen_tex, SCREEN_UV).rgb * DIFFUSE, vec3(1.0), sheen);
 	COLOR = vec4(DARK * a + sum, a);
 }

@@ -153,6 +153,10 @@ func build_solids(room: Dictionary) -> ArrayMesh:
 	m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 	m.cull_mode = BaseMaterial3D.CULL_DISABLED
 	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+	# rock stays matte; wet or metal walls are smoother and catch highlights
+	var sh := Lighting.sheen(biome.id)
+	m.roughness = 1.0 - 0.6 * sh
+	m.metallic_specular = 0.5 * sh
 	mesh.surface_set_material(0, m)
 	return mesh
 
@@ -172,6 +176,7 @@ static func _is_wall(room: Dictionary, tx: int, ty: int) -> bool:
 func _box(st: SurfaceTool, room: Dictionary, tx: int, ty: int, x: float, z: float, uv: Rect2) -> void:
 	var w := float(Consts.TS)
 	var h := WALL_H
+	st.set_smooth_group(0xFFFFFFFF)   # flat faces: smoothed edges would catch light like polished metal
 	_quad(st, Vector3(x, h, z), Vector3(x + w, h, z), Vector3(x + w, h, z + w), Vector3(x, h, z + w), uv)
 	# side faces only where nothing covers them
 	if not _is_wall(room, tx, ty + 1):
@@ -187,6 +192,7 @@ func _box(st: SurfaceTool, room: Dictionary, tx: int, ty: int, x: float, z: floa
 func _rock(st: SurfaceTool, cx: float, cz: float, uv: Rect2) -> void:
 	var n := 10
 	var rings := [[0.0, 1.0], [0.5, 0.92], [0.85, 0.62], [1.0, 0.0]]   # height, radius (fractions)
+	st.set_smooth_group(0)   # a smooth dome
 	var c := uv.get_center()
 	var k := uv.size / Consts.TS
 	for ri in rings.size() - 1:
