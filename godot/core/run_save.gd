@@ -48,7 +48,12 @@ static func read(slot: int) -> Dictionary:
 		return {}
 	var bytes := FileAccess.get_file_as_bytes(path(slot))
 	var d: Variant = bytes_to_var(bytes) if bytes.size() > 0 else null   # no objects allowed
-	return d if d is Dictionary and d.get("v") == 1 else {}
+	if not (d is Dictionary and d.get("v") == 1 and d.has_all(["summary", "player", "rooms", "room"])):
+		return {}
+	# a slot from before RUN_VARS grew, or a truncated one, would break resume
+	if not (d.get("run") is Dictionary and d.run.has_all(RUN_VARS + ["rng"])):
+		return {}
+	return d
 
 static func erase(slot: int) -> void:
 	if slot >= 0 and FileAccess.file_exists(path(slot)):
