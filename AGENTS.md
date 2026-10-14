@@ -13,15 +13,15 @@ Last Lantern is a 2D pixel-art roguelike. `js/` is the original JavaScript game 
 
 ## Git workflow
 
-1. **Start from an up-to-date `master`.** Run `git fetch origin` first, then branch from `origin/master`: `git checkout -b short-name origin/master`. Never branch from another feature branch or from a stale local `master`.
+1. **Start from an up-to-date `dev`.** Run `git fetch origin` first, then branch from `origin/dev`: `git checkout -b short-name origin/dev`. Never branch from another feature branch, from `master` or from a stale local `dev`. Pull requests go to `dev`; only `dev` is merged into `master`, with a merge commit, when a version is ready.
 2. **One topic per branch.** Do not mix unrelated changes. If you notice something unrelated that needs fixing, do it on its own branch.
 3. **Small, focused commits.** Each commit should change one thing. Make the message a short sentence saying what changes, in the style of the existing history ("Ghoul: the charge stops against rocks"). Keep the first line within about 72 characters.
 4. **No AI attribution.** No `Co-Authored-By` lines and no references to AI tools in commits or PRs.
 5. **Commit and push only when asked.** Before pushing, check:
-   - `git log --oneline origin/master..HEAD` lists only your commits;
+   - `git log --oneline origin/dev..HEAD` lists only your commits;
    - `git status` is clean (no forgotten files, nothing unrelated staged).
-6. **Force pushes:** only on your own branch, only with `--force-with-lease`, and only to clean up history before review. Never on `master`.
-7. **`master` is protected** (`.github/rulesets/master.json`): linear history, no force pushes, changes only through pull requests. The PR title must be 10-72 characters. Fill in the template in `.github/PULL_REQUEST_TEMPLATE.md`.
+6. **Force pushes:** only on your own branch, only with `--force-with-lease`, and only to clean up history before review. Never on `dev` or `master`.
+7. **`dev` and `master` are protected** (`.github/rulesets/`): no force pushes, changes only through pull requests, linear history on `dev`. A pull request into `master` must come from `dev`. The PR title must be 10-72 characters. Fill in the template in `.github/PULL_REQUEST_TEMPLATE.md`.
 8. **Leave other branches alone.** Do not delete or rewrite branches you did not create.
 
 ## Before every commit

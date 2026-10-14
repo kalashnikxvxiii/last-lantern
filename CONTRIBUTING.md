@@ -109,14 +109,14 @@ The assets in `godot/assets/` were generated once from the JS code and are now *
 
 ## Proposing a change
 
-1. Create a branch from `master`: `git checkout -b short-name`.
+1. Create a branch from `dev`: `git fetch origin && git checkout -b short-name origin/dev`. Pull requests go to `dev`; `dev` is merged into `master` when a version is ready.
 2. Make small commits with a message saying what changes, for example "Ghoul: the charge stops against rocks".
 3. Before proposing the change:
    - `tools/test.sh` must pass;
    - try the situation in the game with the development arguments;
    - if something visible changes, attach a screenshot.
 4. Open a pull request and fill in the template: why the change is needed, how you tried it and any intended differences from the JS.
-5. The CI checks (tests, golden data, scripts) and the PR title check must pass before merging. `master` is protected: no force pushes, linear history, changes go through pull requests (see `.github/rulesets/master.json`).
+5. The CI checks (tests, golden data, scripts) and the PR title check must pass before merging. `dev` and `master` are protected: no force pushes, changes go through pull requests, linear history on `dev`, and only `dev` can be merged into `master` (see `.github/rulesets/`).
 
 ## Tester packages
 
