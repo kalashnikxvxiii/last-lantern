@@ -14,7 +14,7 @@ var tab := 0
 var on_tabs := false
 var menus: Array = []
 var tab_rects: Array = []
-var last_m := Vector2(-1, -1)
+var tab_hover := -1   # tab under the mouse, -1 when it is off the row
 
 func _init(on_back: Callable) -> void:
 	menus = [_display(on_back), _picture(on_back), _graphics(on_back), _audio(on_back), _gameplay(on_back)]
@@ -35,15 +35,19 @@ func update() -> void:
 		return
 	# mouse on the tab row
 	var m := Controls.mouse_pos()
-	var moved := m != last_m
-	last_m = m
-	for i in tab_rects.size():
-		if (tab_rects[i] as Rect2).has_point(m) and (moved or Controls.mouse_left_pressed()):
-			on_tabs = true
-			if Controls.mouse_left_pressed() and i != tab:
-				tab = i
-				Sfx.play("select")
-			return
+	var mouse := Controls.device() == "mouse"
+	tab_hover = -1
+	if mouse:
+		for i in tab_rects.size():
+			if (tab_rects[i] as Rect2).has_point(m):
+				tab_hover = i
+				break
+	if tab_hover >= 0:
+		on_tabs = true
+		if Controls.mouse_left_pressed() and tab_hover != tab:
+			tab = tab_hover
+			Sfx.play("select")
+		return
 	if on_tabs:
 		if Controls.left():
 			_switch(-1)
@@ -52,12 +56,15 @@ func update() -> void:
 		elif Controls.down() or Controls.confirm():
 			on_tabs = false
 			menu().sel = 0
+			menu().lit_prev = true
 			Sfx.play("select")
 		elif Controls.up():
 			on_tabs = false
 			menu().sel = menu().items.size() - 1
+			menu().lit_prev = true
 			Sfx.play("select")
-		elif moved:
+		elif mouse:
+			# the mouse left the tab row: hand the focus back to the entries
 			on_tabs = false
 			menu().update()
 		return
@@ -83,6 +90,7 @@ func draw(ci: CanvasItem) -> void:
 	var tx := Consts.W / 2.0 - total / 2
 	var ty := y + 32
 	tab_rects = []
+	var mouse := Controls.device() == "mouse"
 	for i in TABS.size():
 		var w: float = widths[i]
 		var active := i == tab
@@ -90,18 +98,17 @@ func draw(ci: CanvasItem) -> void:
 		UiDraw.px_rect(ci, tx + 1, ty + 1, w - 2, 11, UiDraw.UI.brassD if active else UiDraw.UI.bg2)
 		if active:
 			UiDraw.px_rect(ci, tx + 1, ty + 1, w - 2, 1, UiDraw.UI.brassL)
-		var col: Variant = UiDraw.UI.sel if active and on_tabs else ("#f2ead8" if active else UiDraw.UI.dim)
+		# the tab lights up when the keyboard is on the row or the mouse is over it
+		var lit := (mouse and tab_hover == i) or (not mouse and active and on_tabs)
+		var col: Variant = UiDraw.UI.sel if lit else ("#f2ead8" if active else UiDraw.UI.dim)
 		UiDraw.text(ci, TABS[i], tx + w / 2, ty + 3, {"align": "center", "color": col})
 		tab_rects.append(Rect2(tx, ty, w, 13))
 		tx += w + gap
 	UiDraw.px_rect(ci, x + 8, ty + 15, W - 16, 1, UiDraw.UI.brassD)
 	# entries: the selection marker is hidden while the tab row has the focus
 	var m := menu()
-	var keep := m.sel
-	if on_tabs:
-		m.sel = -1
+	m.show_cursor = not on_tabs
 	m.draw(ci, Consts.W / 2.0, ty + 24, {"lineH": 15})
-	m.sel = keep
 	# hint
 	var pad := Controls.device() == "pad"
 	var hy := y + H - 15

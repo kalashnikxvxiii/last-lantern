@@ -23,7 +23,8 @@ func _draw() -> void:
 
 func _level_up() -> void:
 	var more := "   (" + str(Run.pending_levels - 1) + " pending)" if Run.pending_levels > 1 else ""
-	play.card_rects = PanelsDraw.perk_cards(self, play.choices, play.sel, "A new spark", "Level " + str(Run.player.level) + "  -  choose a perk" + more)
+	var lit: int = play.card_hover if Controls.device() == "mouse" else play.sel
+	play.card_rects = PanelsDraw.perk_cards(self, play.choices, lit, "A new spark", "Level " + str(Run.player.level) + "  -  choose a perk" + more)
 	var can := Run.player.coins >= Run.reroll_cost
 	var label := "Reroll  (" + str(Run.reroll_cost) + " coins)"
 	var w := Txt.width(label) + 30
@@ -48,12 +49,16 @@ func _pause(build_mode: bool) -> void:
 	UiDraw.text(self, "Seed " + str(Run.seed) + "  -  " + Consts.VERSION, 90, 240, {"align": "center", "color": "#3b3546"})
 	if Run.ardor:
 		UiDraw.text(self, "Ardor " + str(Run.ardor), 90, 228, {"align": "center", "color": "#e0574a"})
-	# equipment panel
-	var hover: int = play.build_sel if build_mode else -1
-	var m := Controls.mouse_pos()
-	for i in play.build_rects.size():
-		if play.build_rects[i].has_point(m):
-			hover = i
+	# equipment panel: the mouse lights what it is over, the keyboard its own cursor
+	var hover := -1
+	if Controls.device() == "mouse":
+		var m := Controls.mouse_pos()
+		for i in play.build_rects.size():
+			if (play.build_rects[i] as Rect2).has_point(m):
+				hover = i
+				break
+	elif build_mode:
+		hover = play.build_sel
 	play.build_rects = PanelsDraw.build_panel(self, 186, 30, 166, 226, hover)
 	PanelsDraw.stats_panel(self, 358, 30, 116, 142)
 	# summary

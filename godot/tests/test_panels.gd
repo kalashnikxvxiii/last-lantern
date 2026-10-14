@@ -57,6 +57,46 @@ func test_menu_skips_disabled_entries() -> void:
 	m.update()
 	eq(m.sel, 2)
 
+func test_the_mouse_lights_only_what_it_is_over() -> void:
+	var m := Menu.new([{"label": "a"}, {"label": "b"}, {"label": "c"}])
+	m.sel = 2
+	m.rects = [Rect2(0, 0, 10, 10), Rect2(0, 10, 10, 10), Rect2(0, 20, 10, 10)]
+	Controls.sim = {"device": "mouse", "mouse": Vector2(5, 15)}
+	m.update()
+	eq(m.sel, 1, "the cursor follows the entry under the mouse")
+	eq(m.hover, 1)
+	check(m.lit_prev, "the hovered entry is lit")
+	Controls.sim = {"device": "mouse", "mouse": Vector2(5, 100)}
+	m.update()
+	eq(m.hover, -1, "away from the entries nothing is hovered")
+	eq(m.sel, 1, "the cursor itself does not move")
+	check(not m.lit_prev, "and nothing stays lit")
+
+func test_confirm_with_nothing_lit_goes_to_the_top() -> void:
+	var chosen: Array = []
+	var m := Menu.new([
+		{"label": "a", "action": func(): chosen.append("a")},
+		{"label": "b", "action": func(): chosen.append("b")}])
+	m.sel = 1
+	m.rects = [Rect2(0, 0, 10, 10), Rect2(0, 10, 10, 10)]
+	Controls.sim = {"device": "mouse", "mouse": Vector2(5, 100)}
+	m.update()
+	Controls.sim = {"device": "kb", "mouse": Vector2(5, 100), "pressed": ["confirm"]}
+	m.update()
+	eq(m.sel, 0, "the first confirm brings the cursor back to the first entry")
+	check(chosen.is_empty(), "and does not press the hidden entry")
+	Controls.sim = {"device": "kb", "mouse": Vector2(5, 100), "pressed": ["confirm"]}
+	m.update()
+	eq(chosen, ["a"], "the second confirm presses the first entry")
+
+func test_the_keyboard_keeps_confirming_immediately() -> void:
+	var chosen: Array = []
+	var m := Menu.new([{"label": "a", "action": func(): chosen.append("a")}])
+	m.rects = [Rect2(0, 0, 10, 10)]
+	Controls.sim = {"device": "kb", "mouse": Vector2(5, 100), "pressed": ["confirm"]}
+	m.update()
+	eq(chosen, ["a"], "a keyboard player confirms on the first press")
+
 func test_pause_opens_the_options() -> void:
 	play.open_pause()
 	play.pause_menu.sel = 3
