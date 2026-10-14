@@ -119,7 +119,8 @@ class ErrorBar extends Node2D:
 		queue_redraw()
 	func _draw() -> void:
 		if Save.data.settings.showFps:
-			UiDraw.text(self, str(int(Engine.get_frames_per_second())) + " FPS", Consts.W - 3, Consts.H - 10, {"align": "right", "color": "#8a8294"})
+			# bottom left: the bottom right holds the version and the active cheats
+			UiDraw.text(self, str(int(Engine.get_frames_per_second())) + " FPS", 3, Consts.H - 10, {"color": "#8a8294"})
 		var g := get_node("/root/Game")
 		if g.error == "":
 			return
