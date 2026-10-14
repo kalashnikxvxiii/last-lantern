@@ -191,3 +191,16 @@ func test_tabs_fit_the_panel() -> void:
 	for t in OptionsMenu.TABS.size():
 		m.tab = t
 		check(m.menu().items.size() <= OptionsMenu.MAX_ENTRIES, OptionsMenu.TABS[t] + " fits the panel")
+
+func test_the_mouse_on_the_tab_row() -> void:
+	var m := OptionsMenu.new(func(): pass)
+	m.tab_rects = []
+	for i in OptionsMenu.TABS.size():
+		m.tab_rects.append(Rect2(i * 20, 0, 10, 10))
+	Controls.sim = {"device": "mouse", "mouse": Vector2(25, 5), "pressed": ["fire"]}
+	m.update()
+	eq(m.tab, 1, "a click opens the tab")
+	check(m.on_tabs)
+	Controls.sim = {"device": "mouse", "mouse": Vector2(200, 200)}
+	m.update()
+	check(not m.on_tabs, "off the row the focus goes back to the entries")
