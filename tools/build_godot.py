@@ -2,7 +2,7 @@
 """Builds the Windows package for testers of the Godot version.
 
 Usage:  python3 tools/build_godot.py
-Requires: Godot 4.7.2 in the PATH (the "godot" command) with the export templates
+Requires: Bash in the PATH (Git Bash on Windows), and Godot 4.7.2 (the "godot" command) with the export templates
 installed (Editor > Manage Export Templates). Runs the tests first.
 Result: dist/godot/LastLantern-<version>-Windows.zip and SHA256SUMS.txt.
 """
@@ -49,7 +49,7 @@ def sha256(path):
 def main():
     step('Version ' + version)
     step('Test')
-    run([os.path.join(ROOT, 'tools', 'test.sh')])
+    run(['bash', 'tools/test.sh'])
 
     step('Windows export')
     shutil.rmtree(OUT, ignore_errors=True)

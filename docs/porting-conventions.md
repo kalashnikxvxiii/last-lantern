@@ -14,7 +14,7 @@ The JavaScript code in `js/` is the **source of truth** for gameplay behavior. W
 | `Math.hypot(a, b)` | `sqrt(a * a + b * b)` |
 | `Math.min/max` | `minf/maxf` (float), `mini/maxi` (int) |
 | `a % b` on floats | `fmod(a, b)` (same sign as the JS) |
-| `o.k \|\| d` on optional fields | `o.get("k", d)`; never rely on the "truthiness" of `0`, `""`, `null`: write the comparison explicitly |
+| `o.k \|\| d` on optional fields | Read `o.get("k")`, then explicitly test the JS falsy values possible for that field (`null`, `false`, `0`, `""`, or `NaN`). `o.get("k", d)` only defaults when the key is absent, so it is equivalent only if a present value is always truthy in JS. |
 | `arr.filter(f)` / `some` / `every` | `arr.filter(f)` / `arr.any(f)` / `arr.all(f)` |
 | `push`, `shift`, `splice(i, 1)` | `append`, `pop_front`, `remove_at(i)` |
 | `new Set()` | `Dictionary` used as a set (`s[k] = true`, `s.has(k)`): keeps insertion order like the JS |
