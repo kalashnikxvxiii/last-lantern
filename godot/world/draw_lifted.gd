@@ -3,8 +3,16 @@ extends Node2D
 # Godot-only, with the 3D view: the details that belong to standing things (eyes,
 # health bars, flames, the lantern, floating numbers, prompts), drawn on the screen
 # above the 3D room by the same 2D code, moved to where the 3D view shows each anchor.
+# The picture adjustments reach them through shaders/picture.gdshader, not the HUD.
+
+func _ready() -> void:
+	var m := ShaderMaterial.new()
+	m.shader = load("res://shaders/picture.gdshader")
+	material = m
 
 func _process(_delta: float) -> void:
+	var s: Dictionary = Save.data.settings
+	(material as ShaderMaterial).set_shader_parameter("bcs", Vector3(s.brightness, s.contrast, s.saturation))
 	queue_redraw()
 
 func _draw() -> void:

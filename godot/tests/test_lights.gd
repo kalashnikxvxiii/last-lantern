@@ -74,3 +74,15 @@ func test_walls_take_the_biome_material() -> void:
 	near(m.roughness, 1.0, 1e-6, "rock is fully rough")
 	near(m.metallic_specular, 0.0, 1e-6, "and gives no highlights")
 	v.free()
+
+func test_lifted_details_follow_the_picture_settings() -> void:
+	var saved: Dictionary = Save.data.settings.duplicate()
+	Save.data.settings.brightness = 1.2
+	Save.data.settings.contrast = 0.8
+	Save.data.settings.saturation = 0.5
+	var d := DrawLifted.new()
+	d._ready()
+	d._process(0.0)
+	eq((d.material as ShaderMaterial).get_shader_parameter("bcs"), Vector3(1.2, 0.8, 0.5))
+	d.free()
+	Save.data.settings = saved
