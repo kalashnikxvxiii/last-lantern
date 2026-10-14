@@ -138,7 +138,7 @@ func aim_angle(px: float, py: float, current: float) -> float:
 	if ka != null:
 		return ka
 	if device() == "mouse" or mouse_left():
-		var m := mouse_pos()
+		var m := mouse_pos() - Fx.cam_px()   # the camera moves the room under the mouse
 		return U.ang_to(px, py - 4, m.x, m.y)
 	return current
 
