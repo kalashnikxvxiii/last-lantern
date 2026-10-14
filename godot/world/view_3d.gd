@@ -125,6 +125,38 @@ func screen_to_floor(m: Vector2) -> Vector2:
 	var p := o + d * (-o.y / d.y)
 	return Vector2(p.x, p.z)
 
+# whether a wall or a rock stands between p and the camera: the lifted 2D details
+# are drawn over the whole 3D room, so they ask before drawing
+func hidden(p: Vector3) -> bool:
+	var d := (cam.position - p).normalized()
+	var q := p
+	while q.y < WALL_H:
+		var tx := floori((q.x - Consts.RX) / Consts.TS)
+		var ty := floori((q.z - Consts.RY) / Consts.TS)
+		if tx >= 0 and ty >= 0 and tx < Consts.RW and ty < Consts.RH:
+			var t: int = Run.room.grid[ty][tx]
+			if t == Consts.T.WALL:
+				return true
+			if (t == Consts.T.ROCK or t == Consts.T.CRACK) and q.y < ROCK_H:
+				var c := RoomU.tile_center(tx, ty)
+				if Vector2(q.x - c.x, q.z - c.y).length() < ROCK_R:
+					return true
+		q += d * 2.0
+	return false
+
+# the middle of a standing sprite whose feet are at base, where _pose puts it: the
+# billboard stands along the camera's up, which leans back toward the far wall
+func sprite_mid(base: Vector3, h: float) -> Vector3:
+	return base + (cam.position - base).normalized() * SPRITE_BIAS + cam.basis.y * (h / 2.0)
+
+# where a light of the 2D lighting hangs: a bit toward the camera, to light the
+# sprites' faces, but never inside a wall, which would light its front from within
+func light_pos(x: float, y: float) -> Vector3:
+	var z := y + 12.0
+	while z > y - 12.0 and _is_wall(Run.room, floori((x - Consts.RX) / Consts.TS), floori((z + 4.0 - Consts.RY) / Consts.TS)):
+		z -= 1.0   # and 4 px away from it, even behind the source
+	return Vector3(x, 24, z)
+
 # --- walls and rocks: one mesh, textured from the biome tileset ---
 
 func build_solids(room: Dictionary) -> ArrayMesh:
@@ -153,6 +185,10 @@ func build_solids(room: Dictionary) -> ArrayMesh:
 	m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 	m.cull_mode = BaseMaterial3D.CULL_DISABLED
 	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+	# rock stays matte; wet or metal walls are smoother and catch highlights
+	var sh := Lighting.sheen(biome.id)
+	m.roughness = 1.0 - 0.6 * sh
+	m.metallic_specular = 0.5 * sh
 	mesh.surface_set_material(0, m)
 	return mesh
 
@@ -172,6 +208,7 @@ static func _is_wall(room: Dictionary, tx: int, ty: int) -> bool:
 func _box(st: SurfaceTool, room: Dictionary, tx: int, ty: int, x: float, z: float, uv: Rect2) -> void:
 	var w := float(Consts.TS)
 	var h := WALL_H
+	st.set_smooth_group(0xFFFFFFFF)   # flat faces: smoothed edges would catch light like polished metal
 	_quad(st, Vector3(x, h, z), Vector3(x + w, h, z), Vector3(x + w, h, z + w), Vector3(x, h, z + w), uv)
 	# side faces only where nothing covers them
 	if not _is_wall(room, tx, ty + 1):
@@ -187,6 +224,7 @@ func _box(st: SurfaceTool, room: Dictionary, tx: int, ty: int, x: float, z: floa
 func _rock(st: SurfaceTool, cx: float, cz: float, uv: Rect2) -> void:
 	var n := 10
 	var rings := [[0.0, 1.0], [0.5, 0.92], [0.85, 0.62], [1.0, 0.0]]   # height, radius (fractions)
+	st.set_smooth_group(0)   # a smooth dome
 	var c := uv.get_center()
 	var k := uv.size / Consts.TS
 	for ri in rings.size() - 1:
@@ -292,7 +330,7 @@ func _sync_lights() -> void:
 		if not l.visible:
 			continue
 		var d: Dictionary = L[i]
-		l.position = Vector3(d.x, 24, d.y + 12)   # a bit toward the camera, to light the sprites' faces
+		l.position = light_pos(d.x, d.y)
 		l.omni_range = d.r * 1.3
 		l.light_energy = d.a * 2.2
 		l.light_color = UiDraw.col(d.col) if d.get("col") != null else Color(1, 0.85, 0.6)
