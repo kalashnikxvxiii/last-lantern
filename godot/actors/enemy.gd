@@ -225,21 +225,11 @@ func _process(_delta: float) -> void:
 func _spr_name() -> String:
 	return def.spr
 
-# drawEnemy (js/render.js), in world coordinates
-func _draw() -> void:
-	if dead or not Run.active:
-		return
+# sprite, frame and effects of drawEnemy, shared by the 2D drawing and the 3D view
+func sprite_state() -> Dictionary:
+	if dead or spawning or not Run.active or not Spr.has(_spr_name()):
+		return {}
 	var spr := _spr_name()
-	if not Spr.has(spr):
-		return
-	UiDraw.set_origin(self, -position)
-	var S := Spr.size(spr)
-	var yy := y - z
-	if alpha > 0.05:
-		UiDraw.shadow(self, x, y + S.y / 2.0 - 1, maxf(4, r * (0.8 if z > 0 else 1.0)))
-	if spawning:
-		UiDraw.set_origin(self, Vector2.ZERO)
-		return
 	var anim_speed: float = def.anim if def != null and def.anim > 0 else 5.0
 	var fr := int(floor(anim * anim_speed)) % Spr.frame_count(spr)
 	var flip := false
@@ -267,7 +257,28 @@ func _draw() -> void:
 	elif statuses.has("chill"):
 		o.tint = "#7fd8e6"
 		o.tintA = 0.3
-	if elite and alpha > 0.3:
+	return {"name": spr, "frame": fr, "x": x, "y": y - z, "o": o}
+
+# drawEnemy (js/render.js), in world coordinates
+func _draw() -> void:
+	if dead or not Run.active:
+		return
+	var spr := _spr_name()
+	if not Spr.has(spr):
+		return
+	UiDraw.set_origin(self, -position)
+	var S := Spr.size(spr)
+	var yy := y - z
+	if alpha > 0.05:
+		UiDraw.shadow(self, x, y + S.y / 2.0 - 1, maxf(4, r * (0.8 if z > 0 else 1.0)))
+	if spawning:
+		UiDraw.set_origin(self, Vector2.ZERO)
+		return
+	var t := Fx.time
+	var st := sprite_state()
+	var fr: int = st.frame
+	var flip: bool = st.o.flip
+	if elite and alpha > 0.3 and not View3D.on:
 		var col: String = EliteMods.ALL[mod].col
 		var ga := UiDraw.alpha
 		UiDraw.alpha = 0.45 + 0.25 * sin(t * 6)
@@ -276,15 +287,19 @@ func _draw() -> void:
 		for off in [[1, 0], [-1, 0], [0, 1], [0, -1]]:
 			Spr.draw_sil(self, spr, fr, dx + off[0], dy + off[1], col, flip)
 		UiDraw.alpha = ga
-	Spr.draw(self, spr, fr, x, yy, o)
-	# front shield
+	if not View3D.on:   # the 3D view stands them up
+		Spr.draw(self, spr, fr, x, yy, st.o)
+		draw_extras(self)
+	UiDraw.set_origin(self, Vector2.ZERO)
+
+# front shield and health bar (drawEnemy)
+func draw_extras(ci: CanvasItem) -> void:
+	var yy := y - z
 	if def != null and def.shield:
 		var a := facing + 1.3 if shield_down else facing
 		var rr := r + 4
-		draw_arc(Vector2(x, yy), rr, a - 0.9, a + 0.9, 16, UiDraw._a("#0b0810"), 4)
-		draw_arc(Vector2(x, yy), rr, a - 0.85, a + 0.85, 16, UiDraw._a("#c0c8d0" if type == "knight" else "#8a5a34"), 2)
-	# health bar
+		ci.draw_arc(Vector2(x, yy), rr, a - 0.9, a + 0.9, 16, UiDraw._a("#0b0810"), 4)
+		ci.draw_arc(Vector2(x, yy), rr, a - 0.85, a + 0.85, 16, UiDraw._a("#c0c8d0" if type == "knight" else "#8a5a34"), 2)
 	if not boss and hp < max_hp and alpha > 0.4:
 		var w := maxf(10, r * 2 + 2)
-		UiDraw.bar(self, x - w / 2, yy - S.y / 2.0 - 4, w, 1, hp / max_hp, EliteMods.ALL[mod].col if elite else "#d04b3c")
-	UiDraw.set_origin(self, Vector2.ZERO)
+		UiDraw.bar(ci, x - w / 2, yy - Spr.size(_spr_name()).y / 2.0 - 4, w, 1, hp / max_hp, EliteMods.ALL[mod].col if elite else "#d04b3c")

@@ -1,3 +1,4 @@
+class_name DrawGround
 extends Node2D
 # Ground drawing in drawWorld order (js/render.js): secret hints, doors,
 # dynamic tiles, ground effects, objects, pickups.
@@ -11,10 +12,15 @@ func _draw() -> void:
 	var room := Run.room
 	_secret_hints(room)
 	_doors(room)
+	if View3D.on:
+		Spr.capture = []
 	_dynamic_tiles(room)
 	_ground_fx()
 	_objects(room)
 	_pickups(room)
+	if View3D.on:
+		View3D.items = Spr.capture
+		Spr.capture = null
 
 func _secret_hints(room: Dictionary) -> void:
 	for d in room.doors:
@@ -139,7 +145,8 @@ func _dynamic_tiles(room: Dictionary) -> void:
 			elif t == Consts.T.BRAZIER:
 				UiDraw.shadow(self, cx, cy + 6, 6)
 				Spr.draw(self, "brazier", 0, cx, cy + 2)
-				UiDraw.flame(self, cx, cy - 3, 1, Fx.time)
+				if not View3D.on:   # the 3D view draws it on the standing brazier
+					UiDraw.flame(self, cx, cy - 3, 1, Fx.time)
 
 # drawGroundFx (js/render.js)
 func _ground_fx() -> void:
@@ -177,17 +184,18 @@ func _pickups(room: Dictionary) -> void:
 		var y: float = k.y - k.z
 		if k.type != "xp":
 			UiDraw.shadow(self, k.x, k.y + 3, 3)
+		var g := {"ground": k.y + 3}   # the 3D view: they hop above their shadow
 		match k.type:
 			"xp":
 				var c := "#c57ae0" if int(floor(tt * 8 + k.x)) % 2 != 0 else "#e0a0ff"
 				UiDraw.px_rect(self, k.x - 1, y - 1, 2, 2, c)
 				UiDraw.px_rect(self, k.x, y - 2, 1, 1, "#ffffff")
-			"coin": Spr.draw(self, "coin", int(floor(tt * 5 + k.x)) % 2, k.x, y)
-			"coin5": Spr.draw(self, "coin5", int(floor(tt * 5 + k.x)) % 2, k.x, y)
-			"heart": Spr.draw(self, "heart", 0, k.x, y + sin(tt * 4 + k.x) * 0.8)
-			"oil": Spr.draw(self, "oil", 0, k.x, y)
-			"key": Spr.draw(self, "key", 0, k.x, y)
-			"cons": Spr.draw(self, Cons.ALL[k.id].spr, 0, k.x, y - 2 + sin(tt * 3 + k.x))
+			"coin": Spr.draw(self, "coin", int(floor(tt * 5 + k.x)) % 2, k.x, y, g)
+			"coin5": Spr.draw(self, "coin5", int(floor(tt * 5 + k.x)) % 2, k.x, y, g)
+			"heart": Spr.draw(self, "heart", 0, k.x, y + sin(tt * 4 + k.x) * 0.8, g)
+			"oil": Spr.draw(self, "oil", 0, k.x, y, g)
+			"key": Spr.draw(self, "key", 0, k.x, y, g)
+			"cons": Spr.draw(self, Cons.ALL[k.id].spr, 0, k.x, y - 2 + sin(tt * 3 + k.x), g)
 
 # drawObjects (js/render.js)
 func _objects(room: Dictionary) -> void:
@@ -202,22 +210,24 @@ func _objects(room: Dictionary) -> void:
 				Spr.draw(self, "pedestal", 0, o.x, o.y + 4)
 				var by: float = o.y - 9 + sin(tt * 2.5 + o.x) * 2
 				UiDraw.glow(self, o.x, by, 18, "#f6cf57", 0.25)
-				Spr.draw(self, Relics.ALL[o.id].icon, 0, o.x, by)
+				# the 3D view: floats above the pedestal
+				Spr.draw(self, Relics.ALL[o.id].icon, 0, o.x, by, {"ground": o.y + 8})
 			"shopitem":
 				UiDraw.shadow(self, o.x, o.y + 8, 7)
 				Spr.draw(self, "pedestal", 0, o.x, o.y + 4)
 				var by: float = o.y - 8 + sin(tt * 2 + o.x) * 1.5
 				var it: Dictionary = o.item
+				var g := {"ground": o.y + 8}
 				match it.kind:
-					"cons": Spr.draw(self, Cons.ALL[it.id].spr, 0, o.x, by)
-					"heal": Spr.draw(self, "heart", 0, o.x, by)
-					"key": Spr.draw(self, "key", 0, o.x, by)
+					"cons": Spr.draw(self, Cons.ALL[it.id].spr, 0, o.x, by, g)
+					"heal": Spr.draw(self, "heart", 0, o.x, by, g)
+					"key": Spr.draw(self, "key", 0, o.x, by, g)
 					"relic":
 						UiDraw.glow(self, o.x, by, 16, "#f6cf57", 0.2)
-						Spr.draw(self, Relics.ALL[it.id].icon, 0, o.x, by)
+						Spr.draw(self, Relics.ALL[it.id].icon, 0, o.x, by, g)
 				var price := Interact.price_of(o)
 				var can := Run.player.coins >= price
-				Spr.draw(self, "coin", 0, o.x - Txt.width(str(price)) / 2 - 3, o.y + 16)
+				Spr.draw(self, "coin", 0, o.x - Txt.width(str(price)) / 2 - 3, o.y + 16, {"flat": true})
 				UiDraw.text(self, str(price), o.x + 3, o.y + 13, {"align": "center", "color": Txt.COLORS.y if can else Txt.COLORS.r})
 			"chest":
 				UiDraw.shadow(self, o.x, o.y + 6, 8)
@@ -231,14 +241,13 @@ func _objects(room: Dictionary) -> void:
 					Spr.draw(self, "fountain", int(floor(tt * 3)) % 2, o.x, o.y, {"alpha": 0.6 if used else 1.0})
 				else:
 					Spr.draw(self, "altar", 0, o.x, o.y, {"alpha": 0.6 if used else 1.0})
-					if not used:
+					if not used and not View3D.on:
 						UiDraw.flame(self, o.x, o.y - 10, 1, tt)
 			"merchant":
 				UiDraw.shadow(self, o.x, o.y + 8, 7)
 				Spr.draw(self, "merchant", 1 if int(floor(tt * 1.5)) % 4 == 0 else 0, o.x, o.y)
-				# merchant's lantern
-				UiDraw.px_rect(self, o.x + 8, o.y - 2, 3, 4, "#f6cf57")
-				UiDraw.px_rect(self, o.x + 8, o.y - 3, 3, 1, "#3b3546")
+				if not View3D.on:
+					merchant_lantern(self, o)
 			"trapdoor":
 				var x: float = o.x - 12
 				var y: float = o.y - 12
@@ -249,3 +258,8 @@ func _objects(room: Dictionary) -> void:
 					UiDraw.px_rect(self, x + 5, y + 4 + i * 5, 14, 1, "#4a3020")
 				UiDraw.glow(self, o.x, o.y, 26, "#c57ae0", 0.15 + 0.08 * sin(tt * 3))
 	UiDraw.alpha = ga
+
+# merchant's lantern (drawObjects)
+static func merchant_lantern(ci: CanvasItem, o: Dictionary) -> void:
+	UiDraw.px_rect(ci, o.x + 8, o.y - 2, 3, 4, "#f6cf57")
+	UiDraw.px_rect(ci, o.x + 8, o.y - 3, 3, 1, "#3b3546")

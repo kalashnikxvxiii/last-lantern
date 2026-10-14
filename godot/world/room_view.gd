@@ -24,6 +24,7 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	if not Run.active or Run.room.is_empty():
 		return
+	rocks.visible = not View3D.on   # the 3D view raises them
 	if not is_same(Run.room, shown) or Run.room.get("bgDirty", false):
 		show_room(Run.room)
 

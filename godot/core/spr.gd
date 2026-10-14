@@ -5,6 +5,9 @@ extends RefCounted
 
 const DIR := "res://assets/sprites/"
 static var db: Dictionary = {}   # name -> {tex, sil, w, h, frames}
+# Godot-only: an Array while the 3D view collects the sprites that stand up
+# (draw then records them instead of drawing; o.flat keeps one on the floor)
+static var capture: Variant = null
 
 static func ensure() -> void:
 	if not db.is_empty():
@@ -60,6 +63,9 @@ static func draw(ci: CanvasItem, name: String, frame: float, x: float, y: float,
 		return
 	var s: Dictionary = db[name]
 	var f := int(frame) % int(s.frames)
+	if capture != null and not o.get("flat", false):
+		capture.append({"name": name, "frame": f, "x": x, "y": y, "o": o, "alpha": o.get("alpha", 1.0) * UiDraw.alpha})
+		return
 	var sc: float = o.get("scale", 1.0)
 	var w: float = s.w * sc
 	var h: float = s.h * sc

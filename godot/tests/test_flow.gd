@@ -72,7 +72,7 @@ func test_game_scene_starts() -> void:
 	(Engine.get_main_loop() as SceneTree).root.add_child(play)
 	for i in 30:
 		play.tick(Consts.DT)
-	check(Run.player.get_parent() == play.get_node("World/Actors"))
+	check(Run.player.get_parent() == play.get_node("Flat/World/Actors"))
 	play.queue_free()
 	await (Engine.get_main_loop() as SceneTree).process_frame
 	check(Run.player.get_parent() == null, "the player stays alive after the scene")
