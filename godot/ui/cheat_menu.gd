@@ -159,6 +159,10 @@ static func draw(ci: CanvasItem, menu: Menu, title: String) -> void:
 		if it.has("value"):
 			UiDraw.text(ci, str(it.value.call()), x + w - 10, yy, {"align": "right", "color": "#e8dcc0" if is_sel else "#8a8294"})
 
+# whether draw_info shows the debug readout (Panels draws it during a run)
+static func info_shown() -> bool:
+	return Cheats.enabled and Cheats.info and Run.active and not Run.room.is_empty()
+
 static func draw_info(ci: CanvasItem) -> void:
 	var p := Run.player
 	var on: Array = []
