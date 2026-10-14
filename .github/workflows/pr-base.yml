@@ -1,0 +1,25 @@
+name: PR base
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  pull-requests: read
+
+jobs:
+  base:
+    name: Check the PR base
+    runs-on: ubuntu-latest
+    steps:
+      - name: Only dev is merged into master
+        env:
+          BASE: ${{ github.event.pull_request.base.ref }}
+          HEAD: ${{ github.event.pull_request.head.ref }}
+          # A fork can name its branch dev too
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+        run: |
+          if [ "$BASE" = master ] && { [ "$HEAD" != dev ] || [ "$HEAD_REPO" != "$GITHUB_REPOSITORY" ]; }; then
+            echo "::error::Pull requests go to dev. Only dev is merged into master: change the base branch of this PR to dev."
+            exit 1
+          fi
