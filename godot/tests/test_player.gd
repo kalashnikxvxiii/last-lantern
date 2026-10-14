@@ -46,3 +46,14 @@ func test_experience_and_levels() -> void:
 	eq(p.level, 3)
 	eq(Run.pending_levels, 2)
 	near(p.xp, 6.0)
+
+# Godot-only: the 3D view asks for the alpha again in DrawLifted; it must not
+# draw the dash flash a second time and shift the visual sequence
+func test_sprite_alpha_leaves_the_flash_alone() -> void:
+	p.dash_t = 0.1
+	var s := Fx.vis.s
+	eq(p.sprite_alpha(), 1.0)
+	eq(Fx.vis.s, s)
+	p.statuses["invis"] = 1.0
+	eq(p.sprite_alpha(), 0.35)
+	eq(p.sprite_state().o.alpha, 0.35)

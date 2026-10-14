@@ -60,7 +60,7 @@ func _draw() -> void:
 		var base := v.feet(p.x, p.y, 0.0, h * 2)
 		if not v.hidden(v.sprite_mid(base, h * 2)):   # behind a wall or a rock
 			_at(v, Vector2(p.x, p.y + h), base)
-			UiDraw.alpha = p.sprite_state().o.alpha
+			UiDraw.alpha = p.sprite_alpha()
 			if not p.lantern_behind():   # behind the body it is hidden
 				p.draw_lantern(self)
 			UiDraw.alpha = ga
