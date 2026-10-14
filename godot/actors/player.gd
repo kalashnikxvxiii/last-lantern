@@ -428,12 +428,16 @@ func draw_orbitals(ci: CanvasItem) -> void:
 func sprite_state() -> Dictionary:
 	if dead or not Run.active:
 		return {}
-	var blink := inv > 0 and int(floor(inv * 20)) % 2 == 0
 	var frame := int(floor(anim * 8)) % 2 if moving else 0
 	var bob := -1 if moving and frame != 0 else 0
 	var o := {"flip": facing < 0, "flash": dash_t > 0 and Fx.vis.next() < 0.3,
-		"alpha": 0.35 if statuses.has("invis") else (0.4 if blink else 1.0)}
+		"alpha": sprite_alpha()}
 	return {"name": "player", "frame": frame, "x": x, "y": y + bob, "o": o}
+
+# without the dash flash's random draw: DrawLifted asks for it again in the same frame
+func sprite_alpha() -> float:
+	var blink := inv > 0 and int(floor(inv * 20)) % 2 == 0
+	return 0.35 if statuses.has("invis") else (0.4 if blink else 1.0)
 
 # drawPlayer (js/render.js), in world coordinates
 func _draw() -> void:
