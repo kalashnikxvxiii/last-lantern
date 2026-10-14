@@ -10,7 +10,6 @@ const FPS_CAPS := [0, 30, 60, 120, 144, 165, 240]
 const SCALINGS := ["fit", "integer"]
 
 static var _env: Environment
-static var _last_full := "fullscreen"   # where F11 goes back to from a window
 
 static func headless() -> bool:
 	return DisplayServer.get_name() == "headless"
@@ -46,8 +45,8 @@ static func apply_window_mode() -> void:
 # F11 and Alt+Enter: windowed <-> the last fullscreen mode
 static func toggle_fullscreen() -> void:
 	if settings().windowMode != "windowed":
-		_last_full = settings().windowMode
-	settings().windowMode = _last_full if settings().windowMode == "windowed" else "windowed"
+		settings().fullscreenMode = settings().windowMode
+	settings().windowMode = settings().fullscreenMode if settings().windowMode == "windowed" else "windowed"
 	apply_window_mode()
 	Save.write()
 
@@ -70,8 +69,8 @@ static func classic_resolutions() -> Array:
 static func available_resolutions() -> Array:
 	if headless():
 		return classic_resolutions()   # the tests never open a window
-	# without the taskbar: the window can't be resized, it must fit
-	var max_v := DisplayServer.screen_get_usable_rect(DisplayServer.window_get_current_screen()).size
+	# without the taskbar and the title bar: the window can't be resized, it must fit
+	var max_v := DisplayServer.screen_get_usable_rect(DisplayServer.window_get_current_screen()).size - decorations()
 	var out: Array = []
 	for r in classic_resolutions():
 		if r.w <= max_v.x and r.h <= max_v.y:
@@ -108,7 +107,16 @@ static func apply_resolution() -> void:
 	var scr := DisplayServer.window_get_current_screen()
 	root().size = size
 	var area := DisplayServer.screen_get_usable_rect(scr)
-	root().position = area.position + ((area.size - size) / 2).maxi(0)
+	var deco := decorations()
+	# the position is the client area's: the title bar sits above it
+	var top := Vector2i(deco.x / 2, deco.y - deco.x / 2)
+	root().position = area.position + top + ((area.size - size - deco) / 2).maxi(0)
+
+# title bar and borders of the window, zero outside windowed mode
+static func decorations() -> Vector2i:
+	if DisplayServer.window_get_mode() != DisplayServer.WINDOW_MODE_WINDOWED:
+		return Vector2i.ZERO
+	return DisplayServer.window_get_size_with_decorations() - DisplayServer.window_get_size()
 
 # --- frame pacing ---
 

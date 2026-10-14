@@ -12,7 +12,7 @@ static func defaults() -> Dictionary:
 	return {
 		"settings": {"music": 0.5, "sfx": 0.7, "shake": true, "numbers": true, "fullscreenHint": true, "res": 2,
 			# Godot-only display and graphics settings (Display)
-			"windowMode": "windowed", "vsync": "on", "fpsCap": 0, "scaling": "fit",
+			"windowMode": "windowed", "fullscreenMode": "fullscreen", "vsync": "on", "fpsCap": 0, "scaling": "fit",
 			"brightness": 1.0, "contrast": 1.0, "saturation": 1.0, "showFps": false,
 			"bloom": "medium", "shadows": "high", "ao": true, "particles": "high",
 			"grading": true, "screenFx": true, "crt": false, "qualityPicked": false},

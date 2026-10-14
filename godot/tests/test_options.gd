@@ -96,6 +96,7 @@ func test_f11_returns_to_the_last_fullscreen_mode() -> void:
 	Save.data.settings.windowMode = "exclusive"
 	Display.toggle_fullscreen()
 	eq(Save.data.settings.windowMode, "windowed")
+	eq(Save.data.settings.fullscreenMode, "exclusive", "saved: it holds after a restart")
 	Display.toggle_fullscreen()
 	eq(Save.data.settings.windowMode, "exclusive", "not plain fullscreen")
 
