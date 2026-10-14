@@ -28,6 +28,7 @@ func _ready() -> void:
 		if e.get_parent() == null:
 			actors.add_child(e)
 	mode = "play"
+	process_priority = 1   # run _process after the child views: they read bgDirty before we clear it
 	if Game.scene_arg == "continue":
 		Run.victory_t = 0.0
 		Music.play(DB.biome_of(Run.depth).music)
@@ -64,6 +65,10 @@ func _process(delta: float) -> void:
 	# the 3D view moves its camera: the flat world stays put in its texture
 	$Flat/Lighting.refresh(Vector2.ZERO)
 	Input.mouse_mode = Input.MOUSE_MODE_HIDDEN if cursor_hidden(mode) else Input.MOUSE_MODE_VISIBLE
+	# the views rebuild from bgDirty before the parent runs: clear it once, last
+	var r := Run.room
+	if not r.is_empty() and r.get("bgDirty", false):
+		r.bgDirty = false
 
 static func cursor_hidden(m: String) -> bool:
 	return m == "play"

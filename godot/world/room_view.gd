@@ -46,7 +46,6 @@ func show_room(room: Dictionary) -> void:
 				floor_layer.set_cell(cell, 0, TilePick.coords(biome.id, TilePick.floor_key(tx, ty, s)))
 			if t == Consts.T.ROCK or t == Consts.T.CRACK:
 				rocks.set_cell(cell, 0, TilePick.coords(biome.id, TilePick.rock_key(tx, ty, s, t == Consts.T.CRACK)))
-	room.bgDirty = false
 	decals.queue_redraw()
 	shadow.queue_redraw()
 
