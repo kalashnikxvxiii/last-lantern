@@ -36,3 +36,16 @@ func test_lights_stay_out_of_the_walls() -> void:
 	check(p.z <= Consts.RY + (ty + 1) * Consts.TS - 4.0, "but 4 px in front of the wall, not inside it")
 	var q := v.light_pos(c.x, c.y - 32.0)
 	near(q.z, c.y - 32.0 + 12.0, 1e-6, "in the open: the full offset")
+
+func test_sprites_do_not_move_into_a_rock_in_front() -> void:
+	for ty in range(7, Consts.RH - 1):
+		Run.room.grid[ty][14] = Consts.T.FLOOR
+	var c := RoomU.tile_center(14, 8)
+	var open := Vector3(c.x, 0.0, c.y)
+	eq(v.sprite_bias(open), View3D.SPRITE_BIAS, "open floor: the full bias")
+	Run.room.grid[8][14] = Consts.T.ROCK
+	# just behind the rock as seen from the camera
+	var d := v.cam.position - open
+	var away := -Vector2(d.x, d.z).normalized() * (View3D.ROCK_R + 1.0)
+	var b := v.sprite_bias(Vector3(c.x + away.x, 0.0, c.y + away.y))
+	check(b > 0.0 and b < View3D.SPRITE_BIAS, "stops at the rock: %s" % b)
