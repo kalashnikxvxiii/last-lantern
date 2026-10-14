@@ -41,7 +41,6 @@ func _exit_tree() -> void:
 		if is_instance_valid(e) and e.get_parent() == actors:
 			actors.remove_child(e)
 	Run.actors = null
-	Fx.cam = Vector2.ZERO
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 func _physics_process(_delta: float) -> void:
@@ -59,9 +58,7 @@ func _physics_process(_delta: float) -> void:
 		Controls.held_only = false
 	Controls.end_tick()
 
-func _process(delta: float) -> void:
-	if Run.player != null:
-		Fx.follow(Run.player.x, Run.player.y, delta)
+func _process(_delta: float) -> void:
 	var off := Fx.offset()
 	world.position = off
 	$OverlayLayer.offset = off
