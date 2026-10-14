@@ -38,12 +38,13 @@ func test_infinite_oil_and_freeze() -> void:
 	Cheats.inf_oil = true
 	Cheats.freeze = true
 	Fx.hitstop_t = 0.0
-	play.tick(Consts.DT)   # frozen from the end of the first tick
+	play.tick(Consts.DT)
 	var x := e.x
 	for i in 30:
 		play.tick(Consts.DT)
 	eq(Run.player.oil, Run.player.stats.maxOil)
 	eq(e.x, x)
+	check(not (e.frozen > 0), "not the frozen status: no +15% damage, shields stay")
 
 func test_noclip_walks_through_walls() -> void:
 	var p := Run.player

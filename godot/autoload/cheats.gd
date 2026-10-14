@@ -12,7 +12,7 @@ var god := false        # the player takes no damage
 var inf_oil := false    # oil stays full
 var noclip := false     # the player walks through walls and rocks
 var one_shot := false   # every hit kills (wardens included)
-var freeze := false     # enemies stand still and do no contact damage
+var freeze := false     # enemies stand still and do no contact damage (Enemy.tick)
 var info := false       # debug readout over the game
 var speed_i := 2        # index in SPEEDS
 
@@ -34,17 +34,13 @@ func speed() -> float:
 func any_active() -> bool:
 	return god or inf_oil or noclip or one_shot or freeze or speed_i != 2
 
-# once per game tick, after Flow.update_game (enemies spawned this tick freeze too)
+# once per game tick, after Flow.update_game
 func tick() -> void:
 	if not Run.active or Run.player == null:
 		return
 	var p := Run.player
 	if inf_oil:
 		p.oil = p.stats.maxOil
-	if freeze:
-		for e in Run.enemies:
-			if not e.dead:
-				e.frozen = maxf(e.frozen, 0.05)
 
 # ---------------------------------------------------------------- lists
 
