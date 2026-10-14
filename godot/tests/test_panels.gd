@@ -124,3 +124,24 @@ func test_gamepad_dpad_scrolls_the_cards_without_choosing() -> void:
 	Input.flush_buffered_events()
 	eq(play.mode, "levelup", "the d-pad must not choose a perk")
 	eq(play.sel, 1)
+
+func test_the_mouse_picks_the_card_under_it() -> void:
+	Run.pending_levels = 1
+	play.open_level_up()
+	play.lock = 0.0
+	play.card_rects = [Rect2(0, 0, 10, 10), Rect2(20, 0, 10, 10), Rect2(40, 0, 10, 10)]
+	Controls.sim = {"device": "mouse", "mouse": Vector2(25, 5)}
+	play.tick(Consts.DT)
+	eq(play.sel, 1, "hovering moves the cursor")
+	Controls.sim = {"device": "mouse", "mouse": Vector2(100, 100)}
+	play.tick(Consts.DT)
+	check(not play.card_lit_prev, "off the cards nothing is lit")
+	Controls.sim = {"device": "mouse", "mouse": Vector2(100, 100), "pressed": ["confirm"]}
+	play.tick(Consts.DT)
+	eq(play.mode, "levelup", "confirm with nothing lit does not pick")
+	eq(play.sel, 0, "it brings the cursor back to the first card")
+	var id: String = play.choices[2]
+	Controls.sim = {"device": "mouse", "mouse": Vector2(45, 5), "pressed": ["fire"]}
+	play.tick(Consts.DT)
+	eq(play.mode, "play")
+	eq(Run.player.perks.get(id, 0), 1, "the click picks the hovered card")
