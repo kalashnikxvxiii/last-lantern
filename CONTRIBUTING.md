@@ -17,6 +17,7 @@ New features go into Godot. In the JS only beta bugs are fixed.
 | Godot 4.7.2 export templates | only to build the Windows package |
 | Node.js 20 or newer | reference data for the tests (`tools/golden/`) |
 | Python 3 | the tester package scripts |
+| Bash, GNU `timeout` and `sed` (included in Git for Windows) | running `tools/test.sh`, also called by the Godot package builder |
 | npm, ffmpeg (optional) | Electron and audio conversion, only to re-export the assets |
 
 ## First run
@@ -29,6 +30,12 @@ tools/test.sh                            # runs all the tests
 ```
 
 To work in the editor: `godot -e --path godot`.
+
+On Windows, install Git for Windows and add its `bin` folder (usually
+`C:\Program Files\Git\bin`) to your user PATH so Python can find `bash`.
+Add the folder containing `godot.exe` to the PATH too, then restart your terminal
+and the application that launched it. From PowerShell or Git Bash, run
+`bash tools/test.sh`.
 
 ### Development arguments
 
@@ -109,7 +116,7 @@ The assets in `godot/assets/` were generated once from the JS code and are now *
 
 ## Proposing a change
 
-1. Create a branch from `dev`: `git fetch origin && git checkout -b short-name origin/dev`. Pull requests go to `dev`; `dev` is merged into `master` when a version is ready.
+1. Run `git fetch origin`, then create a branch from the updated remote `dev`: `git checkout -b short-name origin/dev`. Never branch from another feature branch or a stale local `dev`. Pull requests go to `dev`; `dev` is merged into `master` when a version is ready.
 2. Make small commits with a message saying what changes, for example "Ghoul: the charge stops against rocks".
 3. Before proposing the change:
    - `tools/test.sh` must pass;

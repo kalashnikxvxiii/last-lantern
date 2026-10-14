@@ -82,6 +82,9 @@ jobs:
       - name: Python scripts compile
         run: python3 -m py_compile tools/*.py
 
+      - name: Package builder tests
+        run: python3 -m unittest discover -s tools -p 'test_*.py'
+
       - name: Shell scripts
         run: |
           shellcheck -S error tools/test.sh tools/tester/*.sh
