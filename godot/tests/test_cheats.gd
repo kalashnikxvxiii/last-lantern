@@ -141,3 +141,10 @@ func test_dev_presets_enable_cheats() -> void:
 	for p in ["Windows Desktop", "Linux"]:
 		check(names.has(p), p)
 		check(names.has(p + " Dev"), p + " Dev")
+
+func test_a_new_run_starts_without_cheats() -> void:
+	Cheats.god = true
+	Cheats.noclip = true
+	Cheats.speed_i = 4
+	TH.new_run(32)
+	check(not Cheats.any_active(), "the toggles do not carry into the next run")
