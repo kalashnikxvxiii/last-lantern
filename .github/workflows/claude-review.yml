@@ -35,7 +35,7 @@ jobs:
           claude_args: |
             --model sonnet
             --effort medium
-            --max-turns 12
+            --max-turns 20
             --max-budget-usd 1.50
             --allowedTools "Read,Grep,Glob,Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr comment:*)"
           prompt: |
@@ -46,7 +46,12 @@ jobs:
             and docs/porting-conventions.md; read them only if the diff touches what they cover.
 
             How to work (keep it cheap):
-            - Start with `gh pr diff`. Open other files only to confirm a suspected problem.
+            - Start with `gh pr diff ${{ github.event.pull_request.number }} --exclude 'godot/locale/*'
+              --exclude 'godot/assets/*' --exclude 'godot/tests/golden/*'`: those are data and generated
+              files, too large to read whole. Look at them only if the code diff points to a problem,
+              with `gh pr diff ${{ github.event.pull_request.number }} --name-only`, Read or Grep.
+            - Run each command on its own: pipes, redirects and `&&` are not allowed and fail.
+            - Open other files only to confirm a suspected problem.
             - Review only what the PR changes. Skip anything CI already checks (tests, golden data,
               syntax, .uid files, line endings, PR title) and pure style or naming taste.
 
