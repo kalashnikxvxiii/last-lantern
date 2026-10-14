@@ -10,6 +10,7 @@ const FPS_CAPS := [0, 30, 60, 120, 144, 165, 240]
 const SCALINGS := ["fit", "integer"]
 
 static var _env: Environment
+static var _last_full := "fullscreen"   # where F11 goes back to from a window
 
 static func headless() -> bool:
 	return DisplayServer.get_name() == "headless"
@@ -38,18 +39,22 @@ static func apply_window_mode() -> void:
 		"exclusive": mode = DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN
 	if DisplayServer.window_get_mode() != mode:
 		DisplayServer.window_set_mode(mode)
+		# on some platforms the switch completes later: size the window again next frame
+		root().get_tree().process_frame.connect(func(): apply_resolution(), CONNECT_ONE_SHOT)
 	apply_resolution()
 
 # F11 and Alt+Enter: windowed <-> the last fullscreen mode
 static func toggle_fullscreen() -> void:
-	settings().windowMode = "fullscreen" if settings().windowMode == "windowed" else "windowed"
+	if settings().windowMode != "windowed":
+		_last_full = settings().windowMode
+	settings().windowMode = _last_full if settings().windowMode == "windowed" else "windowed"
 	apply_window_mode()
 	Save.write()
 
 static func window_mode_name(m: String) -> String:
 	return {"windowed": "Windowed", "fullscreen": "Fullscreen", "exclusive": "Exclusive"}.get(m, m)
 
-# --- resolution: one of the classic sizes, up to the current screen's maximum;
+# --- resolution: one of the classic sizes, up to the current screen's usable area;
 # the window can't be resized by dragging ---
 
 static func classic_resolutions() -> Array:
@@ -65,7 +70,8 @@ static func classic_resolutions() -> Array:
 static func available_resolutions() -> Array:
 	if headless():
 		return classic_resolutions()   # the tests never open a window
-	var max_v := DisplayServer.screen_get_size(DisplayServer.window_get_current_screen())
+	# without the taskbar: the window can't be resized, it must fit
+	var max_v := DisplayServer.screen_get_usable_rect(DisplayServer.window_get_current_screen()).size
 	var out: Array = []
 	for r in classic_resolutions():
 		if r.w <= max_v.x and r.h <= max_v.y:
@@ -101,7 +107,8 @@ static func apply_resolution() -> void:
 	var size := Vector2i(r.w, r.h)
 	var scr := DisplayServer.window_get_current_screen()
 	root().size = size
-	root().position = DisplayServer.screen_get_position(scr) + (DisplayServer.screen_get_size(scr) - size) / 2
+	var area := DisplayServer.screen_get_usable_rect(scr)
+	root().position = area.position + ((area.size - size) / 2).maxi(0)
 
 # --- frame pacing ---
 
