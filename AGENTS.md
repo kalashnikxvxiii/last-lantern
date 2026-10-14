@@ -10,6 +10,7 @@ Last Lantern is a 2D pixel-art roguelike. `js/` is the original JavaScript game 
 
 - Code, comments, commit messages, PRs, docs and in-game text: **English**.
 - Game text is copied verbatim from the JS when it exists, color codes (`^y`, `^r`…) included.
+- Translations live in `godot/locale/strings.json`, keyed by the English text. A new or changed game text needs its entry for every language; text built from pieces uses `Loc.f` templates (see CONTRIBUTING.md).
 
 ## Git workflow
 

@@ -84,6 +84,7 @@ The logic runs at 60 ticks per second: `scenes/play.gd` calls `Flow.update_game(
 - **GDScript** with explicit types wherever inference would give `Variant`. Example: `var x: Array = dictionary.field`; for rounding use `floorf`/`ceilf`/`absf` and never `floor()` with `:=`.
 - **Naming:** variables and functions in `snake_case`. Dictionary keys that mirror JS objects (stats, rooms, effects, projectiles) stay in camelCase as in the JS, so they can be compared with the reference data.
 - **Text:** in English, identical to the JS where it exists, with the color codes `^y`, `^r` and so on. Comments are in English too.
+- **Translations:** the English text is the key of `godot/locale/strings.json`, which holds its translation in every language of `Loc.LANGS`. `UiDraw.text`, `Txt.width` and `Txt.wrap` translate whole strings by themselves; text built from pieces goes through a template, `Loc.f("Depth {0}", [n])`, and names inserted in it through `Loc.t`. A new text needs an entry in `strings.json` for every language (`tests/test_loc.gd` checks the game data, the color codes, the placeholders and the glyphs). The language is in the Gameplay options; "Auto" follows the system language.
 - **Randomness:**
   - in game logic always use `U.random()`, `U.rnd()`, `U.pick()`… or a seeded `RNG`, never `randf()`/`randi()`;
   - in drawing use `Fx.vrnd()`, which does not touch the game sequence.
@@ -106,6 +107,7 @@ The assets in `godot/assets/` were generated once from the JS code and are now *
 
 - **Sprites:** frame sizes are in `assets/sprites/manifest.json`. If you change a sprite's size, update the manifest.
 - **Tiles:** after changing the atlases, regenerate the TileSets with `godot --headless --path godot -s res://tools/build_tilesets.gd`.
+- **Font:** `assets/font/lantern.png` and `glyphs.json` hold the Latin and Cyrillic glyphs. Chinese, Japanese and Korean are baked from [Fusion Pixel Font](https://github.com/TakWolf/fusion-pixel-font) 8px (SIL OFL 1.1, `assets/font/cjk-OFL.txt`) into `cjk.png` and `cjk.json`: after changing the `zh`, `ja` or `ko` text run `python3 tools/build_cjk_font.py <folder with the fusion-pixel-8px-proportional-*.ttf files>`.
 - **Re-exporting from the JS:** `tools/export_assets/` overwrites hand-made changes, so it refuses to run without `--force`. Use it only if you mean to.
 
 ## Adding content

@@ -87,4 +87,4 @@ docs/             porting conventions and playtest checklist
 
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE). The Chinese, Japanese and Korean glyphs of the Godot version come from [Fusion Pixel Font](https://github.com/TakWolf/fusion-pixel-font) (SIL OFL 1.1, `godot/assets/font/cjk-OFL.txt`).
