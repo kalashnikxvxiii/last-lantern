@@ -1,5 +1,5 @@
 extends TestCase
-# Godot-only camera that leans toward the player, and the fake height of walls and rocks.
+# Godot-only camera that leans toward the player.
 
 func before() -> void:
 	Fx.reset()
@@ -25,10 +25,3 @@ func test_aim_ignores_the_camera() -> void:
 	Controls.sim = {"device": "mouse", "mouse": Vector2(294, 100)}
 	near(Controls.aim_angle(100, 104, 1.5), 0.0, 1e-9, "aims where the mouse points in the room")
 
-func test_tops_lean_away_from_the_eye() -> void:
-	var eye: Vector2 = Fx.VIEW_C
-	eq(RoomView.lift(eye.x, eye.y, eye), Vector2.ZERO, "under the eye: no side faces")
-	var l: Vector2 = RoomView.lift(Consts.RX + 8.0, eye.y, eye)
-	check(l.x < 0 and l.y == 0, "left wall leans left, its inner face shows")
-	eq(l.x, roundf(l.x), "whole pixels")
-	check(RoomView.lift(Consts.RX + 8.0, eye.y, eye - Vector2(50, 0)).x > l.x, "closer eye, smaller face")
