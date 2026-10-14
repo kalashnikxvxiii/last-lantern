@@ -76,6 +76,10 @@ func _input(event: InputEvent) -> void:
 func device() -> String:
 	return sim.get("device", last_device)
 
+# Godot-only: the aim and the crosshair follow the mouse, also while walking with the keys
+func mouse_aims() -> bool:
+	return sim.device == "mouse" if sim.has("device") else mouse_aim
+
 # the point of the room under the mouse: the 3D view projects it on the floor
 func mouse_world() -> Vector2:
 	return to_world.call(mouse_pos()) if to_world.is_valid() else mouse_pos()
@@ -145,11 +149,12 @@ func arrow_aim() -> Variant:
 
 # player aim (updatePlayer): arrows or right stick, then the mouse
 # if it is the last device or the left button is pressed, otherwise it stays
+# (Godot-only: walking with the keys does not stop the mouse aim)
 func aim_angle(px: float, py: float, current: float) -> float:
 	var ka: Variant = arrow_aim()
 	if ka != null:
 		return ka
-	if device() == "mouse" or mouse_left():
+	if mouse_aims() or mouse_left():
 		var m := mouse_world()
 		return U.ang_to(px, py - 4, m.x, m.y)
 	return current

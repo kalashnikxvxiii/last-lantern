@@ -181,7 +181,7 @@ func _intro() -> void:
 
 # crosshair: while the mouse aims, also when walking with the keys (the JS hides it)
 func _crosshair() -> void:
-	if play.mode != "play" or not Controls.mouse_aim or Run.player.dead:
+	if play.mode != "play" or not Controls.mouse_aims() or Run.player.dead:
 		return
 	var m := Controls.mouse_pos()
 	var mx := U.jround(m.x)
