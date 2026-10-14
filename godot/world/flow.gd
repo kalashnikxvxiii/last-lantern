@@ -4,6 +4,7 @@ extends RefCounted
 
 static func start_run(lantern_id: String, ardor: int, seed: int = -1) -> void:
 	Run.reset()
+	Cheats.reset()   # Godot-only: the developer toggles do not carry into a new run
 	if seed < 0:
 		seed = int(U.random() * 2147483648.0)
 	Run.active = true
