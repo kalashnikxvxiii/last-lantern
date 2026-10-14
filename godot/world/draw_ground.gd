@@ -7,6 +7,7 @@ func _process(_delta: float) -> void:
 	queue_redraw()
 
 func _draw() -> void:
+	Spr.capture = null   # left on if the last frame stopped on an error: Spr.draw would only record
 	if not Run.active or Run.room.is_empty():
 		return
 	var room := Run.room

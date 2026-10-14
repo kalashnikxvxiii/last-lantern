@@ -49,3 +49,40 @@ func test_sprites_do_not_move_into_a_rock_in_front() -> void:
 	var away := -Vector2(d.x, d.z).normalized() * (View3D.ROCK_R + 1.0)
 	var b := v.sprite_bias(Vector3(c.x + away.x, 0.0, c.y + away.y))
 	check(b > 0.0 and b < View3D.SPRITE_BIAS, "stops at the rock: %s" % b)
+
+func test_walls_and_rocks_become_a_mesh() -> void:
+	Run.room.grid[7][14] = Consts.T.ROCK
+	var m := v.build_solids(Run.room)
+	check(m.get_surface_count() > 0, "the room has walls and a rock")
+
+func test_no_sprite_for_the_dead_or_spawning() -> void:
+	var p := Run.player
+	check(not p.sprite_state().is_empty())
+	p.dead = true
+	eq(p.sprite_state(), {})
+	p.dead = false
+	var e := TH.spawn("rat", 100.0, 100.0)
+	e.spawning = true
+	eq(e.sprite_state(), {})
+
+func test_leaving_the_3d_view_restores_the_rest() -> void:
+	View3D.on = true
+	View3D.current = v
+	View3D.items = [{}]
+	Controls.to_world = Callable(v, "screen_to_floor")
+	Display.environment().background_canvas_max_layer = 1
+	v._exit_tree()
+	check(not View3D.on)
+	eq(View3D.current, null)
+	eq(View3D.items, [])
+	check(not Controls.to_world.is_valid(), "the aim stops using the 3D floor")
+	eq(Display.environment().background_canvas_max_layer, 1000, "every canvas layer shows again")
+
+func test_an_error_while_drawing_does_not_leave_the_capture_on() -> void:
+	Spr.capture = []   # as if a previous _draw stopped halfway
+	var g := DrawGround.new()
+	Run.active = false   # _draw returns early
+	g._draw()
+	Run.active = true
+	g.free()
+	eq(Spr.capture, null)
