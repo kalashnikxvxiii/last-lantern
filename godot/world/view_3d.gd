@@ -137,17 +137,35 @@ func hidden(p: Vector3) -> bool:
 			var t: int = Run.room.grid[ty][tx]
 			if t == Consts.T.WALL:
 				return true
-			if (t == Consts.T.ROCK or t == Consts.T.CRACK) and q.y < ROCK_H:
-				var c := RoomU.tile_center(tx, ty)
-				if Vector2(q.x - c.x, q.z - c.y).length() < ROCK_R:
-					return true
+		if _in_rock(q):
+			return true
 		q += d * 2.0
 	return false
+
+func _in_rock(q: Vector3) -> bool:
+	if q.y >= ROCK_H:
+		return false
+	var tx := floori((q.x - Consts.RX) / Consts.TS)
+	var ty := floori((q.z - Consts.RY) / Consts.TS)
+	var t := RoomU.tile_at(Run.room, tx, ty)
+	if t != Consts.T.ROCK and t != Consts.T.CRACK:
+		return false
+	var c := RoomU.tile_center(tx, ty)
+	return Vector2(q.x - c.x, q.z - c.y).length() < ROCK_R
+
+# how far a sprite standing at base moves toward the camera: SPRITE_BIAS, but not
+# out of a rock in front of it, or it would show over the rock as if standing in it
+func sprite_bias(base: Vector3) -> float:
+	var d := (cam.position - base).normalized()
+	var k := 0.0
+	while k < SPRITE_BIAS and not _in_rock(base + d * k):
+		k += 1.0
+	return k
 
 # the middle of a standing sprite whose feet are at base, where _pose puts it: the
 # billboard stands along the camera's up, which leans back toward the far wall
 func sprite_mid(base: Vector3, h: float) -> Vector3:
-	return base + (cam.position - base).normalized() * SPRITE_BIAS + cam.basis.y * (h / 2.0)
+	return base + (cam.position - base).normalized() * sprite_bias(base) + cam.basis.y * (h / 2.0)
 
 # where a light of the 2D lighting hangs: a bit toward the camera, to light the
 # sprites' faces, but never inside a wall, which would light its front from within
@@ -310,7 +328,7 @@ func _pose(s: Sprite3D, stt: Dictionary, base: Vector3, bias: float) -> void:
 	s.modulate = c
 	s.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD if c.a >= 1.0 else SpriteBase3D.ALPHA_CUT_DISABLED
 	# moved along the line of sight: the same place on the screen, nearer in depth
-	s.position = base + (cam.position - base).normalized() * (SPRITE_BIAS + bias)
+	s.position = base + (cam.position - base).normalized() * (sprite_bias(base) + bias)
 
 # --- the lights of the 2D lighting that reach the walls and the sprites ---
 
