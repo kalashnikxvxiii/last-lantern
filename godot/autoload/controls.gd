@@ -26,6 +26,7 @@ const MOUSE := {"fire": [MOUSE_BUTTON_LEFT], "flare": [MOUSE_BUTTON_RIGHT]}
 
 var to_world := Callable()   # Godot-only: set by the 3D view
 var last_device := "kb"
+var mouse_aim := false   # Godot-only: the last aim came from the mouse (WASD does not change it)
 var sim: Dictionary = {}
 var held_only := false   # extra ticks of the same frame (cheat fast forward): no new presses
 
@@ -57,14 +58,20 @@ func _ensure(a: String) -> void:
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed:
 		last_device = "kb"
+		if event.is_action("aim_left") or event.is_action("aim_right") or event.is_action("aim_up") or event.is_action("aim_down"):
+			mouse_aim = false
 	elif event is InputEventMouseMotion:
 		last_device = "mouse"
+		mouse_aim = true
 	elif event is InputEventMouseButton and event.pressed:
 		last_device = "mouse"
+		mouse_aim = true
 	elif event is InputEventJoypadButton and event.pressed:
 		last_device = "pad"
+		mouse_aim = false
 	elif event is InputEventJoypadMotion and absf(event.axis_value) > DEAD:
 		last_device = "pad"
+		mouse_aim = false
 
 func device() -> String:
 	return sim.get("device", last_device)

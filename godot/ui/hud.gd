@@ -179,9 +179,9 @@ func _intro() -> void:
 		UiDraw.text(self, bi.B.name, W / 2.0, 104, {"align": "center", "color": "#e0574a", "scale": 2, "alpha": a})
 		UiDraw.text(self, bi.B.title, W / 2.0, 126, {"align": "center", "color": "#c8c0d0", "alpha": a})
 
-# crosshair
+# crosshair: while the mouse aims, also when walking with the keys (the JS hides it)
 func _crosshair() -> void:
-	if play.mode != "play" or Controls.device() != "mouse" or Run.player.dead:
+	if play.mode != "play" or not Controls.mouse_aim or Run.player.dead:
 		return
 	var m := Controls.mouse_pos()
 	var mx := U.jround(m.x)

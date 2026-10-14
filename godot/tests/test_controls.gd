@@ -54,3 +54,23 @@ func test_alt_enter_does_not_confirm() -> void:
 	alt_up.pressed = false
 	Input.parse_input_event(alt_up)
 	Input.flush_buffered_events()
+
+func _key(k: Key, down: bool) -> void:
+	var e := InputEventKey.new()
+	e.keycode = k
+	e.physical_keycode = k
+	e.pressed = down
+	Input.parse_input_event(e)
+	Input.flush_buffered_events()
+
+func test_moving_keeps_the_mouse_aim() -> void:
+	await (Engine.get_main_loop() as SceneTree).process_frame
+	Input.parse_input_event(InputEventMouseMotion.new())
+	Input.flush_buffered_events()
+	check(Controls.mouse_aim, "the mouse moved: it aims")
+	_key(KEY_W, true)
+	_key(KEY_W, false)
+	check(Controls.mouse_aim, "walking with the keys keeps the crosshair")
+	_key(KEY_LEFT, true)
+	_key(KEY_LEFT, false)
+	check(not Controls.mouse_aim, "the arrows aim: no crosshair")
