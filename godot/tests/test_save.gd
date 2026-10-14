@@ -31,6 +31,13 @@ func test_missing_fields_use_defaults() -> void:
 	eq(Save.data.unlocks.lanterns, ["warden"])
 	eq(Save.data.seen, {})
 
+# Godot-only: a save from before the quality presets keeps the player's graphics settings
+func test_old_save_counts_as_quality_picked() -> void:
+	_write_raw('{"settings": {"bloom": "off"}}')
+	Save.load_save()
+	eq(Save.data.settings.qualityPicked, true)
+	eq(Save.data.settings.bloom, "off")
+
 func test_corrupt_file_uses_defaults() -> void:
 	_write_raw("{not json")
 	Save.load_save()

@@ -30,6 +30,8 @@ func load_save() -> void:
 	var def := defaults()
 	if not (d is Dictionary):
 		d = def
+	elif d.get("settings") is Dictionary and not d.settings.has("qualityPicked"):
+		d.settings.qualityPicked = true   # Godot-only: a save from before the presets keeps its settings
 	d.settings = _merge(def.settings, d.get("settings"))
 	d.stats = _ints(_merge(def.stats, d.get("stats")))
 	d.unlocks = _ints(_merge(def.unlocks, d.get("unlocks")))
