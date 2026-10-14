@@ -92,6 +92,24 @@ func test_window_mode() -> void:
 	_press(m, "nav_right")
 	eq(Save.data.settings.windowMode, "exclusive", "the choice stops at the last mode")
 
+func test_f11_returns_to_the_last_fullscreen_mode() -> void:
+	Save.data.settings.windowMode = "exclusive"
+	Display.toggle_fullscreen()
+	eq(Save.data.settings.windowMode, "windowed")
+	eq(Save.data.settings.fullscreenMode, "exclusive", "saved: it holds after a restart")
+	Display.toggle_fullscreen()
+	eq(Save.data.settings.windowMode, "exclusive", "not plain fullscreen")
+
+func test_saved_resolution_beyond_the_screen() -> void:
+	var avail := Display.classic_resolutions().slice(0, 3)
+	Save.data.settings.res = 5
+	eq(Display.res_pos(avail), 2, "clamped to the largest the screen allows")
+	Save.data.settings.res = 1
+	eq(Display.res_pos(avail), 1)
+	eq(Display.res_bar(0, 3), "[----------]")
+	eq(Display.res_bar(1, 3), "[#####-----]")
+	eq(Display.res_bar(0, 1), "[##########]")
+
 func test_vsync() -> void:
 	Save.data.settings.vsync = "on"
 	var m := _open("Display", "VSync")

@@ -38,18 +38,22 @@ static func apply_window_mode() -> void:
 		"exclusive": mode = DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN
 	if DisplayServer.window_get_mode() != mode:
 		DisplayServer.window_set_mode(mode)
+		# on some platforms the switch completes later: size the window again next frame
+		root().get_tree().process_frame.connect(func(): apply_resolution(), CONNECT_ONE_SHOT)
 	apply_resolution()
 
 # F11 and Alt+Enter: windowed <-> the last fullscreen mode
 static func toggle_fullscreen() -> void:
-	settings().windowMode = "fullscreen" if settings().windowMode == "windowed" else "windowed"
+	if settings().windowMode != "windowed":
+		settings().fullscreenMode = settings().windowMode
+	settings().windowMode = settings().fullscreenMode if settings().windowMode == "windowed" else "windowed"
 	apply_window_mode()
 	Save.write()
 
 static func window_mode_name(m: String) -> String:
 	return {"windowed": "Windowed", "fullscreen": "Fullscreen", "exclusive": "Exclusive"}.get(m, m)
 
-# --- resolution: one of the classic sizes, up to the current screen's maximum;
+# --- resolution: one of the classic sizes, up to the current screen's usable area;
 # the window can't be resized by dragging ---
 
 static func classic_resolutions() -> Array:
@@ -65,7 +69,8 @@ static func classic_resolutions() -> Array:
 static func available_resolutions() -> Array:
 	if headless():
 		return classic_resolutions()   # the tests never open a window
-	var max_v := DisplayServer.screen_get_size(DisplayServer.window_get_current_screen())
+	# without the taskbar and the title bar: the window can't be resized, it must fit
+	var max_v := DisplayServer.screen_get_usable_rect(DisplayServer.window_get_current_screen()).size - decorations()
 	var out: Array = []
 	for r in classic_resolutions():
 		if r.w <= max_v.x and r.h <= max_v.y:
@@ -101,7 +106,17 @@ static func apply_resolution() -> void:
 	var size := Vector2i(r.w, r.h)
 	var scr := DisplayServer.window_get_current_screen()
 	root().size = size
-	root().position = DisplayServer.screen_get_position(scr) + (DisplayServer.screen_get_size(scr) - size) / 2
+	var area := DisplayServer.screen_get_usable_rect(scr)
+	var deco := decorations()
+	# the position is the client area's: the title bar sits above it
+	var top := Vector2i(deco.x / 2, deco.y - deco.x / 2)
+	root().position = area.position + top + ((area.size - size - deco) / 2).maxi(0)
+
+# title bar and borders of the window, zero outside windowed mode
+static func decorations() -> Vector2i:
+	if DisplayServer.window_get_mode() != DisplayServer.WINDOW_MODE_WINDOWED:
+		return Vector2i.ZERO
+	return DisplayServer.window_get_size_with_decorations() - DisplayServer.window_get_size()
 
 # --- frame pacing ---
 
