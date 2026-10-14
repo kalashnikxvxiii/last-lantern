@@ -54,6 +54,36 @@ func test_slam_leaves_a_shockwave() -> void:
 	check(airborne and shock)
 	eq(b.z, 0.0)
 
+func test_the_forger_slams_a_shorter_wave() -> void:
+	var b := _boss("forge")
+	Run.fx = []
+	b.pat = {"s": b.B.phases[0].pats[0], "t": 0.0}
+	var wave: Dictionary = {}
+	for i in int(4.0 / Consts.DT):
+		_tick(1)
+		if wave.is_empty():
+			for f in Run.fx:
+				if f.type == "shockwave":
+					wave = f
+					break
+	check(not wave.is_empty(), "the slam leaves a shockwave")
+	near(wave.maxR, 100.0)
+	Run.clear_enemies()
+	var d := _boss("devourer")
+	Run.fx = []
+	d.pat = {"s": {"p": "slam", "count": 1, "ring": 20, "kind": "void"}, "t": 0.0}
+	var other: Dictionary = {}
+	for i in int(4.0 / Consts.DT):
+		_tick(1)
+		if other.is_empty():
+			for f in Run.fx:
+				if f.type == "shockwave":
+					other = f
+					break
+	check(not other.is_empty(), "the last boss slams too")
+	near(other.maxR, 130.0)
+	Run.clear_enemies()
+
 func test_beam_hurts_the_player_in_its_path() -> void:
 	var b := _boss("abyss")
 	var p := Run.player
