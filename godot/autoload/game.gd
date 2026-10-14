@@ -91,6 +91,21 @@ func _notification(what: int) -> void:
 			and should_autopause(scene_name, "play", Run.player.dead, Run.victory_t):
 		RunSave.save(Run.slot)
 
+# Godot-only: on quit the static caches would outlive the renderer and crash
+# the engine when they free their textures (signal 11 after "RID allocations leaked")
+func _exit_tree() -> void:
+	release_caches()
+
+func release_caches() -> void:
+	Spr.db = {}
+	Txt._atlas = null
+	UiDraw._glow_tex = null
+	WellBg._bg = null
+	TilePick._sets = {}
+	Sparks._palettes = {}
+	Display._env = null
+	DB._cache = {}
+
 # F11 and Alt+Enter: fullscreen (as in desktop/main.js)
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
