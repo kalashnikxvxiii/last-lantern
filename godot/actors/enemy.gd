@@ -159,6 +159,9 @@ func tick(dt: float) -> void:
 		stun -= dt
 		vx = 0.0
 		vy = 0.0
+	elif Cheats.freeze:   # Godot-only: stands still without the frozen status; like it, the AI timers wait
+		vx = 0.0
+		vy = 0.0
 	else:
 		var m := 0.55 if statuses.has("chill") else 1.0
 		think(dt, target(), m)
@@ -172,7 +175,7 @@ func tick(dt: float) -> void:
 	if not boss and absf(vx) > 1 and ai != "shielder":
 		facing = atan2(vy, vx)
 	# contact
-	if not intangible and z < 6 and not spawning and not p.dead and frozen <= 0:
+	if not intangible and z < 6 and not spawning and not p.dead and frozen <= 0 and not Cheats.freeze:
 		var rr := r + p.r
 		if U.dist2(x, y, p.x, p.y) < rr * rr:
 			if Combat.hurt_player(dmg, display_name):
@@ -243,7 +246,7 @@ func sprite_state() -> Dictionary:
 	if boss and wind > 0:
 		o.tint = "#e0574a"
 		o.tintA = 0.25 + 0.2 * sin(t * 30)
-	if frozen > 0:
+	if frozen > 0 or Cheats.freeze:
 		o.tint = "#9fe0ff"
 		o.tintA = 0.55
 	elif o.has("tint"):
