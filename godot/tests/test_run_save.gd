@@ -67,6 +67,18 @@ func test_fight_restarts_on_resume() -> void:
 	eq(Run.room.waveIdx, 0)
 	eq(Run.enemies.size(), 0)
 
+func test_slot_missing_a_key_reads_as_empty() -> void:
+	TH.new_run(5)
+	check(RunSave.save(0))
+	var d := RunSave.read(0)
+	d.run.erase("kills")   # e.g. a slot saved before RUN_VARS grew
+	check(Save.write_file(RunSave.path(0), var_to_bytes(d)))
+	eq(RunSave.read(0), {})
+	check(not RunSave.resume(0))
+	d.erase("rooms")
+	check(Save.write_file(RunSave.path(0), var_to_bytes(d)))
+	eq(RunSave.read(0), {})
+
 func test_erase() -> void:
 	TH.new_run(5)
 	check(RunSave.save(2))

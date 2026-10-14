@@ -14,8 +14,7 @@ func enter() -> void:
 		items.append({"label": L.name if open else "Sealed lantern", "L": L, "disabled": not open,
 			"action": func():
 				Flow.start_run(id, ard)
-				Run.slot = slot
-				RunSave.save(slot)
+				Run.slot = slot if RunSave.save(slot) else -1   # not saved: no "Save and leave"
 				Game.set_scene("play")})
 	if un.ardor > 0:
 		items.append({"label": "Ardor", "value": func(): return str(ard),
