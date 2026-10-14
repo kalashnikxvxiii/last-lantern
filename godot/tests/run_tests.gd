@@ -26,6 +26,7 @@ func _run() -> void:
 		get_node("/root/Save").set("path", "user://test_save.json")
 		DirAccess.remove_absolute(ProjectSettings.globalize_path("user://test_save.json"))
 		get_node("/root/Save").call("load_save")
+	Loc.use("en")   # the tests read the English text, whatever the system language
 	var passed := 0
 	var failed: Array[String] = []
 	var files := Array(DirAccess.get_files_at("res://tests")).filter(func(f): return f.begins_with("test_") and f.ends_with(".gd"))

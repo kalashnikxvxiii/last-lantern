@@ -104,9 +104,9 @@ func _hud() -> void:
 	UiDraw.text(self, str(p.keys), 220, 15, {"color": "#e8dcc0"})
 	# depth and level
 	var bio := DB.biome_of(Run.depth)
-	UiDraw.text(self, "Depth " + str(Run.depth) + ("" if Run.depth > 5 else " of 5"), 254, 3, {"color": "#e8dcc0"})
+	UiDraw.text(self, Loc.f("Depth {0}", [Run.depth]) if Run.depth > 5 else Loc.f("Depth {0} of 5", [Run.depth]), 254, 3, {"color": "#e8dcc0"})
 	UiDraw.text(self, bio.name, 254, 14, {"color": "#8a8294"})
-	UiDraw.text(self, "Lv " + str(p.level), 388, 3, {"align": "right", "color": "#c57ae0"})
+	UiDraw.text(self, Loc.f("Lv {0}", [p.level]), 388, 3, {"align": "right", "color": "#c57ae0"})
 	MapDraw.minimap(self, 394, 2, false)
 	# statuses and curses (below the bar)
 	var sx := 6
@@ -165,11 +165,11 @@ func _intro() -> void:
 		UiDraw.alpha = a * 0.6
 		UiDraw.px_rect(self, 0, 92, W, 70, "#050308")
 		UiDraw.alpha = ga
-		UiDraw.text(self, "Depth " + str(it.depth), W / 2.0, 98, {"align": "center", "color": "#8a8294", "alpha": a})
+		UiDraw.text(self, Loc.f("Depth {0}", [it.depth]), W / 2.0, 98, {"align": "center", "color": "#8a8294", "alpha": a})
 		UiDraw.text(self, b.name, W / 2.0, 112, {"align": "center", "color": "#f6cf57", "scale": 2, "alpha": a})
 		var lines := Txt.wrap(b.lore, 360)
 		for i in lines.size():
-			UiDraw.text(self, lines[i], W / 2.0, 136 + i * 10, {"align": "center", "color": "#c8c0d0", "alpha": a})
+			UiDraw.text(self, lines[i], W / 2.0, 136 + i * 10, {"align": "center", "color": "#c8c0d0", "alpha": a, "raw": true})
 	var bi: Variant = Run.boss_intro
 	if bi != null:
 		var a: float = bi.t / 0.4 if bi.t < 0.4 else (maxf(0, 1 - (bi.t - 2.2) / 0.6) if bi.t > 2.2 else 1.0)

@@ -245,5 +245,7 @@ func _gameplay(on_back: Callable) -> Menu:
 	return Menu.new([
 		_entry("Screen shake", _toggle("shake")),
 		_entry("Damage numbers", _toggle("numbers")),
+		_entry("Language", _choice(["auto"] + Loc.LANGS, "language", func(): Loc.apply(), func(v: String):
+			return Loc.f("Auto ({0})", [Loc.NAMES[Loc.detect()]]) if v == "auto" else Loc.NAMES.get(v, v))),
 		{"label": "Back", "action": on_back},
 	])

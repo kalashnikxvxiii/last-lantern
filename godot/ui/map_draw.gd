@@ -72,7 +72,7 @@ static func full_map(ci: CanvasItem) -> void:
 	var x := Consts.W / 2.0 - w / 2.0
 	var y := Consts.H / 2.0 - h / 2.0
 	UiDraw.panel(ci, x, y, w, h)
-	UiDraw.text(ci, "Map - " + DB.biome_of(Run.depth).name, Consts.W / 2.0, y + 8, {"align": "center", "color": "#e8dcc0"})
+	UiDraw.text(ci, Loc.f("Map - {0}", [Loc.t(DB.biome_of(Run.depth).name)]), Consts.W / 2.0, y + 8, {"align": "center", "color": "#e8dcc0"})
 	if not rooms_visible():
 		UiDraw.text(ci, "Fog", Consts.W / 2.0, y + h / 2.0 - 4.0, {"align": "center", "color": "#55505e"})
 		return

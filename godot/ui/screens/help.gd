@@ -59,4 +59,4 @@ func paint() -> void:
 			Spr.draw(self, Statuses.ALL[k].icon, 0, x + 5.5, y + 4)
 			UiDraw.text(self, Statuses.ALL[k].name, x + 18, y, {"color": Statuses.ALL[k].col})
 			UiDraw.text(self, desc.get(k, ""), x + 110, y, {"color": "#d8d0c0"})
-	UiDraw.text(self, str(mini(page, 2) + 1) + " / 3   -   arrows to flip pages, ESC to exit", W / 2.0, H - 26, {"align": "center", "color": "#55505e"})
+	UiDraw.text(self, Loc.f("{0} / 3   -   arrows to flip pages, ESC to exit", [mini(page, 2) + 1]), W / 2.0, H - 26, {"align": "center", "color": "#55505e"})

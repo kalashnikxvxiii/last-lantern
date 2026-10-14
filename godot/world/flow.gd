@@ -309,7 +309,7 @@ static func roll_dice() -> void:
 			var c: String = U.pick(avail)
 			p.curses.append(c)
 			p.recalc_stats()
-			U.later(0.7, func(): Run.toast("Curse: " + Curses.ALL[c].name, "#c57ae0", Curses.ALL[c].desc))
+			U.later(0.7, func(): Run.toast(Loc.f("Curse: {0}", [Loc.t(Curses.ALL[c].name)]), "#c57ae0", Curses.ALL[c].desc))
 			Sfx.play("curse")
 	Sfx.play("pickup")
 
@@ -333,7 +333,7 @@ static func on_boss_defeated(e) -> void:
 		room.pickups.append(Pickups.make("xp", e.x, e.y, {"value": e.xp / 10}))
 	p.heal(U.jround(p.stats.maxHp * 0.3), true)
 	p.add_oil(p.stats.maxOil)
-	Run.toast(e.display_name + " has fallen", "#f6cf57", "A trapdoor opens downward.")
+	Run.toast(Loc.f("{0} has fallen", [Loc.t(e.display_name)]), "#f6cf57", "A trapdoor opens downward.")
 	check_unlocks()
 	if e.bid == "devourer" and not Run.won:
 		Run.won = true

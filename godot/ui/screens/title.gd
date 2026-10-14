@@ -33,6 +33,6 @@ func paint() -> void:
 	menu.draw(self, W / 2.0, 172, {"lineH": 14})
 	var st: Dictionary = Save.data.stats
 	if st.runs > 0:
-		UiDraw.text(self, "Descents: " + str(st.runs) + "   Deepest depth: " + str(st.bestDepth) + "   Flames rekindled: " + str(st.wins), W / 2.0, 248, {"align": "center", "color": "#55505e"})
+		UiDraw.text(self, Loc.f("Descents: {0}   Deepest depth: {1}   Flames rekindled: {2}", [st.runs, st.bestDepth, st.wins]), W / 2.0, 248, {"align": "center", "color": "#55505e"})
 	UiDraw.text(self, "Keyboard and mouse or gamepad", W / 2.0, 259, {"align": "center", "color": "#3b3546"})
 	UiDraw.text(self, Consts.VERSION, W - 5, 259, {"align": "right", "color": "#3b3546"})

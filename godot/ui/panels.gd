@@ -22,11 +22,11 @@ func _draw() -> void:
 		"cheats": CheatMenu.draw(self, play.cheat_menu, play.cheat_page)
 
 func _level_up() -> void:
-	var more := "   (" + str(Run.pending_levels - 1) + " pending)" if Run.pending_levels > 1 else ""
+	var more := "   " + Loc.f("({0} pending)", [Run.pending_levels - 1]) if Run.pending_levels > 1 else ""
 	var lit: int = play.card_hover if Controls.device() == "mouse" else play.sel
-	play.card_rects = PanelsDraw.perk_cards(self, play.choices, lit, "A new spark", "Level " + str(Run.player.level) + "  -  choose a perk" + more)
+	play.card_rects = PanelsDraw.perk_cards(self, play.choices, lit, "A new spark", Loc.f("Level {0}  -  choose a perk", [Run.player.level]) + more)
 	var can := Run.player.coins >= Run.reroll_cost
-	var label := "Reroll  (" + str(Run.reroll_cost) + " coins)"
+	var label := Loc.f("Reroll  ({0} coins)", [Run.reroll_cost])
 	var w := Txt.width(label) + 30
 	var x := Consts.W / 2.0 - w / 2
 	var y := 236.0
@@ -46,9 +46,9 @@ func _pause(build_mode: bool) -> void:
 		play.pause_menu.draw(self, 90, 76, {"lineH": 16})
 	else:
 		UiDraw.text(self, "^dArrows to scroll, ENTER to go back", 90, 76, {"align": "center"})
-	UiDraw.text(self, "Seed " + str(Run.seed) + "  -  " + Consts.VERSION, 90, 240, {"align": "center", "color": "#3b3546"})
+	UiDraw.text(self, Loc.f("Seed {0}", [Run.seed]) + "  -  " + Consts.VERSION, 90, 240, {"align": "center", "color": "#3b3546"})
 	if Run.ardor:
-		UiDraw.text(self, "Ardor " + str(Run.ardor), 90, 228, {"align": "center", "color": "#e0574a"})
+		UiDraw.text(self, Loc.f("Ardor {0}", [Run.ardor]), 90, 228, {"align": "center", "color": "#e0574a"})
 	# equipment panel: the mouse lights what it is over, the keyboard its own cursor
 	var hover := -1
 	if Controls.device() == "mouse":

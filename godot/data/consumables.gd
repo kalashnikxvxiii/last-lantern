@@ -60,7 +60,7 @@ static func use(id: String, p) -> bool:
 		"holy":
 			if not p.curses.is_empty():
 				var c: String = p.curses.pop_back()
-				Run.toast("Curse broken: " + Curses.ALL[c].name, "#c57ae0")
+				Run.toast(Loc.f("Curse broken: {0}", [Loc.t(Curses.ALL[c].name)]), "#c57ae0")
 				p.recalc_stats()
 				Sfx.play("heal")
 			else:
