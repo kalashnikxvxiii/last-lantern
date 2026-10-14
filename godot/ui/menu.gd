@@ -80,9 +80,9 @@ static func is_disabled(it: Dictionary) -> bool:
 	return d.call() if d is Callable else d
 
 static func label_of(it: Dictionary) -> String:
-	var label: String = it.label.call() if it.label is Callable else it.label
+	var label: String = Loc.t(it.label.call() if it.label is Callable else it.label)
 	if it.has("value"):
-		label += "   " + str(it.value.call())
+		label += "   " + Loc.t(str(it.value.call()))
 	return label
 
 func draw(ci: CanvasItem, x: float, y: float, oo: Dictionary = {}) -> void:

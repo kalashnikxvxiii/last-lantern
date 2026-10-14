@@ -76,7 +76,7 @@ static func collect(k: Dictionary) -> void:
 		"oil":
 			p.add_oil(k.value if k.value else 25)
 			Sfx.play("oil")
-			Floaters.add(p.x, p.y - 12, "+olio", Txt.COLORS.o, {"life": 0.6})
+			Floaters.add(p.x, p.y - 12, "+oil", Txt.COLORS.o, {"life": 0.6})
 		"key":
 			p.keys += 1
 			Sfx.play("pickup")

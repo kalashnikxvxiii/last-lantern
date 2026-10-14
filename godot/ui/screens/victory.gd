@@ -13,7 +13,7 @@ func enter() -> void:
 		var before: int = un.ardor
 		un.ardor = mini(5, maxi(un.ardor, Run.ardor + 1))
 		if un.ardor > before:
-			Run.new_unlocks.append("Ardor " + str(un.ardor))
+			Run.new_unlocks.append(Loc.f("Ardor {0}", [un.ardor]))
 		Save.write()
 		Flow.check_unlocks()
 	Music.play("title")
@@ -48,5 +48,5 @@ func paint() -> void:
 	UiDraw.panel(self, 240, 98, 210, 84)
 	PanelsDraw.icons_row(self, 250, 106, 190)
 	if not Run.new_unlocks.is_empty():
-		UiDraw.text(self, "Unlocked: " + ", ".join(Run.new_unlocks), W / 2.0, 190, {"align": "center", "color": "#f6cf57"})
+		UiDraw.text(self, Loc.f("Unlocked: {0}", [", ".join(Run.new_unlocks.map(func(u: String) -> String: return Loc.t(u)))]), W / 2.0, 190, {"align": "center", "color": "#f6cf57"})
 	menu.draw(self, W / 2.0, 210, {"lineH": 16})

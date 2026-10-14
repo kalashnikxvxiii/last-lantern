@@ -175,7 +175,7 @@ static func prompt(ci: CanvasItem) -> void:
 					title = Relics.ALL[it.id].name
 					desc = Relics.ALL[it.id].desc
 					col = Txt.COLORS.y
-			verb = "Compra (" + str(Interact.price_of(o)) + ")"
+			verb = Loc.f("Buy ({0})", [Interact.price_of(o)])
 		"shrine":
 			match o.kind:
 				"blood":
@@ -184,7 +184,7 @@ static func prompt(ci: CanvasItem) -> void:
 					verb = "Offer"
 				"fortune":
 					title = "Wishing Fountain"
-					desc = "Throw in ^y5^w coins and hope. (Uses left: " + str(o.uses) + ")"
+					desc = Loc.f("Throw in ^y5^w coins and hope. (Uses left: {0})", [o.uses])
 					verb = "Throw"
 				"fountain":
 					title = "Pure Spring"
@@ -212,7 +212,7 @@ static func prompt(ci: CanvasItem) -> void:
 	UiDraw.panel(ci, x, y, w, h)
 	UiDraw.text(ci, title, x + w / 2, y + 7, {"align": "center", "color": col})
 	for i in lines.size():
-		UiDraw.text(ci, lines[i], x + 6, y + 19 + i * 10, {"color": "#d8d0c0"})
+		UiDraw.text(ci, lines[i], x + 6, y + 19 + i * 10, {"color": "#d8d0c0", "raw": true})
 	var yy := y + 19 + lines.size() * 10
 	if extra != "":
 		UiDraw.text(ci, extra, x + 6, yy, {})

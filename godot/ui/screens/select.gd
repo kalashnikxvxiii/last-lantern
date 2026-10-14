@@ -42,11 +42,11 @@ func paint() -> void:
 		WellBg.big_lantern(self, 341, 92, "#3b3546" if locked else L.glass, sin(t * 1.5) * 0.1, 3)
 		UiDraw.text(self, "???" if locked else L.name, 341, 140, {"align": "center", "color": "#55505e" if locked else "#f6cf57"})
 		if locked:
-			UiDraw.text_wrapped(self, "^dTo unlock: ^w" + L.unlock_text, 232, 160, 218, {})
+			UiDraw.text_wrapped(self, Loc.t("^dTo unlock: ^w") + Loc.t(L.unlock_text), 232, 160, 218, {})
 		else:
 			UiDraw.text_wrapped(self, L.desc, 232, 160, 218, {"color": "#d8d0c0"})
 	elif it.label is String and it.label == "Ardor":
-		UiDraw.text(self, "Ardor " + str(ard), 341, 70, {"align": "center", "color": "#e0574a", "scale": 2})
+		UiDraw.text(self, Loc.f("Ardor {0}", [ard]), 341, 70, {"align": "center", "color": "#e0574a", "scale": 2})
 		UiDraw.text_wrapped(self, "Each level of Ardor makes the descent crueler. Unlocked by rekindling the First Flame.", 232, 100, 218, {"color": "#a8a0b0"})
 		for i in range(1, ard + 1):
 			UiDraw.text(self, Lore.ARDOR[i], 232, 140 + (i - 1) * 11, {})

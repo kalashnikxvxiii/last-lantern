@@ -39,6 +39,7 @@ func _ready() -> void:
 	env.environment = Display.environment()
 	add_child(env)
 	Display.apply_all()
+	Loc.apply()
 	get_window().focus_exited.connect(_on_focus_lost)
 	var crt_layer := CanvasLayer.new()
 	crt_layer.name = "CrtLayer"
@@ -126,9 +127,9 @@ class ErrorBar extends Node2D:
 		if g.error == "":
 			return
 		UiDraw.px_rect(self, 0, Consts.H - 32, Consts.W, 32, "#300810")
-		UiDraw.text(self, "Error: " + g.error.substr(0, 70), 4, Consts.H - 29, {"color": "#ff8080"})
+		UiDraw.text(self, Loc.f("Error: {0}", [g.error.substr(0, 70)]), 4, Consts.H - 29, {"color": "#ff8080"})
 		var seed_txt := ("  seed " + str(Run.seed)) if Run.active else ""
-		UiDraw.text(self, "Take a screenshot and send it along with the feedback form. " + Consts.VERSION + seed_txt, 4, Consts.H - 16, {"color": "#e8c0c0"})
+		UiDraw.text(self, Loc.f("Take a screenshot and send it along with the feedback form. {0}", [Consts.VERSION + seed_txt]), 4, Consts.H - 16, {"color": "#e8c0c0"})
 
 func _process(_delta: float) -> void:
 	if dev.has("screenshot") and scene_name != "":

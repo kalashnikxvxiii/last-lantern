@@ -164,7 +164,7 @@ func add_xp(v: float) -> void:
 		xp -= Stats.xp_need(level)
 		level += 1
 		Run.pending_levels += 1
-		Floaters.add(x, y - 16, "LEVEL " + str(level), Txt.COLORS.y, {"life": 1.4, "vy": -20})
+		Floaters.add(x, y - 16, Loc.f("LEVEL {0}", [level]), Txt.COLORS.y, {"life": 1.4, "vy": -20})
 		Particles.burst(x, y, 24, ["#f6cf57", "#fff2a8", "#f29c38"], 90, 0.8, {"grav": -30})
 		Sfx.play("levelup")
 		heal(6, true)
@@ -472,7 +472,7 @@ func use_cons(i: int) -> void:
 		return
 	var C: Dictionary = Cons.ALL[sl.id]
 	if C.get("passive", false):
-		Run.toast(C.name + ": passive effect", "#8a8294")
+		Run.toast(Loc.f("{0}: passive effect", [Loc.t(C.name)]), "#8a8294")
 		Sfx.play("deny")
 		return
 	if not Cons.use(sl.id, self):

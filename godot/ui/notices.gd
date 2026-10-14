@@ -32,5 +32,5 @@ static func draw(ci: CanvasItem) -> void:
 			Spr.draw(ci, b.icon, 0, x + 17, y0 + 17)
 		UiDraw.text(ci, b.title, x + 32, y0 + 7, {"color": b.col})
 		for i in lines.size():
-			UiDraw.text(ci, lines[i], x + 32, y0 + 19 + i * 10, {"color": "#d8d0c0"})
+			UiDraw.text(ci, lines[i], x + 32, y0 + 19 + i * 10, {"color": "#d8d0c0", "raw": true})
 		UiDraw.alpha = ga

@@ -36,12 +36,12 @@ static func perk_cards(ci: CanvasItem, choices: Array, lit: int, title: String, 
 		Spr.draw(ci, P.icon, 0, x + cw / 2, y + 24, {"scale": 2.0})
 		var name_lines := Txt.wrap(P.name, cw - 10)
 		for k in name_lines.size():
-			UiDraw.text(ci, name_lines[k], x + cw / 2, y + 44 + k * 10, {"align": "center", "color": R.col})
+			UiDraw.text(ci, name_lines[k], x + cw / 2, y + 44 + k * 10, {"align": "center", "color": R.col, "raw": true})
 		var ny := y + 44 + name_lines.size() * 10
 		UiDraw.text(ci, R.name, x + cw / 2, ny, {"align": "center", "color": "#6b6478"})
 		var lines := Txt.wrap(P.desc, cw - 12)
 		for k in lines.size():
-			UiDraw.text(ci, lines[k], x + 6, ny + 14 + k * 10, {"color": "#d8d0c0"})
+			UiDraw.text(ci, lines[k], x + 6, ny + 14 + k * 10, {"color": "#d8d0c0", "raw": true})
 		var have: int = p.perks.get(id, 0)
 		if P["max"] > 1:
 			for k in P["max"]:
@@ -54,7 +54,7 @@ static func build_entries() -> Array:
 	var out: Array = []
 	for id in p.perks:
 		var P: Dictionary = Perks.ALL[id]
-		out.append({"kind": "perk", "icon": P.icon, "name": P.name + ("  x" + str(p.perks[id]) if P["max"] > 1 else ""), "desc": P.desc, "col": Stats.RARITY[P.rar].col})
+		out.append({"kind": "perk", "icon": P.icon, "name": Loc.t(P.name) + ("  x" + str(p.perks[id]) if P["max"] > 1 else ""), "desc": P.desc, "col": Stats.RARITY[P.rar].col})
 	for id in p.relics:
 		out.append({"kind": "relic", "icon": Relics.ALL[id].icon, "name": Relics.ALL[id].name, "desc": Relics.ALL[id].desc, "col": "#f6cf57"})
 	for id in p.curses:
@@ -85,7 +85,7 @@ static func build_panel(ci: CanvasItem, x: float, y: float, w: float, h: float, 
 		UiDraw.text(ci, sel.name, x + 8, dy, {"color": sel.col})
 		var lines := Txt.wrap(sel.desc, w - 16).slice(0, 3)
 		for k in lines.size():
-			UiDraw.text(ci, lines[k], x + 8, dy + 11 + k * 10, {"color": "#d8d0c0"})
+			UiDraw.text(ci, lines[k], x + 8, dy + 11 + k * 10, {"color": "#d8d0c0", "raw": true})
 	else:
 		UiDraw.text_wrapped(ci, "^dHover over an icon or open Equipment to read the details.", x + 8, dy, w - 16, {})
 	return rects

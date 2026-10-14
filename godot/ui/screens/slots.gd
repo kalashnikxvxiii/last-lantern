@@ -82,21 +82,21 @@ func paint() -> void:
 func _card(i: int, d: Dictionary, y: float) -> void:
 	var x := CX + 40
 	if d.is_empty():
-		UiDraw.text(self, "Slot " + str(i + 1), x, y + 10, {"color": "#8a8294"})
+		UiDraw.text(self, Loc.f("Slot {0}", [i + 1]), x, y + 10, {"color": "#8a8294"})
 		UiDraw.text(self, "Empty  -  a new descent begins here", x, y + 26, {"color": "#55505e"})
 		return
 	var s: Dictionary = d.summary
 	var L := DB.lantern(s.lantern)
 	WellBg.big_lantern(self, CX + 20, y + 28, L.glass, sin(t * 1.5 + i) * 0.1, 1.5)
-	UiDraw.text(self, "Slot " + str(i + 1) + "   ^y" + L.name, x, y + 8, {"color": "#8a8294"})
+	UiDraw.text(self, Loc.f("Slot {0}", [i + 1]) + "   ^y" + Loc.t(L.name), x, y + 8, {"color": "#8a8294"})
 	UiDraw.text(self, s.date.substr(0, 16), CX + CW - 8, y + 8, {"align": "right", "color": "#55505e"})
-	var where := "Depth " + str(s.depth) + "  -  " + DB.biome_of(s.depth).name
+	var where := Loc.f("Depth {0}", [s.depth]) + "  -  " + Loc.t(DB.biome_of(s.depth).name)
 	if s.ardor > 0:
-		where += "  -  ^rArdor " + str(s.ardor)
+		where += "  -  ^r" + Loc.f("Ardor {0}", [s.ardor])
 	if s.endless:
-		where += "  -  ^yInfinite Abyss"
+		where += "  -  ^y" + Loc.t("Infinite Abyss")
 	UiDraw.text(self, where, x, y + 21, {"color": "#e8dcc0"})
-	UiDraw.text(self, "^dLevel ^w%d   ^dHealth ^w%d/%d   ^dCoins ^w%d   ^dTime ^w%s" % [s.level, ceili(s.hp), int(s.maxHp), s.coins, U.fmt_time(s.time)], x, y + 34, {})
+	UiDraw.text(self, Loc.f("^dLevel ^w{0}   ^dHealth ^w{1}/{2}   ^dCoins ^w{3}   ^dTime ^w{4}", [s.level, ceili(s.hp), int(s.maxHp), s.coins, U.fmt_time(s.time)]), x, y + 34, {})
 	var relics: Array = s.relics
 	var n := mini(relics.size(), 6)
 	for k in n:

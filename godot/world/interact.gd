@@ -172,7 +172,7 @@ static func use_shrine(o: Dictionary) -> void:
 				var c: String = p.curses[U.rndi(0, p.curses.size() - 1)]
 				p.curses.erase(c)
 				p.recalc_stats()
-				Run.toast("Curse purified: " + Curses.ALL[c].name, "#7fd8e6")
+				Run.toast(Loc.f("Curse purified: {0}", [Loc.t(Curses.ALL[c].name)]), "#7fd8e6")
 				Sfx.play("heal")
 			elif p.curses.is_empty():
 				o.uses -= 1
@@ -194,4 +194,4 @@ static func use_shrine(o: Dictionary) -> void:
 				take_relic({"id": r[0], "x": o.x, "y": o.y})
 			Sfx.play("curse")
 			Fx.screen_flash("#4b2a5c", 0.5)
-			Run.toast("The pact is sealed.", "#c57ae0", "New curse: " + Curses.ALL[p.curses.back()].name if not avail.is_empty() else "")
+			Run.toast("The pact is sealed.", "#c57ae0", Loc.f("New curse: {0}", [Loc.t(Curses.ALL[p.curses.back()].name)]) if not avail.is_empty() else "")

@@ -152,13 +152,14 @@ static func flame(ci: CanvasItem, x: float, y: float, s: float, t: float) -> voi
 	px_rect(ci, x - 1 * s, y - 2 * s, 2 * s, 2 * s, "#fff2a8")
 
 # text with ^x color codes (Font.draw in js/font.js)
-# o: color, align (left, center, right), shadow, shadowColor, scale, alpha
+# o: color, align (left, center, right), shadow, shadowColor, scale, alpha,
+# raw (Godot-only: already translated, like the lines of Txt.wrap)
 static func text(ci: CanvasItem, s: Variant, x: float, y: float, o: Dictionary = {}) -> float:
-	var str_ := str(s)
+	var str_ := str(s) if o.get("raw", false) else Loc.t(str(s))
 	var scale: float = o.get("scale", 1.0)
 	var align: String = o.get("align", "left")
 	var base := col(o.get("color", Txt.COLORS.w))
-	var w := Txt.width(str_, scale)
+	var w := Txt.raw_width(str_, scale)
 	var cx := U.jround(x)
 	if align == "center":
 		cx = U.jround(x - w / 2.0)
@@ -175,7 +176,6 @@ static func text(ci: CanvasItem, s: Variant, x: float, y: float, o: Dictionary =
 	return w
 
 static func _run(ci: CanvasItem, s: String, x: float, y: float, scale: float, color: Color, fixed: bool, base: Color) -> void:
-	var tex := Txt.atlas()
 	var cur := color
 	var i := 0
 	while i < s.length():
@@ -191,7 +191,10 @@ static func _run(ci: CanvasItem, s: String, x: float, y: float, scale: float, co
 			i += 1
 			continue
 		var g: Array = Txt.glyph(ch)
-		ci.draw_texture_rect_region(tex, Rect2(x, y, g[1] * scale, 8 * scale), Rect2(g[0], 0, g[1], 8), _a(cur))
+		# CJK glyphs come from their own atlas, in rows
+		var cjk := g.size() > 2
+		var tex := Txt.cjk_atlas() if cjk else Txt.atlas()
+		ci.draw_texture_rect_region(tex, Rect2(x, y, g[1] * scale, 8 * scale), Rect2(g[0], g[2] if cjk else 0, g[1], 8), _a(cur))
 		x += (g[1] + 1) * scale
 		i += 1
 
@@ -199,6 +202,8 @@ static func text_wrapped(ci: CanvasItem, s: Variant, x: float, y: float, max_w: 
 	var scale: float = o.get("scale", 1.0)
 	var lines := Txt.wrap(str(s), max_w, scale)
 	var lh: float = o.get("lineH", Txt.LINE * scale)
+	var lo := o.duplicate()
+	lo.raw = true
 	for i in lines.size():
-		text(ci, lines[i], x, y + i * lh, o)
+		text(ci, lines[i], x, y + i * lh, lo)
 	return lines.size() * lh

@@ -64,7 +64,7 @@ func _boss_update(dt: float, tg, m: float) -> void:
 		var off := U.rnd(TAU)
 		for i in 20:
 			BossPatterns.boss_shoot(self, off + i * TAU / 20, {"spd": 70.0, "kind": ph[0].pats[0].get("kind", "orb")})
-		Run.toast(display_name + " is enraged!", "#e0574a")
+		Run.toast(Loc.f("{0} is enraged!", [Loc.t(display_name)]), "#e0574a")
 	if invuln > 0:
 		invuln -= dt
 		vx = 0.0
