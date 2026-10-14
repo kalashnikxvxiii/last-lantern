@@ -88,6 +88,7 @@ static func _world(play) -> Array:
 			"adjust": func(d): cur.depth = maxi(1, _depth() + d),
 			"action": func():
 				play.close_cheats()
+				Cheats.mark()
 				Cheats.goto_depth(_depth())},
 		{"label": "Game speed", "value": func(): return "< x" + str(Cheats.speed()) + " >",
 			"adjust": func(d): Cheats.speed_i = clampi(Cheats.speed_i + d, 0, Cheats.SPEEDS.size() - 1),
@@ -107,6 +108,7 @@ static func _elite() -> Variant:
 
 static func _act(label: String, f: Callable, note: String = "") -> Dictionary:
 	return {"label": label, "action": func():
+		Cheats.mark()
 		f.call()
 		Run.toast("Cheat: " + label, "#e0574a", note)}
 
@@ -127,6 +129,7 @@ static func _cycle(label: String, key: String, list: Callable, show: Callable, a
 			if l.is_empty():
 				return
 			var id: Variant = l[posmod(cur.get(key, 0), l.size())]
+			Cheats.mark()
 			var ok: Variant = apply.call(id)
 			if ok is bool and not ok:
 				Sfx.play("deny")}

@@ -42,7 +42,7 @@ static func new_floor() -> void:
 	var b := DB.biome_of(Run.depth)
 	Music.play(b.music)
 	Music.set_intensity(0)
-	if Run.depth > Save.data.stats.bestDepth:
+	if Run.depth > Save.data.stats.bestDepth and not Run.cheated:
 		Save.data.stats.bestDepth = Run.depth
 		Save.write()
 	check_unlocks()

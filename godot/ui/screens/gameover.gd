@@ -3,7 +3,8 @@ extends Screen
 
 func enter() -> void:
 	var st: Dictionary = Save.data.stats
-	st.kills += Run.kills
+	if not Run.cheated:
+		st.kills += Run.kills
 	Save.write()
 	RunSave.erase(Run.slot)
 	Flow.check_unlocks()

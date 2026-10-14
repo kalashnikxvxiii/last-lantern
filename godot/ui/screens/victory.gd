@@ -4,7 +4,7 @@ extends Screen
 func enter() -> void:
 	var st: Dictionary = Save.data.stats
 	var un: Dictionary = Save.data.unlocks
-	if not Run.win_recorded:
+	if not Run.win_recorded and not Run.cheated:
 		Run.win_recorded = true
 		st.wins += 1
 		if not st.bestTime or Run.time < st.bestTime:
@@ -25,7 +25,8 @@ func enter() -> void:
 				Run.room.objects.append({"type": "trapdoor", "x": c.x, "y": c.y + 34})
 			Game.set_scene("play", "continue")},
 		{"label": "Return to the surface", "action": func():
-			Save.data.stats.kills += Run.kills
+			if not Run.cheated:
+				Save.data.stats.kills += Run.kills
 			Save.write()
 			RunSave.erase(Run.slot)
 			Game.set_scene("title")},
