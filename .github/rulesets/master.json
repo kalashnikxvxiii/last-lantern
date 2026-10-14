@@ -28,7 +28,8 @@
           { "context": "Godot tests" },
           { "context": "JS reference data" },
           { "context": "Scripts and repo hygiene" },
-          { "context": "Check the PR title" }
+          { "context": "Check the PR title" },
+          { "context": "Check the PR base" }
         ]
       }
     }
