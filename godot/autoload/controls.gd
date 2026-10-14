@@ -24,6 +24,7 @@ const PAD := {
 }
 const MOUSE := {"fire": [MOUSE_BUTTON_LEFT], "flare": [MOUSE_BUTTON_RIGHT]}
 
+var to_world := Callable()   # Godot-only: set by the 3D view
 var last_device := "kb"
 var sim: Dictionary = {}
 var held_only := false   # extra ticks of the same frame (cheat fast forward): no new presses
@@ -67,6 +68,10 @@ func _input(event: InputEvent) -> void:
 
 func device() -> String:
 	return sim.get("device", last_device)
+
+# the point of the room under the mouse: the 3D view projects it on the floor
+func mouse_world() -> Vector2:
+	return to_world.call(mouse_pos()) if to_world.is_valid() else mouse_pos()
 
 func mouse_pos() -> Vector2:
 	if sim.has("mouse"):
@@ -138,7 +143,7 @@ func aim_angle(px: float, py: float, current: float) -> float:
 	if ka != null:
 		return ka
 	if device() == "mouse" or mouse_left():
-		var m := mouse_pos() - Fx.cam_px()   # the camera moves the room under the mouse
+		var m := mouse_world()
 		return U.ang_to(px, py - 4, m.x, m.y)
 	return current
 

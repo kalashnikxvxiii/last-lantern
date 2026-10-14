@@ -21,8 +21,11 @@ static func update(dt: float) -> void:
 			list.remove_at(i)
 		i -= 1
 
-static func draw(ci: CanvasItem) -> void:
+# place (Godot-only, the 3D view) moves the drawing to where each number stands
+static func draw(ci: CanvasItem, place := Callable()) -> void:
 	for f in list:
+		if place.is_valid():
+			place.call(f.x, f.y)
 		var a: float = 1.0 - (f.t - f.life * 0.6) / (f.life * 0.4) if f.t > f.life * 0.6 else 1.0
 		UiDraw.text(ci, f.text, f.x, f.y, {"align": "center", "color": f.color, "alpha": a, "scale": f.scale})
 

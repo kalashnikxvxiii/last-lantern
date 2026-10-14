@@ -159,7 +159,7 @@ func test_bloom_layer() -> void:
 	TH.new_run(5)
 	var play: Node = load("res://scenes/play.tscn").instantiate()
 	(Engine.get_main_loop() as SceneTree).root.add_child(play)
-	var b: Bloom = play.get_node("OverlayLayer/Bloom")
+	var b: Bloom = play.get_node("ScreenFx/Bloom")
 	Save.data.settings.bloom = "off"
 	b._process(0.0)
 	check(not b.visible, "bloom off: the layer is hidden")

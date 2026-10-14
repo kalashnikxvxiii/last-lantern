@@ -61,6 +61,10 @@ func _process(_delta: float) -> void:
 	var ab := aberration(Fx.shake_amt, Fx.flash)
 	var offset: Vector2 = (get_parent() as CanvasLayer).offset if get_parent() is CanvasLayer else Vector2.ZERO
 	var rs := rings(Run.fx, offset) if Run.active else []
+	if View3D.current != null:   # rings on the floor, where the 3D view shows them
+		for i in rs.size():
+			var p := View3D.current.project(Vector3(rs[i].x, 0, rs[i].y))
+			rs[i] = Vector4(p.x, p.y, rs[i].z, rs[i].w)
 	visible = Run.active and not Run.room.is_empty() and (grading or ab > 0.0 or not rs.is_empty())
 	if not visible:
 		return

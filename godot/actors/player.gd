@@ -405,42 +405,61 @@ func _process(_delta: float) -> void:
 	sync()
 
 # drawLantern (js/render.js)
-func _draw_lantern() -> void:
+func draw_lantern(ci: CanvasItem) -> void:
 	var glass := DB.lantern(lantern).glass
 	var lx := U.jround(x + cos(aim) * 7)
 	var ly := U.jround(y - 1 + sin(aim) * 4)
-	UiDraw.px_rect(self, lx - 2, ly - 4, 5, 7, "#0b0810")
-	UiDraw.px_rect(self, lx - 1, ly - 5, 3, 1, "#3b3546")
-	UiDraw.px_rect(self, lx - 1, ly - 3, 3, 4, glass)
-	UiDraw.px_rect(self, lx, ly - 2, 1, 2, "#ffffff")
-	UiDraw.px_rect(self, lx - 1, ly + 2, 3, 1, "#3b3546")
+	UiDraw.px_rect(ci, lx - 2, ly - 4, 5, 7, "#0b0810")
+	UiDraw.px_rect(ci, lx - 1, ly - 5, 3, 1, "#3b3546")
+	UiDraw.px_rect(ci, lx - 1, ly - 3, 3, 4, glass)
+	UiDraw.px_rect(ci, lx, ly - 2, 1, 2, "#ffffff")
+	UiDraw.px_rect(ci, lx - 1, ly + 2, 3, 1, "#3b3546")
+
+func lantern_behind() -> bool:
+	return sin(aim) < -0.3
+
+# the orbiting embers (drawPlayer)
+func draw_orbitals(ci: CanvasItem) -> void:
+	for o in orbital_positions():
+		UiDraw.px_rect(ci, o.x - 2, o.y - 2, 4, 4, "#f29c38")
+		UiDraw.px_rect(ci, o.x - 1, o.y - 1, 2, 2, "#fff2a8")
+
+# sprite, frame and effects of drawPlayer, shared by the 2D drawing and the 3D view
+func sprite_state() -> Dictionary:
+	if dead or not Run.active:
+		return {}
+	var blink := inv > 0 and int(floor(inv * 20)) % 2 == 0
+	var frame := int(floor(anim * 8)) % 2 if moving else 0
+	var bob := -1 if moving and frame != 0 else 0
+	var o := {"flip": facing < 0, "flash": dash_t > 0 and Fx.vis.next() < 0.3,
+		"alpha": 0.35 if statuses.has("invis") else (0.4 if blink else 1.0)}
+	return {"name": "player", "frame": frame, "x": x, "y": y + bob, "o": o}
 
 # drawPlayer (js/render.js), in world coordinates
 func _draw() -> void:
 	if dead or not Run.active:
 		return
 	UiDraw.set_origin(self, -position)
-	var blink := inv > 0 and int(floor(inv * 20)) % 2 == 0
 	UiDraw.shadow(self, x, y + 7, 5)
-	var a := 0.35 if statuses.has("invis") else (0.4 if blink else 1.0)
-	var frame := int(floor(anim * 8)) % 2 if moving else 0
-	var bob := -1 if moving and frame != 0 else 0
-	var behind := sin(aim) < -0.3
 	var ga := UiDraw.alpha
-	UiDraw.alpha = a
-	if behind:
-		_draw_lantern()
-	Spr.draw(self, "player", frame, x, y + bob, {"flip": facing < 0, "flash": dash_t > 0 and Fx.vis.next() < 0.3})
-	if not behind:
-		_draw_lantern()
-	UiDraw.alpha = ga
+	# the 3D view stands the sprite up and draws the lantern and the embers on it
+	if not View3D.on:
+		var st := sprite_state()
+		var behind := lantern_behind()
+		UiDraw.alpha = st.o.alpha
+		st.o.erase("alpha")
+		if behind:
+			draw_lantern(self)
+		Spr.draw(self, "player", st.frame, x, st.y, st.o)
+		if not behind:
+			draw_lantern(self)
+		UiDraw.alpha = ga
 	if guard_up:
 		UiDraw.alpha = 0.5 + 0.2 * sin(Fx.time * 6)
 		UiDraw.px_ring(self, x, y, 11, "#7fd8e6")
 		UiDraw.alpha = ga
-	for o in orbital_positions():
-		UiDraw.px_rect(self, o.x - 2, o.y - 2, 4, 4, "#f29c38")
-		UiDraw.px_rect(self, o.x - 1, o.y - 1, 2, 2, "#fff2a8")
+	if not View3D.on:
+		draw_orbitals(self)
 	UiDraw.set_origin(self, Vector2.ZERO)
 
 func use_cons(i: int) -> void:

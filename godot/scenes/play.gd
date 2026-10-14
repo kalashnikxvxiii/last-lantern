@@ -18,8 +18,7 @@ var map_from := "play"
 var opt_menu: OptionsMenu
 var cheat_menu: Menu
 var cheat_page := "main"
-@onready var world: Node2D = $World
-@onready var actors: Node2D = $World/Actors
+@onready var actors: Node2D = $Flat/World/Actors
 
 func _ready() -> void:
 	Run.actors = actors
@@ -62,10 +61,8 @@ func _physics_process(_delta: float) -> void:
 func _process(delta: float) -> void:
 	if Run.player != null:
 		Fx.follow(Run.player.x, Run.player.y, delta)
-	var off := Fx.offset()
-	world.position = off
-	$OverlayLayer.offset = off
-	$Lighting.refresh(off)
+	# the 3D view moves its camera: the flat world stays put in its texture
+	$Flat/Lighting.refresh(Vector2.ZERO)
 	Input.mouse_mode = Input.MOUSE_MODE_HIDDEN if cursor_hidden(mode) else Input.MOUSE_MODE_VISIBLE
 
 static func cursor_hidden(m: String) -> bool:

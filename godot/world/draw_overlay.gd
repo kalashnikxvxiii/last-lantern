@@ -1,3 +1,4 @@
+class_name DrawOverlay
 extends Node2D
 # Overlay visible even in the dark (drawWorld in js/render.js): telegraphs, eyes,
 # enemy projectiles, high particles, floating numbers, interaction prompt,
@@ -6,26 +7,37 @@ extends Node2D
 func _process(_delta: float) -> void:
 	queue_redraw()
 
+# Godot-only, with the 3D view: "ground" draws the telegraphs on the floor, "air"
+# the projectiles and particles on the plane above it; DrawLifted draws the rest
+@export var part := "ground"
+
 func _draw() -> void:
 	if not Run.active or Run.room.is_empty():
+		return
+	if View3D.on:
+		if part == "air":
+			_enemy_bullets()
+			Particles.draw(self, true)
+		else:
+			_telegraphs()
 		return
 	_telegraphs()
 	_eyes()
 	_enemy_bullets()
 	Particles.draw(self, true)
 	Floaters.draw(self)
-	_prompt()
-	_bubbles()
+	prompt(self)
+	for o in Run.room.objects:
+		bubble(self, o)
 
 # merchant's speech bubble (drawObjects in js/render.js); drawn in the overlay,
 # above the actors, so the player does not cover it
-func _bubbles() -> void:
-	for o in Run.room.objects:
-		if o.type != "merchant" or U.dist(o.x, o.y, Run.player.x, Run.player.y) >= 70:
-			continue
-		var w := UiDraw.panel_width(o.line, "", 12.0)
-		UiDraw.panel(self, o.x - w / 2, o.y - 34, w, 16, {"alpha": 0.9})
-		UiDraw.text(self, o.line, o.x, o.y - 30, {"align": "center", "color": "#e8dcc0"})
+static func bubble(ci: CanvasItem, o: Dictionary) -> void:
+	if o.type != "merchant" or U.dist(o.x, o.y, Run.player.x, Run.player.y) >= 70:
+		return
+	var w := UiDraw.panel_width(o.line, "", 12.0)
+	UiDraw.panel(ci, o.x - w / 2, o.y - 34, w, 16, {"alpha": 0.9})
+	UiDraw.text(ci, o.line, o.x, o.y - 30, {"align": "center", "color": "#e8dcc0"})
 
 # drawEnemyBullets (js/render.js)
 func _enemy_bullets() -> void:
@@ -77,11 +89,15 @@ func _telegraphs() -> void:
 			UiDraw.alpha = 0.35
 			draw_dashed_line(Vector2(e.x, e.y), Vector2(e.x + cos(e.dash_a) * 110, e.y + sin(e.dash_a) * 110), UiDraw._a("#7fd8e6"), 2, 3)
 			UiDraw.alpha = ga
-		# attack warning: spark above the head
-		if e.wind > 0 and not e.dead and e.alpha > 0.3:
-			if sin(t * 40) > 0:
-				UiDraw.px_rect(self, e.x - 1, e.y - e.r - 9 - e.z, 2, 4, "#f6cf57")
-				UiDraw.px_rect(self, e.x - 1, e.y - e.r - 4 - e.z, 2, 1, "#f6cf57")
+		if not View3D.on:
+			warn_spark(self, e)
+
+# attack warning: spark above the head (drawTelegraphs)
+static func warn_spark(ci: CanvasItem, e: Enemy) -> void:
+	if e.wind > 0 and not e.dead and e.alpha > 0.3:
+		if sin(Fx.time * 40) > 0:
+			UiDraw.px_rect(ci, e.x - 1, e.y - e.r - 9 - e.z, 2, 4, "#f6cf57")
+			UiDraw.px_rect(ci, e.x - 1, e.y - e.r - 4 - e.z, 2, 1, "#f6cf57")
 
 func _beam(f: Dictionary) -> void:
 	var a := Vector2(f.x, f.y)
@@ -100,26 +116,29 @@ func _beam(f: Dictionary) -> void:
 
 # drawEyes (js/render.js): enemy eyes in the darkness
 func _eyes() -> void:
+	for e in Run.enemies:
+		eye(self, e)
+
+static func eye(ci: CanvasItem, e: Enemy) -> void:
 	var p := Run.player
 	var lr := p.light()
+	if e.alpha < 0.5 or e.spawning or e.boss:
+		return
+	var d := U.dist(e.x, e.y, p.x, p.y)
+	var a := clampf((d - lr * 0.55) / (lr * 0.4), 0, 1)
+	if a <= 0:
+		return
 	var ga := UiDraw.alpha
-	for e in Run.enemies:
-		if e.alpha < 0.5 or e.spawning or e.boss:
-			continue
-		var d := U.dist(e.x, e.y, p.x, p.y)
-		var a := clampf((d - lr * 0.55) / (lr * 0.4), 0, 1)
-		if a <= 0:
-			continue
-		var S := Spr.size(e.def.spr)
-		var ey := U.jround(e.y - e.z - S.y * 0.18)
-		var col: String = EliteMods.ALL[e.mod].col if e.elite else "#ff5a4a"
-		UiDraw.alpha = a * (0.7 + 0.3 * sin(Fx.time * 3 + e.x))
-		UiDraw.px_rect(self, e.x - 3, ey, 2, 1, col)
-		UiDraw.px_rect(self, e.x + 1, ey, 2, 1, col)
-		UiDraw.alpha = ga
+	var S := Spr.size(e.def.spr)
+	var ey := U.jround(e.y - e.z - S.y * 0.18)
+	var col: String = EliteMods.ALL[e.mod].col if e.elite else "#ff5a4a"
+	UiDraw.alpha = a * (0.7 + 0.3 * sin(Fx.time * 3 + e.x))
+	UiDraw.px_rect(ci, e.x - 3, ey, 2, 1, col)
+	UiDraw.px_rect(ci, e.x + 1, ey, 2, 1, col)
+	UiDraw.alpha = ga
 
 # drawPrompt (js/render.js): interaction hint
-func _prompt() -> void:
+static func prompt(ci: CanvasItem) -> void:
 	var o: Variant = Run.focus
 	if o == null:
 		return
@@ -190,14 +209,14 @@ func _prompt() -> void:
 	var y: float = o.y - 26 - h
 	if y < Consts.RY + 2:
 		y = o.y + 22
-	UiDraw.panel(self, x, y, w, h)
-	UiDraw.text(self, title, x + w / 2, y + 7, {"align": "center", "color": col})
+	UiDraw.panel(ci, x, y, w, h)
+	UiDraw.text(ci, title, x + w / 2, y + 7, {"align": "center", "color": col})
 	for i in lines.size():
-		UiDraw.text(self, lines[i], x + 6, y + 19 + i * 10, {"color": "#d8d0c0"})
+		UiDraw.text(ci, lines[i], x + 6, y + 19 + i * 10, {"color": "#d8d0c0"})
 	var yy := y + 19 + lines.size() * 10
 	if extra != "":
-		UiDraw.text(self, extra, x + 6, yy, {})
+		UiDraw.text(ci, extra, x + 6, yy, {})
 		yy += 10
 	if verb != "":
-		var kw := UiDraw.keycap(self, x + 6, yy + 1, "X" if Controls.device() == "pad" else "E")
-		UiDraw.text(self, verb, x + 10 + kw, yy + 2, {"color": Txt.COLORS.y})
+		var kw := UiDraw.keycap(ci, x + 6, yy + 1, "X" if Controls.device() == "pad" else "E")
+		UiDraw.text(ci, verb, x + 10 + kw, yy + 2, {"color": Txt.COLORS.y})

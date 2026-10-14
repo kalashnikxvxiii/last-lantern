@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://scenes/play.gd" id="1"]
 [ext_resource type="Script" path="res://world/room_view.gd" id="2"]
@@ -12,48 +12,83 @@
 [ext_resource type="Script" path="res://world/ambient_fx.gd" id="10"]
 [ext_resource type="Script" path="res://world/sparks.gd" id="11"]
 [ext_resource type="Script" path="res://world/post_fx.gd" id="12"]
+[ext_resource type="Script" path="res://world/view_3d.gd" id="13"]
+[ext_resource type="Script" path="res://world/draw_lifted.gd" id="14"]
 
 [node name="Play" type="Node"]
 script = ExtResource("1")
 
-[node name="World" type="Node2D" parent="."]
+[node name="Flat" type="SubViewport" parent="."]
+size = Vector2i(1440, 810)
+size_2d_override = Vector2i(480, 270)
+size_2d_override_stretch = true
+canvas_item_default_texture_filter = 0
+render_target_update_mode = 4
 
-[node name="Room" type="Node2D" parent="World"]
+[node name="World" type="Node2D" parent="Flat"]
+
+[node name="Room" type="Node2D" parent="Flat/World"]
 script = ExtResource("2")
 
-[node name="Ground" type="Node2D" parent="World"]
+[node name="Ground" type="Node2D" parent="Flat/World"]
 script = ExtResource("3")
 
-[node name="Actors" type="Node2D" parent="World"]
+[node name="Actors" type="Node2D" parent="Flat/World"]
 y_sort_enabled = true
 
-[node name="AmbientAir" type="GPUParticles2D" parent="World"]
+[node name="AmbientAir" type="GPUParticles2D" parent="Flat/World"]
 script = ExtResource("10")
 
-[node name="Air" type="Node2D" parent="World"]
-script = ExtResource("5")
-
-[node name="Lighting" type="CanvasLayer" parent="."]
+[node name="Lighting" type="CanvasLayer" parent="Flat"]
 script = ExtResource("4")
 
-[node name="OverlayLayer" type="CanvasLayer" parent="."]
+[node name="OverlayLayer" type="CanvasLayer" parent="Flat"]
 layer = 2
 
-[node name="Overlay" type="Node2D" parent="OverlayLayer"]
+[node name="Overlay" type="Node2D" parent="Flat/OverlayLayer"]
 script = ExtResource("6")
 
-[node name="AmbientGlow" type="GPUParticles2D" parent="OverlayLayer"]
+[node name="AmbientGlow" type="GPUParticles2D" parent="Flat/OverlayLayer"]
 script = ExtResource("10")
 glow = true
 
-[node name="Sparks" type="Node2D" parent="OverlayLayer"]
+[node name="Sparks" type="Node2D" parent="Flat/OverlayLayer"]
 script = ExtResource("11")
 
-[node name="PostFx" type="ColorRect" parent="OverlayLayer"]
+[node name="Air" type="SubViewport" parent="."]
+transparent_bg = true
+size = Vector2i(1440, 810)
+size_2d_override = Vector2i(480, 270)
+size_2d_override_stretch = true
+canvas_item_default_texture_filter = 0
+render_target_update_mode = 4
+
+[node name="Air" type="Node2D" parent="Air"]
+script = ExtResource("5")
+
+[node name="OverlayAir" type="Node2D" parent="Air"]
+script = ExtResource("6")
+part = "air"
+
+[node name="View" type="Node3D" parent="." node_paths=PackedStringArray("flat", "air")]
+script = ExtResource("13")
+flat = NodePath("../Flat")
+air = NodePath("../Air")
+
+[node name="ScreenFx" type="CanvasLayer" parent="."]
+layer = 2
+
+[node name="PostFx" type="ColorRect" parent="ScreenFx"]
 script = ExtResource("12")
 
-[node name="Bloom" type="ColorRect" parent="OverlayLayer"]
+[node name="Bloom" type="ColorRect" parent="ScreenFx"]
 script = ExtResource("9")
+
+[node name="LiftedLayer" type="CanvasLayer" parent="."]
+layer = 2
+
+[node name="Lifted" type="Node2D" parent="LiftedLayer"]
+script = ExtResource("14")
 
 [node name="HudLayer" type="CanvasLayer" parent="."]
 layer = 3
