@@ -16,9 +16,11 @@ func test_wrap_keeps_the_color() -> void:
 func test_missing_glyph_fallback() -> void:
 	eq(Txt.glyph("ò"), Txt.glyph("ò"))
 	eq(Txt.glyph("Ò")[1], 5.0, "accented capital drawn")
-	eq(Txt.glyph("ñ"), Txt.glyph("?"), "no glyph: question mark")
+	eq(Txt.glyph("ŋ"), Txt.glyph("?"), "no glyph: question mark")
+	check(Txt.glyph("ñ") != Txt.glyph("?"), "Spanish ñ drawn")
+	check(Txt.glyph("ж") != Txt.glyph("?"), "Cyrillic drawn")
 	eq(Txt.glyph("’"), Txt.glyph("?"))
-	eq(Txt.width("ñ"), Txt.width("?"))
+	eq(Txt.width("ŋ"), Txt.width("?"))
 	eq(Txt.glyph("q")[1], 5.0)
 
 func test_text_colors() -> void:
