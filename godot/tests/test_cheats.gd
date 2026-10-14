@@ -168,3 +168,10 @@ func test_a_cheated_run_records_no_stats() -> void:
 	RunSave.erase(0)
 	TH.new_run(33)
 	check(not Run.cheated, "a new run starts clean")
+
+func test_the_debug_readout_replaces_the_fps_counter() -> void:
+	check(not CheatMenu.info_shown())
+	Cheats.info = true
+	eq(CheatMenu.info_shown(), Cheats.enabled, "shown during a run when cheats are enabled")
+	Run.reset()
+	check(not CheatMenu.info_shown(), "not outside a run")
