@@ -48,6 +48,7 @@ var blood_paid := 0
 var abandoned := false
 var win_recorded := false
 var slot := -1   # save slot of the run (RunSave), -1 = not saved
+var cheated := false   # Godot-only: a cheat was used, the run records no stats
 var actors: Node2D = null   # game scene node that hosts the actors
 
 # on quit: frees the actors the game scene let go and the rooms' circular references
@@ -111,6 +112,7 @@ func reset() -> void:
 	abandoned = false
 	win_recorded = false
 	slot = -1
+	cheated = false
 
 # notifications (toast and banner in js/ui.js)
 func toast(text: String, col: Variant = "#ece6d8", sub: String = "") -> void:

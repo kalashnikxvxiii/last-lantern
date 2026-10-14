@@ -148,8 +148,9 @@ func _boss_dying(dt: float) -> void:
 	if dying > 2.0:
 		dead = true
 		Run.kills += 1
-		Save.data.stats.bossKills += 1
-		Save.write()
+		if not Run.cheated:
+			Save.data.stats.bossKills += 1
+			Save.write()
 		Fx.shake(12)
 		Sfx.play("explosion")
 		Fx.screen_flash("#fff2a8", 0.8)

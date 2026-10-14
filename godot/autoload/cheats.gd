@@ -31,6 +31,12 @@ func reset() -> void:
 func speed() -> float:
 	return SPEEDS[speed_i]
 
+# the run records no stats from now on (gameover, victory, wardens, best depth)
+func mark() -> void:
+	if Run.active and not Run.cheated:
+		Run.cheated = true
+		Run.toast("Cheats used", "#e0574a", "This descent records no stats")
+
 func any_active() -> bool:
 	return god or inf_oil or noclip or one_shot or freeze or speed_i != 2
 
@@ -39,6 +45,8 @@ func tick() -> void:
 	if not Run.active or Run.player == null:
 		return
 	var p := Run.player
+	if any_active():
+		mark()
 	if inf_oil:
 		p.oil = p.stats.maxOil
 	if freeze:

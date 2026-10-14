@@ -16,7 +16,7 @@ static func save(slot: int) -> bool:
 	if slot < 0 or not Run.active or Run.player == null:
 		return false
 	var p := Run.player
-	var run := {"rng": Run.rng.s}
+	var run := {"rng": Run.rng.s, "cheated": Run.cheated}
 	for k in RUN_VARS:
 		run[k] = Run.get(k)
 	var player := {}
@@ -70,6 +70,7 @@ static func resume(slot: int) -> bool:
 		Run.set(k, d.run[k])
 	Run.rng = RNG.new(1)
 	Run.rng.s = d.run.rng
+	Run.cheated = d.run.get("cheated", false)   # added later: older slots lack it
 	var p := Player.new()
 	for k in d.player:
 		p.set(k, d.player[k])

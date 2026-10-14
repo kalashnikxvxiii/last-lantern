@@ -148,3 +148,22 @@ func test_a_new_run_starts_without_cheats() -> void:
 	Cheats.speed_i = 4
 	TH.new_run(32)
 	check(not Cheats.any_active(), "the toggles do not carry into the next run")
+
+func test_a_cheated_run_records_no_stats() -> void:
+	check(not Run.cheated)
+	Cheats.god = true
+	play.tick(Consts.DT)
+	check(Run.cheated, "a toggle marks the run")
+	var kills: int = Save.data.stats.kills
+	Run.kills = 5
+	var sc: Node = load(Game.SCENES.gameover).instantiate()
+	sc.enter()
+	sc.free()
+	eq(Save.data.stats.kills, kills, "the kills of a cheated run are not counted")
+	check(RunSave.save(0))
+	Run.cheated = false
+	check(RunSave.resume(0))
+	check(Run.cheated, "a resumed slot is still cheated")
+	RunSave.erase(0)
+	TH.new_run(33)
+	check(not Run.cheated, "a new run starts clean")
