@@ -3,6 +3,7 @@ extends TestCase
 
 func after() -> void:
 	Controls.sim.clear()
+	Controls.mouse_aim = false
 	for a in ["move_right", "move_down", "aim_left"]:
 		Input.action_release(a)
 
@@ -71,6 +72,10 @@ func test_moving_keeps_the_mouse_aim() -> void:
 	_key(KEY_W, true)
 	_key(KEY_W, false)
 	check(Controls.mouse_aim, "walking with the keys keeps the crosshair")
+	eq(Controls.last_device, "kb")
+	Controls.sim = {"mouse": Vector2(300, 100)}
+	near(Controls.aim_angle(100, 104, 1.5), 0.0, 1e-9, "and the shots still go to the mouse")
+	Controls.sim.clear()
 	_key(KEY_LEFT, true)
 	_key(KEY_LEFT, false)
 	check(not Controls.mouse_aim, "the arrows aim: no crosshair")
