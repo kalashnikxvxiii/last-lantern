@@ -24,10 +24,21 @@ New features go into Godot. In the JS only beta bugs are fixed.
 
 ```bash
 git clone https://github.com/kalashnikxvxiii/last-lantern.git && cd last-lantern
+cp .githooks/* .git/hooks/               # refreshes the classes after every pull
 godot --headless --path godot --import   # the first time, registers the classes
 godot --path godot                       # starts the game
 tools/test.sh                            # runs all the tests
 ```
+
+Godot keeps the list of `class_name` scripts in `godot/.godot/`, which is not
+tracked. After a pull that adds a class, `godot --path godot` fails with errors
+like `Identifier "X" not declared` or `Nonexistent function 'new'` until the
+import runs again. The hooks in `.githooks/` run it after every pull, rebase and
+branch switch; without them, run `godot --headless --path godot --import` by hand.
+On Windows PowerShell, install them with `Copy-Item .githooks\* .git\hooks\`.
+They are copied rather than enabled with `core.hooksPath`: that would run the
+hooks of whatever branch you check out, including someone else's before you
+review it. Copy them again when `.githooks/` changes.
 
 To work in the editor: `godot -e --path godot`.
 
