@@ -18,6 +18,7 @@ const AIR_H := 8.0           # height of the projectiles' plane
 const SPRITE_BIAS := 8.0     # sprites move this much toward the camera: no clipping into walls
 const MAX_LIGHTS := 12
 const SHADOW_LIGHTS := 3
+const GATE_SPEED := 60.0     # px/s: a gate sinks into the floor (or rises) in 0.4 s
 
 static var on := false       # actors leave their sprite to the view while it is up
 static var current: View3D
@@ -34,6 +35,7 @@ var sprites: Dictionary = {}   # actor instance id -> Sprite3D
 var item_pool: Array[Sprite3D] = []
 var lights: Array[OmniLight3D] = []
 var shown: Dictionary = {}
+var gates: Dictionary = {}     # door dir -> its bars, lowered into the floor while the door is open
 
 func _ready() -> void:
 	on = true
@@ -88,12 +90,14 @@ func _exit_tree() -> void:
 	if Controls.to_world == Callable(self, "screen_to_floor"):
 		Controls.to_world = Callable()
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if not Run.active or Run.room.is_empty():
 		return
 	if not is_same(Run.room, shown) or Run.room.get("bgDirty", false):
-		shown = Run.room
 		solids.mesh = build_solids(Run.room)
+		build_gates(Run.room, not is_same(Run.room, shown))
+		shown = Run.room
+	sync_gates(delta)
 	place_camera(Fx.cam, Fx.offset())
 	_sync_sprites()
 	_sync_items()
@@ -256,6 +260,66 @@ func _rock(st: SurfaceTool, cx: float, cz: float, uv: Rect2) -> void:
 			for v in [pts[0], pts[1], pts[2], pts[0], pts[2], pts[3]]:
 				st.set_uv(v[1])
 				st.add_vertex(v[0])
+
+# --- the gates of the doors: bars that rise from the floor like the walls ---
+
+# entering a room the gates are already where the doors want them, except the one
+# the player came in through: it starts down and closes behind them
+func build_gates(room: Dictionary, entering: bool) -> void:
+	for g in gates.values():
+		g.free()
+	gates = {}
+	var entry := ""
+	if entering and Run.player != null:
+		var best := Consts.TS * 3.0
+		for d in room.doors:
+			var k := RoomU.door_center(d).distance_to(Vector2(Run.player.x, Run.player.y))
+			if k < best:
+				best = k
+				entry = d
+	for d in room.doors:
+		if not RoomU.door_visible(room, d) or DrawGround._door_style(room, d).kind == "secret":
+			continue
+		var t0: Array = RoomU.DIRS[d].tiles[0]
+		var x := float(Consts.RX + t0[0] * Consts.TS)
+		var z := float(Consts.RY + t0[1] * Consts.TS)
+		var horiz: bool = d == "n" or d == "s"
+		var st := SurfaceTool.new()
+		st.begin(Mesh.PRIMITIVE_TRIANGLES)
+		# the 2D bars (DrawGround._doors) in the middle of the doorway, and two crossbars
+		var m := Consts.TS / 2.0 - 1.0
+		for i in 6:
+			var a := 7.0 + i * 6
+			_bar(st, Vector3(x + a, 0, z + m) if horiz else Vector3(x + m, 0, z + a), Vector3(2, WALL_H, 2))
+		for y in [8.0, 18.0]:
+			_bar(st, Vector3(x + 4, y, z + m) if horiz else Vector3(x + m, y, z + 4), Vector3(40, 2, 2) if horiz else Vector3(2, 2, 40))
+		st.generate_normals()
+		var g := MeshInstance3D.new()
+		g.mesh = st.commit()
+		g.material_override = StandardMaterial3D.new()
+		g.position.y = -WALL_H if RoomU.door_open(room, d) or d == entry else 0.0
+		gates[d] = g
+		add_child(g)
+
+# each gate moves toward its place: down in the floor when the door is open
+func sync_gates(delta: float) -> void:
+	for d in gates:
+		var g: MeshInstance3D = gates[d]
+		var to := -WALL_H if RoomU.door_open(Run.room, d) else 0.0
+		g.position.y = move_toward(g.position.y, to, GATE_SPEED * delta)
+		g.visible = g.position.y > -WALL_H
+		(g.material_override as StandardMaterial3D).albedo_color = UiDraw.col("#c49a3a" if RoomU.door_locked(Run.room, d) else "#6b6478")
+
+# a box from p (its lowest corner) of size s
+static func _bar(st: SurfaceTool, p: Vector3, s: Vector3) -> void:
+	var q := p + s
+	var uv := Rect2()
+	st.set_smooth_group(0xFFFFFFFF)
+	_quad(st, Vector3(p.x, q.y, p.z), Vector3(q.x, q.y, p.z), Vector3(q.x, q.y, q.z), Vector3(p.x, q.y, q.z), uv)
+	_quad(st, Vector3(p.x, q.y, q.z), Vector3(q.x, q.y, q.z), Vector3(q.x, p.y, q.z), Vector3(p.x, p.y, q.z), uv)
+	_quad(st, Vector3(q.x, q.y, p.z), Vector3(p.x, q.y, p.z), Vector3(p.x, p.y, p.z), Vector3(q.x, p.y, p.z), uv)
+	_quad(st, Vector3(p.x, q.y, p.z), Vector3(p.x, q.y, q.z), Vector3(p.x, p.y, q.z), Vector3(p.x, p.y, p.z), uv)
+	_quad(st, Vector3(q.x, q.y, q.z), Vector3(q.x, q.y, p.z), Vector3(q.x, p.y, p.z), Vector3(q.x, p.y, q.z), uv)
 
 # --- actors standing up ---
 
