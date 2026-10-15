@@ -124,13 +124,12 @@ func _take_capture() -> void:
 		return
 	var code := -1
 	if device == "kb" and e is InputEventKey:
-		var k: int = e.physical_keycode if e.physical_keycode != KEY_NONE else e.keycode
-		# ESC cancels, except for Pause, which has it by default
-		if k != KEY_NONE and (k != KEY_ESCAPE or waiting == "pause"):
-			code = k
+		code = e.physical_keycode if e.physical_keycode != KEY_NONE else e.keycode
+		if code == KEY_NONE:
+			code = -1
 	elif device == "pad" and e is InputEventJoypadButton:
 		code = e.button_index
-	if code >= 0:
+	if code >= 0 and code != _cancel_code():
 		Controls.rebind(device, waiting, code)
 		Sfx.play("confirm")
 	else:
@@ -182,7 +181,7 @@ func draw(ci: CanvasItem) -> void:
 		img = ControlsDraw.elements(device, x + 324, ty + 24 + CONTROL_ROWS * 11 / 2.0)
 		ControlsDraw.draw(ci, img, device, waiting if waiting != "" else a)
 		if waiting != "":
-			UiDraw.text(ci, "ESC or click to cancel", Consts.W / 2.0, hy + 1, {"align": "center", "color": UiDraw.UI.dim})
+			UiDraw.text(ci, cancel_hint(), Consts.W / 2.0, hy + 1, {"align": "center", "color": UiDraw.UI.dim})
 			return
 	else:
 		m.draw(ci, Consts.W / 2.0, ty + 24, {"lineH": 15})
@@ -345,6 +344,16 @@ func _bind_text(a: String) -> String:
 		return "Press a key" if device == "kb" else "Press a button"
 	var names: Array = Controls.binds(device, a).map(func(c: int) -> String: return Loc.t(Controls.code_name(device, c)))
 	return " / ".join(names) if names.size() > 0 else "-"
+
+# ESC or Menu cancels a rebinding, except for Pause, which has them by default
+func _cancel_code() -> int:
+	if waiting == "pause":
+		return -1
+	return KEY_ESCAPE if device == "kb" else JOY_BUTTON_START
+
+func cancel_hint() -> String:
+	var c := _cancel_code()
+	return "Click to cancel" if c < 0 else Loc.f("{0} or click to cancel", ["ESC" if device == "kb" else Controls.code_name("pad", c)])
 
 func _wait(a: String) -> void:
 	waiting = a

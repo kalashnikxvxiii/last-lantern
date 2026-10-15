@@ -324,3 +324,31 @@ func test_the_mouse_on_the_picture_selects_the_action() -> void:
 	Controls.sim = {"device": "mouse", "mouse": (f.r as Rect2).get_center(), "pressed": ["fire"]}
 	m.update()
 	check(m.capturing(), "a click on the key rebinds it")
+
+static func _button_event(b: JoyButton) -> InputEventJoypadButton:
+	var e := InputEventJoypadButton.new()
+	e.button_index = b
+	e.pressed = true
+	return e
+
+func test_menu_cancels_on_the_gamepad() -> void:
+	var m := _controls("pad", "dash")
+	_press(m, "confirm")
+	eq(m.cancel_hint(), Loc.f("{0} or click to cancel", ["Menu"]))
+	Controls.captured = _button_event(JOY_BUTTON_START)
+	m.update()
+	check(not m.capturing())
+	eq(Controls.binds("pad", "dash"), [JOY_BUTTON_A, JOY_BUTTON_LEFT_SHOULDER], "unchanged")
+
+func test_pause_takes_its_cancel_key() -> void:
+	var m := _controls("kb", "pause")
+	_press(m, "confirm")
+	eq(m.cancel_hint(), "Click to cancel", "ESC binds Pause: only a click cancels")
+	Controls.captured = _key_event(KEY_ESCAPE)
+	m.update()
+	eq(Controls.binds("kb", "pause"), [KEY_ESCAPE])
+	m = _controls("pad", "pause")
+	_press(m, "confirm")
+	Controls.captured = _button_event(JOY_BUTTON_START)
+	m.update()
+	eq(Controls.binds("pad", "pause"), [JOY_BUTTON_START])

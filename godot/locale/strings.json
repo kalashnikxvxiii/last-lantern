@@ -5939,17 +5939,6 @@
     "ja": "ボタンを押す",
     "ko": "버튼을 누르세요"
   },
-  "ESC or click to cancel": {
-    "it": "ESC o clic per annullare",
-    "es": "ESC o clic para cancelar",
-    "fr": "ESC ou clic pour annuler",
-    "de": "ESC oder Klick: Abbrechen",
-    "pt": "ESC ou clique para cancelar",
-    "ru": "ESC или клик — отмена",
-    "zh": "ESC 或点击取消",
-    "ja": "ESCかクリックで取消",
-    "ko": "ESC 또는 클릭으로 취소"
-  },
   "D-pad up": {
     "it": "Croce su",
     "es": "Cruceta arriba",
@@ -5993,5 +5982,27 @@
     "zh": "十字键右",
     "ja": "十字キー右",
     "ko": "방향키 오른쪽"
+  },
+  "{0} or click to cancel": {
+    "it": "{0} o clic per annullare",
+    "es": "{0} o clic para cancelar",
+    "fr": "{0} ou clic pour annuler",
+    "de": "{0} oder Klick: Abbrechen",
+    "pt": "{0} ou clique para cancelar",
+    "ru": "{0} или клик — отмена",
+    "zh": "{0} 或点击取消",
+    "ja": "{0}かクリックで取消",
+    "ko": "{0} 또는 클릭으로 취소"
+  },
+  "Click to cancel": {
+    "it": "Clic per annullare",
+    "es": "Clic para cancelar",
+    "fr": "Clic pour annuler",
+    "de": "Klick: Abbrechen",
+    "pt": "Clique para cancelar",
+    "ru": "Клик — отмена",
+    "zh": "点击取消",
+    "ja": "クリックで取消",
+    "ko": "클릭으로 취소"
   }
 }
