@@ -13,6 +13,7 @@ const W := 440.0
 const H := 238.0
 const MAX_ENTRIES := 8   # more do not fit above the hint
 const CONTROL_ROWS := 14   # the Controls list scrolls
+const WIDGET_W := 112.0
 const ACTION_NAMES := {
 	"move_up": "Move up", "move_down": "Move down", "move_left": "Move left", "move_right": "Move right",
 	"aim_up": "Aim up", "aim_down": "Aim down", "aim_left": "Aim left", "aim_right": "Aim right",
@@ -27,6 +28,11 @@ var tab_hover := -1   # tab under the mouse, -1 when it is off the row
 var device := "kb"    # Controls tab: "kb" or "pad"
 var waiting := ""     # Controls tab: the action waiting for its new key
 var img: Array = []   # Controls tab: the elements of the picture (ControlsDraw)
+# indices into the current tab, not the entries, whose callbacks hold this menu
+var open := -1       # the dropdown entry whose list is open
+var list_sel := 0
+var list_rects: Array = []
+var dragging := -1   # the slider held with the mouse
 var _back: Callable
 
 func _init(on_back: Callable) -> void:
@@ -46,14 +52,22 @@ func _switch(d: int) -> void:
 	tab = (tab + d + TABS.size()) % TABS.size()
 	Sfx.play("select")
 
-# a rebinding is waiting for a key: the screens must not close the options
+# a rebinding waits for a key or a list is open: the screens must not close the options
 func capturing() -> bool:
-	return waiting != ""
+	return waiting != "" or open >= 0
 
 func update() -> void:
 	if waiting != "":
 		_take_capture()
 		return
+	if open >= 0:
+		_update_list()
+		return
+	if dragging >= 0:
+		if Controls.mouse_left():
+			_slide(menu().items[dragging], Controls.mouse_pos().x)
+			return
+		dragging = -1
 	if Controls.tab_prev():
 		_switch(-1)
 		return
@@ -189,7 +203,8 @@ func draw(ci: CanvasItem) -> void:
 			UiDraw.text(ci, cancel_hint(), Consts.W / 2.0, hy + 1, {"align": "center", "color": UiDraw.UI.dim})
 			return
 	else:
-		m.draw(ci, Consts.W / 2.0, ty + 24, {"lineH": 15})
+		m.draw(ci, x + 44, ty + 24, {"lineH": 15, "align": "left", "valueX": x + W - 44, "drawValue": _draw_widget})
+		_draw_desc(ci, x, hy - 24)
 	# hint
 	var pad := Controls.device() == "pad"
 	var a := "LB" if pad else "Q"
@@ -200,135 +215,284 @@ func draw(ci: CanvasItem) -> void:
 	hx += UiDraw.keycap(ci, hx, hy, a) + 3
 	hx += UiDraw.keycap(ci, hx, hy, b) + 6
 	UiDraw.text(ci, label, hx, hy + 1, {"color": UiDraw.UI.dim})
+	if open >= 0:
+		_draw_list(ci)
 
 # --- tabs ---
+# Every setting has a widget ("kind"): a toggle, a slider, a stepper (arrows that stop
+# at the ends) or a dropdown list, and a description shown under the list. A click
+# acts only on the widget: on the rest of the row it just selects the entry.
 
 static func _s() -> Dictionary:
 	return Save.data.settings
 
-static func _bar(v: float) -> String:
-	var n := int(U.jround(v * 10))
-	return "[" + "#".repeat(n) + "-".repeat(10 - n) + "]"
-
 static func _on_off(v: bool) -> String:
 	return "On" if v else "Off"
 
-static func _toggle(key: String) -> Dictionary:
+static func _toggle(key: String, desc: String) -> Dictionary:
 	var flip := func() -> void:
 		_s()[key] = not _s()[key]
 		Save.write()
-	return {"value": func(): return _on_off(_s()[key]), "adjust": func(_d: int) -> void: flip.call(), "action": flip}
+	return {"kind": "toggle", "desc": desc, "value": func(): return _on_off(_s()[key]), "adjust": func(_d: int) -> void: flip.call(), "action": flip,
+		"click": func(it: Dictionary, mp: Vector2) -> void:
+			if (it.get("wr", Rect2()) as Rect2).grow(2).has_point(mp):
+				flip.call()
+				Sfx.play("confirm")}
 
-# value picked from a list with left and right, applied at once
-static func _choice(list: Array, key: String, apply: Callable, fmt: Callable) -> Dictionary:
-	var noop := func() -> void: pass
-	return {
-		"value": func(): return fmt.call(_s()[key]),
-		"adjust": func(d: int) -> void:
-			_s()[key] = Display.step(list, _s()[key], d)
-			apply.call()
-			Save.write(),
-		"action": noop}
-
-# picture slider from 50% to 150%
-static func _percent(key: String) -> Dictionary:
-	var noop := func() -> void: pass
-	return {
+# value in [lo, hi] by steps of 10%, applied at once
+func _slider(key: String, lo: float, hi: float, apply: Callable, desc: String) -> Dictionary:
+	var put := func(v: float) -> void:
+		v = clampf(U.jround(v * 10) / 10, lo, hi)
+		if is_equal_approx(v, float(_s()[key])):
+			return
+		_s()[key] = v
+		apply.call()
+		Save.write()
+	return {"kind": "slider", "desc": desc,
 		"value": func(): return Display.percent(_s()[key]),
-		"adjust": func(d: int) -> void:
-			_s()[key] = clampf(U.jround(float(_s()[key]) * 10 + d) / 10, 0.5, 1.5)
-			Display.apply_picture()
-			Save.write(),
-		"action": noop}
+		"frac": func() -> float: return (float(_s()[key]) - lo) / (hi - lo),
+		"set_frac": func(f: float) -> void: put.call(lo + f * (hi - lo)),
+		"adjust": func(d: int) -> void: put.call(float(_s()[key]) + d * 0.1),
+		"click": func(it: Dictionary, mp: Vector2) -> void:
+			if (it.get("tr", Rect2()) as Rect2).grow(4).has_point(mp):
+				dragging = _index(it)
+				_slide(it, mp.x),
+		"action": func() -> void: pass}
+
+func _slide(it: Dictionary, mx: float) -> void:
+	var r: Rect2 = it.tr
+	it.set_frac.call(clampf((mx - r.position.x) / r.size.x, 0, 1))
+
+# one of a list: options() are the names, index() the current one (-1 = none of
+# them), pick(i) applies it. Left and right stop at the ends.
+func _list(kind: String, options: Callable, index: Callable, pick: Callable, desc: String) -> Dictionary:
+	var to := func(i: int) -> void:
+		if i != index.call():
+			pick.call(i)
+			Save.write()
+	var o := {"kind": kind, "desc": desc, "options": options, "index": index, "pick": to,
+		"value": func(): return options.call()[maxi(0, index.call())],
+		"adjust": func(d: int) -> void: to.call(clampi(maxi(0, index.call()) + d, 0, options.call().size() - 1))}
+	if kind == "dropdown":
+		o.action = func() -> void: _open_list(menu().current())
+		o.click = func(it: Dictionary, mp: Vector2) -> void:
+			if (it.get("wr", Rect2()) as Rect2).has_point(mp):
+				_open_list(it)
+	else:
+		o.action = func() -> void: pass
+		o.click = func(it: Dictionary, mp: Vector2) -> void:
+			var r: Rect2 = it.get("wr", Rect2())
+			if not r.has_point(mp):
+				return
+			if mp.x < r.position.x + 14:
+				it.adjust.call(-1)
+				Sfx.play("select")
+			elif mp.x > r.end.x - 14:
+				it.adjust.call(1)
+				Sfx.play("select")
+	return o
+
+# a setting picked from `list`, shown through fmt
+func _choice(kind: String, list: Array, key: String, apply: Callable, fmt: Callable, desc: String) -> Dictionary:
+	return _list(kind, func(): return list.map(fmt), func(): return list.find(_s()[key]),
+		func(i: int) -> void:
+			_s()[key] = list[i]
+			apply.call(), desc)
 
 static func _entry(label: String, o: Dictionary) -> Dictionary:
 	o.label = label
 	return o
 
 func _display(on_back: Callable) -> Menu:
-	var noop := func() -> void: pass
-	var fps_caps: Array = Display.FPS_CAPS
+	var caps: Array = Display.FPS_CAPS
+	var res := _list("dropdown",
+		func(): return Display.available_resolutions().map(func(r: Dictionary) -> String: return str(r.w) + "x" + str(r.h)),
+		func(): return Display.res_pos(Display.available_resolutions()),
+		func(i: int) -> void:
+			_s().res = Display.classic_resolutions().find(Display.available_resolutions()[i])
+			Display.apply_resolution(),
+		"Size of the window. Only in windowed mode.")
+	res.disabled = func(): return _s().windowMode != "windowed"
 	return Menu.new([
-		_entry("Window mode", _choice(Display.WINDOW_MODES, "windowMode", func(): Display.apply_window_mode(), func(v): return Display.window_mode_name(v))),
-		{"label": "Resolution", "value": func() -> String:
-			var avail := Display.available_resolutions()
-			var i := Display.res_pos(avail)
-			var r: Dictionary = avail[i]
-			return str(r.w) + "x" + str(r.h) + "  " + Display.res_bar(i, avail.size()),
-			"adjust": func(d: int) -> void:
-				var avail := Display.available_resolutions()
-				var i: int = clampi(Display.res_pos(avail) + d, 0, avail.size() - 1)
-				_s().res = Display.classic_resolutions().find(avail[i])
-				Display.apply_resolution()
-				Save.write(),
-			"disabled": func(): return _s().windowMode != "windowed",
-			"action": noop},
-		_entry("VSync", _choice(Display.VSYNC_MODES, "vsync", func(): Display.apply_vsync(), func(v): return {"off": "Off", "on": "On", "adaptive": "Adaptive"}.get(v, v))),
-		{"label": "FPS limit", "value": func(): return "Off" if int(_s().fpsCap) == 0 else str(int(_s().fpsCap)),
-			"adjust": func(d: int) -> void:
-				_s().fpsCap = Display.step(fps_caps, int(_s().fpsCap), d)
-				Display.apply_fps_cap()
-				Save.write(),
-			"action": noop},
-		_entry("Scaling", _choice(Display.SCALINGS, "scaling", func(): Display.apply_scaling(), func(v): return {"fit": "Fit", "integer": "Pixel perfect"}.get(v, v))),
+		_entry("Window mode", _choice("stepper", Display.WINDOW_MODES, "windowMode", func(): Display.apply_window_mode(), func(v): return Display.window_mode_name(v),
+			"Play in a window or fill the screen. Exclusive can reduce input lag.")),
+		_entry("Resolution", res),
+		_entry("VSync", _choice("stepper", Display.VSYNC_MODES, "vsync", func(): Display.apply_vsync(), func(v): return {"off": "Off", "on": "On", "adaptive": "Adaptive"}.get(v, v),
+			"Stops screen tearing. Adaptive skips the sync when the frame rate drops.")),
+		_entry("FPS limit", _list("stepper", func(): return caps.map(func(c: int) -> String: return "Off" if c == 0 else str(c)),
+			func(): return caps.find(int(_s().fpsCap)),
+			func(i: int) -> void:
+				_s().fpsCap = caps[i]
+				Display.apply_fps_cap(),
+			"Caps the frame rate to save power.")),
+		_entry("Scaling", _choice("stepper", Display.SCALINGS, "scaling", func(): Display.apply_scaling(), func(v): return {"fit": "Fit", "integer": "Pixel perfect"}.get(v, v),
+			"Pixel perfect keeps every pixel the same size, with borders around the picture.")),
 		{"label": "Back", "action": on_back},
 	])
 
 func _picture(on_back: Callable) -> Menu:
+	var apply := func(): Display.apply_picture()
 	return Menu.new([
-		_entry("Brightness", _percent("brightness")),
-		_entry("Contrast", _percent("contrast")),
-		_entry("Saturation", _percent("saturation")),
-		_entry("CRT filter", _toggle("crt")),
-		_entry("Show FPS", _toggle("showFps")),
+		_entry("Brightness", _slider("brightness", 0.5, 1.5, apply, "How light the picture is.")),
+		_entry("Contrast", _slider("contrast", 0.5, 1.5, apply, "The gap between dark and light areas.")),
+		_entry("Saturation", _slider("saturation", 0.5, 1.5, apply, "How vivid the colors are.")),
+		_entry("CRT filter", _toggle("crt", "Makes the picture look like an old CRT screen.")),
+		_entry("Show FPS", _toggle("showFps", "Shows the frame rate in a corner of the screen.")),
 		{"label": "Back", "action": on_back},
 	])
 
 func _graphics(on_back: Callable) -> Menu:
-	var noop := func() -> void: pass
+	var levels: Array = Quality.LEVELS
+	var quality := _list("stepper", func(): return levels.map(func(l: String) -> String: return l.capitalize()),
+		func(): return levels.find(Quality.current()),
+		func(i: int) -> void: Quality.apply(levels[i]),
+		"Sets bloom, shadows, ambient occlusion and particles at once.")
+	quality.value = func(): return Quality.current().capitalize()
+	# from Custom left and right start as if on High
+	quality.adjust = func(d: int) -> void:
+		Quality.apply(Quality.step(d))
+		Save.write()
+	var cap := func(v: String): return v.capitalize()
 	return Menu.new([
-		{"label": "Quality", "value": func(): return Quality.current().capitalize(),
-			"adjust": func(d: int) -> void:
-				Quality.apply(Quality.step(d))
-				Save.write(),
-			"action": noop},
-		_entry("Bloom", _choice(Bloom.LEVELS.keys(), "bloom", func(): pass, func(v: String): return v.capitalize())),
-		_entry("Shadows", _choice(Lighting.SHADOW_STEPS.keys(), "shadows", func(): pass, func(v: String): return v.capitalize())),
-		_entry("Ambient occlusion", _toggle("ao")),
-		_entry("Particles", _choice(AmbientFx.AMOUNT.keys(), "particles", func(): pass, func(v: String): return v.capitalize())),
-		_entry("Color grading", _toggle("grading")),
-		_entry("Screen effects", _toggle("screenFx")),
+		_entry("Quality", quality),
+		_entry("Bloom", _choice("stepper", Bloom.LEVELS.keys(), "bloom", func(): pass, cap, "Glow around lights and flames.")),
+		_entry("Shadows", _choice("stepper", Lighting.SHADOW_STEPS.keys(), "shadows", func(): pass, cap, "Soft shadows cast by the lights.")),
+		_entry("Ambient occlusion", _toggle("ao", "Darkens corners and walls for a sense of depth.")),
+		_entry("Particles", _choice("stepper", AmbientFx.AMOUNT.keys(), "particles", func(): pass, cap, "Dust, spores and embers floating in the air.")),
+		_entry("Color grading", _toggle("grading", "Gives each depth its own color tone.")),
+		_entry("Screen effects", _toggle("screenFx", "Color fringing on hits and ripples from explosions.")),
 		{"label": "Back", "action": on_back},
 	])
 
 func _audio(on_back: Callable) -> Menu:
-	var s := _s()
-	var noop := func() -> void: pass
 	return Menu.new([
-		{"label": "Music", "value": func(): return _bar(s.music),
-			"adjust": func(d):
-				s.music = clampf(U.jround(s.music * 10 + d) / 10, 0, 1)
-				Sfx.apply_volumes()
-				Save.write(),
-			"action": noop},
-		{"label": "Effects", "value": func(): return _bar(s.sfx),
-			"adjust": func(d):
-				s.sfx = clampf(U.jround(s.sfx * 10 + d) / 10, 0, 1)
-				Sfx.apply_volumes()
-				Save.write()
-				Sfx.play("coin"),
-			"action": noop},
+		_entry("Music", _slider("music", 0, 1, func(): Sfx.apply_volumes(), "Volume of the music.")),
+		_entry("Effects", _slider("sfx", 0, 1, func():
+			Sfx.apply_volumes()
+			Sfx.play("coin"), "Volume of the sound effects.")),
 		{"label": "Back", "action": on_back},
 	])
 
 func _gameplay(on_back: Callable) -> Menu:
 	return Menu.new([
-		_entry("Screen shake", _toggle("shake")),
-		_entry("Damage numbers", _toggle("numbers")),
-		_entry("Language", _choice(["auto"] + Loc.LANGS, "language", func(): Loc.apply(), func(v: String):
-			return Loc.f("Auto ({0})", [Loc.NAMES[Loc.detect()]]) if v == "auto" else Loc.NAMES.get(v, v))),
+		_entry("Screen shake", _toggle("shake", "Shakes the screen on hits and explosions.")),
+		_entry("Damage numbers", _toggle("numbers", "Shows the damage dealt above enemies.")),
+		_entry("Language", _choice("dropdown", ["auto"] + Loc.LANGS, "language", func(): Loc.apply(), func(v: String):
+			return Loc.f("Auto ({0})", [Loc.NAMES[Loc.detect()]]) if v == "auto" else Loc.NAMES.get(v, v),
+			"Language of the game text.")),
 		{"label": "Back", "action": on_back},
 	])
+
+# --- dropdown list ---
+
+func _index(it: Dictionary) -> int:
+	var items: Array = menu().items
+	for i in items.size():
+		if is_same(items[i], it):
+			return i
+	return -1
+
+func _open_list(it: Dictionary) -> void:
+	open = _index(it)
+	list_sel = maxi(0, it.index.call())
+	list_rects = []
+
+func _update_list() -> void:
+	var it: Dictionary = menu().items[open]
+	var n: int = it.options.call().size()
+	var mp := Controls.mouse_pos()
+	var hit := -1
+	if Controls.device() == "mouse":
+		for i in list_rects.size():
+			if (list_rects[i] as Rect2).has_point(mp):
+				hit = i
+		if hit >= 0 and hit != list_sel:
+			list_sel = hit
+			Sfx.play("select")
+	if Controls.up() or Controls.down():
+		list_sel = (list_sel + (1 if Controls.down() else -1) + n) % n
+		Sfx.play("select")
+	if Controls.confirm() or (hit >= 0 and Controls.mouse_left_pressed()):
+		it.pick.call(list_sel)
+		Sfx.play("confirm")
+		open = -1
+	elif Controls.back() or Controls.mouse_left_pressed():
+		Sfx.play("select")
+		open = -1
+
+func _draw_list(ci: CanvasItem) -> void:
+	var it: Dictionary = menu().items[open]
+	var r: Rect2 = it.get("wr", Rect2())
+	var names: Array = it.options.call()
+	var lh := 11.0
+	var h := names.size() * lh
+	var ly := r.end.y + 1
+	if ly + h > Consts.H - 2:
+		ly = r.position.y - 1 - h
+	UiDraw.px_rect(ci, r.position.x, ly - 1, r.size.x, h + 2, UiDraw.UI.brass)
+	UiDraw.px_rect(ci, r.position.x + 1, ly, r.size.x - 2, h, UiDraw.UI.bg)
+	var cur: int = it.index.call()
+	list_rects = []
+	for i in names.size():
+		var rr := Rect2(r.position.x + 1, ly + i * lh, r.size.x - 2, lh)
+		list_rects.append(rr)
+		if i == list_sel:
+			UiDraw.px_rect(ci, rr.position.x, rr.position.y, rr.size.x, rr.size.y, UiDraw.UI.bg2)
+		var c: Variant = UiDraw.UI.sel if i == list_sel else (UiDraw.UI.brassL if i == cur else "#c8c0d0")
+		UiDraw.text(ci, names[i], rr.position.x + 4, rr.position.y + 2, {"color": c})
+
+# --- widgets ---
+
+func _draw_widget(ci: CanvasItem, it: Dictionary, rx: float, yy: float, col: Variant) -> void:
+	var wx := rx - WIDGET_W
+	var off_col := "#55505e"
+	match it.kind:
+		"toggle":
+			var on: bool = it.value.call() == "On"
+			it.wr = Rect2(rx - 17, yy - 1, 17, 9)
+			UiDraw.px_rect(ci, rx - 17, yy - 1, 17, 9, UiDraw.UI.edge)
+			UiDraw.px_rect(ci, rx - 16, yy, 15, 7, UiDraw.UI.brassD if on else UiDraw.UI.bg2)
+			var knob: Variant = UiDraw.UI.sel if UiDraw.col(col) == UiDraw.UI.sel else UiDraw.UI.brassL
+			UiDraw.px_rect(ci, rx - 8 if on else rx - 16, yy, 7, 7, knob if on else UiDraw.UI.dim)
+		"slider":
+			var tw := WIDGET_W - 30
+			var f: float = it.frac.call()
+			it.tr = Rect2(wx, yy + 2, tw, 3)
+			UiDraw.bar(ci, wx, yy + 2, tw, 3, f, UiDraw.UI.brass)
+			var kx := wx + U.jround(f * tw)
+			UiDraw.px_rect(ci, kx - 2, yy - 1, 5, 9, UiDraw.UI.edge)
+			UiDraw.px_rect(ci, kx - 1, yy, 3, 7, col)
+			UiDraw.text(ci, it.value.call(), rx, yy, {"align": "right", "color": col})
+		"stepper":
+			var i: int = it.index.call()
+			var last: int = it.options.call().size() - 1
+			var dis := Menu.is_disabled(it)
+			it.wr = Rect2(wx, yy - 3, WIDGET_W, 14)
+			_arrow(ci, wx + 1, yy + 3, -1, off_col if dis or i == 0 else col)
+			_arrow(ci, rx - 1, yy + 3, 1, off_col if dis or i == last else col)
+			UiDraw.text(ci, it.value.call(), wx + WIDGET_W / 2, yy, {"align": "center", "color": col})
+		"dropdown":
+			it.wr = Rect2(wx, yy - 3, WIDGET_W, 13)
+			UiDraw.px_rect(ci, wx, yy - 3, WIDGET_W, 13, UiDraw.UI.brass if open >= 0 and is_same(it, menu().items[open]) else UiDraw.UI.brassD)
+			UiDraw.px_rect(ci, wx + 1, yy - 2, WIDGET_W - 2, 11, UiDraw.UI.bg2)
+			UiDraw.text(ci, it.value.call(), wx + 5, yy, {"color": col})
+			for k in 3:
+				UiDraw.px_rect(ci, rx - 9 + k, yy + 2 + k, 5 - k * 2, 1, col)
+
+static func _arrow(ci: CanvasItem, x: float, cy: float, d: int, c: Variant) -> void:
+	for k in 4:
+		UiDraw.px_rect(ci, x - d * k, cy - k, 1, k * 2 + 1, c)
+
+# the description of the entry under the cursor, under the list
+func _draw_desc(ci: CanvasItem, x: float, y: float) -> void:
+	UiDraw.px_rect(ci, x + 40, y - 7, W - 80, 1, UiDraw.UI.brassD)
+	var m := menu()
+	var i := m.hover if Controls.device() == "mouse" else m.sel
+	if open >= 0:
+		i = open
+	var it: Dictionary = m.items[i] if (open >= 0 or not on_tabs) and i >= 0 and i < m.items.size() else {}
+	if it.get("desc", "") != "":
+		UiDraw.text_wrapped(ci, it.desc, Consts.W / 2.0, y, W - 80, {"align": "center", "color": UiDraw.UI.dim})
 
 # --- Controls tab ---
 

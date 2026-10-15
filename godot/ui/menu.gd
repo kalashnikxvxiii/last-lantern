@@ -2,6 +2,8 @@ class_name Menu
 extends RefCounted
 # Generic menu (class Menu in js/ui.js): keyboard, mouse, gamepad.
 # Entries: {label: String | Callable, value: Callable, adjust: Callable, action: Callable, disabled: bool | Callable}
+# Godot-only: click(entry, mouse) replaces the default click, the draw option "drawValue"
+# draws the values (the options widgets).
 # Godot-only: a list longer than the "rows" drawn scrolls with the cursor and the wheel.
 
 var items: Array
@@ -61,7 +63,10 @@ func update() -> void:
 	if mouse and hover >= 0 and Controls.mouse_left_pressed():
 		var hit: Dictionary = items[hover]
 		var r: Rect2 = rects[hover]
-		if hit.has("adjust") and not is_disabled(hit):
+		if hit.has("click"):
+			if not is_disabled(hit):
+				hit.click.call(hit, m)
+		elif hit.has("adjust") and not is_disabled(hit):
 			hit.adjust.call(1 if m.x > r.position.x + r.size.x / 2 else -1)
 			Sfx.play("select")
 		elif not is_disabled(hit) and hit.has("action"):
@@ -116,7 +121,9 @@ func draw(ci: CanvasItem, x: float, y: float, oo: Dictionary = {}) -> void:
 		var lx := x - w / 2 if align == "center" else x
 		var yy := y + (i - top) * lh
 		rects.append(Rect2(lx - 14, yy - 3, (value_x - lx if value_x >= 0 else w) + 28, lh))
-		if split:
+		if split and oo.has("drawValue"):
+			oo.drawValue.call(ci, it, value_x, yy, col)
+		elif split:
 			UiDraw.text(ci, str(it.value.call()), value_x, yy, {"align": "right", "color": col})
 		if is_sel:
 			# small flame next to the selected entry

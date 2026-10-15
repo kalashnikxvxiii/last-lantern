@@ -109,9 +109,6 @@ func test_saved_resolution_beyond_the_screen() -> void:
 	eq(Display.res_pos(avail), 2, "clamped to the largest the screen allows")
 	Save.data.settings.res = 1
 	eq(Display.res_pos(avail), 1)
-	eq(Display.res_bar(0, 3), "[----------]")
-	eq(Display.res_bar(1, 3), "[#####-----]")
-	eq(Display.res_bar(0, 1), "[##########]")
 
 func test_vsync() -> void:
 	Save.data.settings.vsync = "on"
@@ -214,6 +211,90 @@ func test_tabs_fit_the_panel() -> void:
 		if OptionsMenu.TABS[t] == "Controls":
 			continue   # it scrolls
 		check(m.menu().items.size() <= OptionsMenu.MAX_ENTRIES, OptionsMenu.TABS[t] + " fits the panel")
+
+func test_every_setting_has_a_widget_and_a_description() -> void:
+	var m := OptionsMenu.new(func(): pass)
+	var all := JSON.parse_string(FileAccess.get_file_as_string("res://locale/strings.json")) as Dictionary
+	for t in OptionsMenu.TABS.size():
+		if OptionsMenu.TABS[t] == "Controls":
+			continue
+		m.tab = t
+		for it in m.menu().items:
+			if it.label == "Back":
+				continue
+			check(it.get("kind", "") in ["toggle", "slider", "stepper", "dropdown"], it.label + " has a widget")
+			check(all.has(it.get("desc", "")), it.label + " has a translated description")
+
+# a click on the row of the mouse: the widget rects are set by draw, here by hand
+func _click(m: OptionsMenu, label: String, at: Vector2, wr: Rect2) -> void:
+	var i := _item(m, label)
+	m.menu().items[i][("tr" if m.menu().items[i].kind == "slider" else "wr")] = wr
+	m.menu().rects = []
+	for k in m.menu().items.size():
+		m.menu().rects.append(Rect2(0, 100, 400, 15) if k == i else Rect2())
+	Controls.sim = {"device": "mouse", "mouse": at, "pressed": ["fire"]}
+	m.update()
+	Controls.sim.clear()
+
+func test_stepper_arrows() -> void:
+	Save.data.settings.windowMode = "fullscreen"
+	var m := _open("Display", "Window mode")
+	var wr := Rect2(200, 100, 120, 12)
+	_click(m, "Window mode", Vector2(203, 105), wr)
+	eq(Save.data.settings.windowMode, "windowed", "the left arrow goes back")
+	_click(m, "Window mode", Vector2(203, 105), wr)
+	eq(Save.data.settings.windowMode, "windowed", "and stops at the first mode")
+	_click(m, "Window mode", Vector2(317, 105), wr)
+	eq(Save.data.settings.windowMode, "fullscreen", "the right arrow goes on")
+	_click(m, "Window mode", Vector2(317, 105), wr)
+	_click(m, "Window mode", Vector2(317, 105), wr)
+	eq(Save.data.settings.windowMode, "exclusive", "and stops at the last mode")
+	_click(m, "Window mode", Vector2(50, 105), wr)
+	_click(m, "Window mode", Vector2(260, 105), wr)
+	eq(Save.data.settings.windowMode, "exclusive", "a click on the name or the value only selects")
+	check(m.menu().sel == _item(m, "Window mode"))
+	Save.data.settings.windowMode = "windowed"
+	Display.apply_window_mode()
+
+func test_toggle_click() -> void:
+	Save.data.settings.shake = true
+	var m := _open("Gameplay", "Screen shake")
+	var wr := Rect2(380, 100, 17, 9)
+	_click(m, "Screen shake", Vector2(50, 105), wr)
+	eq(Save.data.settings.shake, true, "a click on the name only selects")
+	_click(m, "Screen shake", Vector2(385, 104), wr)
+	eq(Save.data.settings.shake, false, "a click on the switch flips it")
+
+func test_slider_click_and_drag() -> void:
+	Save.data.settings.music = 0.5
+	var m := _open("Audio", "Music")
+	_click(m, "Music", Vector2(280, 104), Rect2(200, 100, 100, 8))
+	eq(Save.data.settings.music, 0.8, "a click sets the value under the mouse")
+	Controls.sim = {"device": "mouse", "mouse": Vector2(150, 30), "fire": true}
+	m.update()
+	eq(Save.data.settings.music, 0.0, "dragging follows the mouse, even off the row")
+	Controls.sim = {"device": "mouse", "mouse": Vector2(300, 30)}
+	m.update()
+	eq(Save.data.settings.music, 0.0, "released: it stops")
+
+func test_resolution_dropdown() -> void:
+	Save.data.settings.windowMode = "windowed"
+	Save.data.settings.res = 0
+	var m := _open("Display", "Resolution")
+	_press(m, "confirm")
+	check(m.capturing(), "the list is open: back must not close the options")
+	_press(m, "nav_down")
+	_press(m, "nav_down")
+	eq(Save.data.settings.res, 0, "moving in the list changes nothing yet")
+	_press(m, "confirm")
+	check(not m.capturing())
+	eq(Save.data.settings.res, 2, "confirm picks")
+	_press(m, "confirm")
+	_press(m, "nav_up")
+	_press(m, "back")
+	check(not m.capturing(), "back closes the list")
+	eq(Save.data.settings.res, 2, "without picking")
+	Display.apply_resolution()
 
 func test_the_mouse_on_the_tab_row() -> void:
 	var m := OptionsMenu.new(func(): pass)
