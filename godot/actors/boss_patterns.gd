@@ -173,7 +173,8 @@ static func slam(e: Boss, P: Dictionary, dt: float, s: Dictionary) -> bool:
 				var c := RoomU.tile_center(14, 7)
 				e.x = c.x
 				e.y = c.y
-			Effects.add({"type": "shockwave", "x": e.x, "y": e.y, "r": 6.0, "maxR": 130.0, "spd": 170.0, "owner": "enemy", "dmg": e.dmg, "src": e.display_name})
+			var wave_r: float = s.get("wave", 130.0)
+			Effects.add({"type": "shockwave", "x": e.x, "y": e.y, "r": 6.0, "maxR": wave_r, "spd": 170.0, "owner": "enemy", "dmg": e.dmg, "src": e.display_name})
 			if s.get("ring", 0):
 				var off := U.rnd(TAU)
 				for i in s.ring:
