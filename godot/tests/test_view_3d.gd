@@ -86,3 +86,22 @@ func test_an_error_while_drawing_does_not_leave_the_capture_on() -> void:
 	Run.active = true
 	g.free()
 	eq(Spr.capture, null)
+
+# screen height of a point, as seen by the camera (larger: higher on the screen)
+func _screen_y(p: Vector3) -> float:
+	var l := v.cam.transform.affine_inverse() * p
+	return l.y / -l.z
+
+func test_a_shop_item_shows_above_its_pedestal() -> void:
+	var x := 240.0
+	var y := 120.0
+	var g := {"ground": y + 8}
+	View3D.items = [
+		{"name": "pedestal", "frame": 0, "x": x, "y": y + 4, "o": {}},
+		{"name": "heart", "frame": 0, "x": x, "y": y - 8, "o": g},
+	]
+	v._sync_items()
+	var ped_top: Vector3 = v.item_pool[0].position + v.cam.basis.y * Spr.size("pedestal").y
+	var item_bottom: Vector3 = v.item_pool[1].position
+	check(_screen_y(item_bottom) > _screen_y(ped_top), "the item floats above the pedestal, not over it")
+	View3D.items = []
