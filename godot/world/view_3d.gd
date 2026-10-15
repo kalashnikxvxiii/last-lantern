@@ -307,8 +307,11 @@ func _sync_items() -> void:
 		var h: float = Spr.size(it.name).y * float(it.o.get("scale", 1.0))
 		var bottom: float = it.y + h / 2.0
 		var ground: float = it.o.get("ground", bottom)
+		# raised along the camera's up, like the billboards: the same lift on the screen
+		# as in 2D (straight up it would shrink by the tilt and sink into a pedestal);
 		# later ones sit a hair closer: a relic in front of its pedestal
-		_pose(s, it, Vector3(it.x, maxf(0.0, ground - bottom), ground), i * 0.02)
+		var lift := cam.basis.y * maxf(0.0, ground - bottom)
+		_pose(s, it, Vector3(it.x, 0.0, ground) + lift, i * 0.02)
 
 func _pose(s: Sprite3D, stt: Dictionary, base: Vector3, bias: float) -> void:
 	Spr.ensure()
