@@ -10,7 +10,7 @@ extends Node3D
 const PITCH := 62.0          # camera angle above the horizon, degrees (90: straight down)
 const FOV := 28.0
 const DIST := 590.0          # from the camera to the point it looks at
-const LOOK_DY := -22.0       # the camera looks a bit north of the middle: the HUD covers the top
+const LOOK_DY := 0.0         # the camera looks at the middle of the room (the top bar it made room for is gone)
 const WALL_H := 24.0           # a tile and a half
 const ROCK_H := 11.0
 const ROCK_R := 7.5
