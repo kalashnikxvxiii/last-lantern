@@ -42,6 +42,12 @@ func _draw() -> void:
 		elif o.type == "merchant":
 			_on_floor(v, o.x, o.y + Spr.size("merchant").y / 2.0)
 			DrawGround.merchant_lantern(self, o)
+	# padlocks on the raised gates of locked doors
+	for d in v.gates:
+		if RoomU.door_locked(room, d):
+			var c := RoomU.door_center(d)
+			_at(v, c, Vector3(c.x, v.gates[d].position.y + View3D.WALL_H / 2.0, c.y))
+			DrawGround.padlock(self, c.x, c.y)
 	# actors: what the 2D drawing puts on them
 	for e in Run.enemies:
 		if not is_instance_valid(e) or e.dead or e.spawning or not Spr.has(e._spr_name()):

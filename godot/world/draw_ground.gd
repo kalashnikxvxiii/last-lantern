@@ -37,7 +37,7 @@ func _secret_hints(room: Dictionary) -> void:
 		UiDraw.px_rect(self, c.x + 2, c.y - 3, 1, 3, col)
 		UiDraw.px_rect(self, c.x + 3, c.y - 1, 2, 1, col)
 
-func _door_style(room: Dictionary, d: String) -> Dictionary:
+static func _door_style(room: Dictionary, d: String) -> Dictionary:
 	var n: Dictionary = room.doors[d]
 	if room.type == "boss" or n.type == "boss":
 		return {"frame": "#7e2530", "hi": "#d04b3c", "kind": "boss"}
@@ -85,7 +85,7 @@ func _doors(room: Dictionary) -> void:
 			UiDraw.px_rect(self, x + 2, y + 2 if d == "n" else y + h - 3, w - 4, 1, st.hi)
 		else:
 			UiDraw.px_rect(self, x + 2 if d == "w" else x + w - 3, y + 2, 1, h - 4, st.hi)
-		if not open:
+		if not open and not View3D.on:   # the 3D view raises them (View3D.build_gates)
 			# bars
 			var bc := "#c49a3a" if locked else "#6b6478"
 			for i in 6:
@@ -94,14 +94,7 @@ func _doors(room: Dictionary) -> void:
 				else:
 					draw_rect(Rect2(x + 3, y + 7 + i * 6, w - 6, 2), UiDraw._a(bc))
 			if locked:
-				var lx := x + w / 2
-				var ly := y + h / 2
-				UiDraw.px_rect(self, lx - 4, ly - 2, 8, 7, "#0b0810")
-				UiDraw.px_rect(self, lx - 3, ly - 1, 6, 5, "#f6cf57")
-				UiDraw.px_rect(self, lx - 2, ly - 5, 4, 1, "#f6cf57")
-				UiDraw.px_rect(self, lx - 3, ly - 4, 1, 3, "#f6cf57")
-				UiDraw.px_rect(self, lx + 2, ly - 4, 1, 3, "#f6cf57")
-				UiDraw.px_rect(self, lx - 1, ly + 1, 2, 2, "#5a4428")
+				padlock(self, x + w / 2, y + h / 2)
 		# symbols
 		var cx := x + w / 2
 		var cy := y + h / 2
@@ -113,6 +106,14 @@ func _doors(room: Dictionary) -> void:
 			"shop": Spr.draw(self, "i_coin", 0, sx, sy, {"alpha": 0.8})
 			"elite": Spr.draw(self, "i_blade", 0, sx, sy, {"alpha": 0.8})
 			"shrine": Spr.draw(self, "i_star", 0, sx, sy, {"alpha": 0.7})
+
+static func padlock(ci: CanvasItem, lx: float, ly: float) -> void:
+	UiDraw.px_rect(ci, lx - 4, ly - 2, 8, 7, "#0b0810")
+	UiDraw.px_rect(ci, lx - 3, ly - 1, 6, 5, "#f6cf57")
+	UiDraw.px_rect(ci, lx - 2, ly - 5, 4, 1, "#f6cf57")
+	UiDraw.px_rect(ci, lx - 3, ly - 4, 1, 3, "#f6cf57")
+	UiDraw.px_rect(ci, lx + 2, ly - 4, 1, 3, "#f6cf57")
+	UiDraw.px_rect(ci, lx - 1, ly + 1, 2, 2, "#5a4428")
 
 func _dynamic_tiles(room: Dictionary) -> void:
 	var up := RoomU.spikes_up(room)

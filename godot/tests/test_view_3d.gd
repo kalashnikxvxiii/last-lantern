@@ -105,3 +105,35 @@ func test_a_shop_item_shows_above_its_pedestal() -> void:
 	var item_bottom: Vector3 = v.item_pool[1].position
 	check(_screen_y(item_bottom) > _screen_y(ped_top), "the item floats above the pedestal, not over it")
 	View3D.items = []
+
+func test_gates_sink_into_the_floor_when_the_doors_open() -> void:
+	var room := Run.room
+	room.doors = {"n": {"type": "normal"}}
+	room.cleared = false
+	Run.player.x = 100.0   # far from the door
+	v.build_gates(room, true)
+	var g: MeshInstance3D = v.gates["n"]
+	eq(g.position.y, 0.0, "closed: up like the walls")
+	room.cleared = true
+	v.sync_gates(0.1)
+	check(g.position.y < 0.0 and g.visible, "open: sinking, not gone at once")
+	v.sync_gates(1.0)
+	eq(g.position.y, -View3D.WALL_H, "under the floor")
+	check(not g.visible)
+	v.build_gates(room, true)
+	eq(v.gates["n"].position.y, -View3D.WALL_H, "a room entered open: already down")
+
+func test_the_gate_behind_the_player_closes_after_them() -> void:
+	var room := Run.room
+	room.doors = {"n": {"type": "normal"}, "s": {"type": "normal"}}
+	room.cleared = false
+	var pos := RoomU.door_entry("s")
+	Run.player.x = pos.x
+	Run.player.y = pos.y
+	v.build_gates(room, true)
+	eq(v.gates["n"].position.y, 0.0, "the others: already closed")
+	eq(v.gates["s"].position.y, -View3D.WALL_H, "the way in: still open")
+	v.sync_gates(0.1)
+	check(v.gates["s"].position.y > -View3D.WALL_H, "and rising")
+	v.build_gates(room, false)
+	eq(v.gates["s"].position.y, 0.0, "a rebuild inside the room: no entry")
