@@ -91,12 +91,6 @@ static func res_pos(avail: Array) -> int:
 			return i
 	return avail.size() - 1
 
-# slider bar, same look as the volume bars
-static func res_bar(idx: int, n: int) -> String:
-	var frac := float(idx) / maxf(float(n) - 1.0, 1.0)
-	var filled := 10 if n == 1 else int(round(frac * 10))
-	return "[" + "#".repeat(filled) + "-".repeat(10 - filled) + "]"
-
 # applies the saved resolution to the window, centered on the current screen
 static func apply_resolution() -> void:
 	if headless() or DisplayServer.window_get_mode() != DisplayServer.WINDOW_MODE_WINDOWED:
@@ -156,11 +150,6 @@ static func apply_picture() -> void:
 	e.adjustment_saturation = float(settings().saturation)
 
 # --- helpers for the options menu ---
-
-# next value of a list setting, clamped at the ends
-static func step(list: Array, cur: Variant, d: int) -> Variant:
-	var i := maxi(0, list.find(cur))
-	return list[clampi(i + d, 0, list.size() - 1)]
 
 static func percent(v: float) -> String:
 	return str(int(U.jround(v * 100))) + "%"
