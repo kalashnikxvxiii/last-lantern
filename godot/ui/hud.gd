@@ -57,23 +57,11 @@ func _hud() -> void:
 	var s := p.stats
 	var W := Consts.W
 	var t := Fx.time
-	var ga := UiDraw.alpha
-	# top bar
-	UiDraw.px_rect(self, 0, 0, W, 27, "#0e0a12")
-	UiDraw.px_rect(self, 0, 26, W, 1, UiDraw.UI.brassD)
-	UiDraw.px_rect(self, 0, 27, W, 1, "#050308")
-	UiDraw.alpha = 0.3
-	var bx := 0
-	while bx < W:
-		UiDraw.px_rect(self, bx, 2 + (bx * 7 % 5), 3, 1, "#1a141f")
-		bx += 7
-	UiDraw.alpha = ga
-	# health
+	# vitals (top left): health and oil. The JS top bar is gone, the HUD floats on the game
 	Spr.draw(self, "heart", 0, 8, 7)
 	var hp_low: bool = p.hp / s.maxHp < 0.3
 	UiDraw.bar(self, 16, 3, 92, 8, p.hp / s.maxHp, "#ff6a5a" if hp_low and sin(t * 8) > 0 else "#c0392b", "#2a0d12", "#e87060")
 	UiDraw.text(self, str(int(ceilf(p.hp))) + "/" + str(int(s.maxHp)), 62, 3, {"align": "center", "color": "#f2ead8"})
-	# oil
 	Spr.draw(self, "oil", 0, 8, 17)
 	var oil_f: float = p.oil / s.maxOil
 	UiDraw.bar(self, 16, 15, 92, 4, oil_f, "#3b3546" if p.oil <= 0 else "#d88a28", "#1e140a", "#f6cf57")
@@ -82,12 +70,33 @@ func _hud() -> void:
 	UiDraw.px_rect(self, cx, 13, 1, 8, "#fff2a8" if ready else "#5a4428")
 	if p.oil <= 0:
 		UiDraw.text(self, "DARK", 62, 13, {"align": "center", "color": "#e0574a" if sin(t * 6) > 0 else "#8a8294"})
-	# experience
-	UiDraw.bar(self, 16, 23, 92, 1, p.xp / Stats.xp_need(p.level), "#c57ae0", "#1a0d22")
-	# consumables
+	# depth and biome (top center, overlay)
+	var bio := DB.biome_of(Run.depth)
+	UiDraw.text(self, Loc.f("Depth {0}", [Run.depth]) if Run.depth > 5 else Loc.f("Depth {0} of 5", [Run.depth]), W / 2.0, 6, {"align": "center", "color": "#e8dcc0"})
+	UiDraw.text(self, bio.name, W / 2.0, 16, {"align": "center", "color": "#8a8294"})
+	# minimap (top right, in an opaque cube)
+	UiDraw.px_rect(self, 390, 2, 88, 31, "#0b0810")
+	UiDraw.px_rect(self, 390, 2, 88, 1, "#2e2436")
+	UiDraw.px_rect(self, 390, 32, 88, 1, "#2e2436")
+	UiDraw.px_rect(self, 390, 2, 1, 31, "#2e2436")
+	UiDraw.px_rect(self, 477, 2, 1, 31, "#2e2436")
+	MapDraw.minimap(self, 393, 5, false)
+	# level, coins and keys (bottom left, flush with the edge)
+	var ry := 232.0
+	var rx := 2.0
+	var lw := UiDraw.text(self, Loc.f("Lv {0}", [p.level]), rx, ry, {"color": "#c57ae0"})
+	rx += lw + 8.0
+	Spr.draw(self, "coin", 0, rx + 4.0, ry + 4.0)
+	rx += 10.0
+	var cw := UiDraw.text(self, str(p.coins), rx, ry, {"color": Txt.COLORS.y})
+	rx += cw + 8.0
+	Spr.draw(self, "key", 0, rx + 4.0, ry + 4.0)
+	rx += 10.0
+	UiDraw.text(self, str(p.keys), rx, ry, {"color": "#e8dcc0"})
+	# consumables (bottom left, above the experience bar)
 	for i in 4:
-		var x := 116 + i * 22
-		var y := 3
+		var x := 2 + i * 22
+		var y := 244
 		UiDraw.px_rect(self, x, y, 20, 20, "#0b0810")
 		UiDraw.px_rect(self, x + 1, y + 1, 18, 18, "#1f1826")
 		UiDraw.px_rect(self, x + 1, y + 1, 18, 1, "#2e2436")
@@ -97,39 +106,34 @@ func _hud() -> void:
 			if sl.n > 1:
 				UiDraw.text(self, str(sl.n), x + 18, y + 12, {"align": "right", "color": "#f2ead8"})
 		UiDraw.text(self, str(i + 1), x + 2, y + 1, {"color": "#6b6478", "shadow": false})
-	# coins and keys
-	Spr.draw(self, "coin", 0, 212, 8)
-	UiDraw.text(self, str(p.coins), 220, 4, {"color": Txt.COLORS.y})
-	Spr.draw(self, "key", 0, 213, 19)
-	UiDraw.text(self, str(p.keys), 220, 15, {"color": "#e8dcc0"})
-	# depth and level
-	var bio := DB.biome_of(Run.depth)
-	UiDraw.text(self, Loc.f("Depth {0}", [Run.depth]) if Run.depth > 5 else Loc.f("Depth {0} of 5", [Run.depth]), 254, 3, {"color": "#e8dcc0"})
-	UiDraw.text(self, bio.name, 254, 14, {"color": "#8a8294"})
-	UiDraw.text(self, Loc.f("Lv {0}", [p.level]), 388, 3, {"align": "right", "color": "#c57ae0"})
-	MapDraw.minimap(self, 394, 2, false)
-	# statuses and curses (below the bar)
-	var sx := 6
+	# statuses and curses (below the vitals)
+	var sy := 28.0
+	var sx := 4.0
 	for k in p.statuses:
 		if not Statuses.ALL.has(k):
 			continue
 		var st: Dictionary = Statuses.ALL[k]
 		var v: Dictionary = p.statuses[k]
-		UiDraw.px_rect(self, sx, 31, 11, 13, "#0b0810")
-		Spr.draw(self, st.icon, 0, sx + 5.5, 36)
+		UiDraw.px_rect(self, sx, sy, 11, 13, "#0b0810")
+		Spr.draw(self, st.icon, 0, sx + 5.5, sy + 5)
 		var f := clampf(v.t / 6, 0, 1)
-		UiDraw.px_rect(self, sx + 1, 42, U.jround(9 * f), 1, st.col)
+		UiDraw.px_rect(self, sx + 1, sy + 11, U.jround(9 * f), 1, st.col)
 		if v.stacks > 1:
-			UiDraw.text(self, str(v.stacks), sx + 12, 37, {"color": st.col})
+			UiDraw.text(self, str(v.stacks), sx + 12, sy + 6, {"color": st.col})
 		sx += 19 if v.stacks > 1 else 13
 	if p.guard_up:
-		UiDraw.px_rect(self, sx, 31, 11, 13, "#0b0810")
-		Spr.draw(self, "s_shield", 0, sx + 5.5, 37)
+		UiDraw.px_rect(self, sx, sy, 11, 13, "#0b0810")
+		Spr.draw(self, "s_shield", 0, sx + 5.5, sy + 6)
 		sx += 13
 	for c in p.curses:
-		UiDraw.px_rect(self, sx, 31, 11, 13, "#1a0d22")
-		Spr.draw(self, "s_curse", 0, sx + 5.5, 37)
+		UiDraw.px_rect(self, sx, sy, 11, 13, "#1a0d22")
+		Spr.draw(self, "s_curse", 0, sx + 5.5, sy + 6)
 		sx += 13
+	# experience (full width, on the bottom edge)
+	var xf: float = clampf(p.xp / Stats.xp_need(p.level), 0, 1)
+	UiDraw.px_rect(self, 0, 268, W, 2, "#1a0d22")
+	if xf > 0:
+		UiDraw.px_rect(self, 0, 268, maxf(1.0, U.jround(W * xf)), 2, "#c57ae0")
 	# dash charges under the feet
 	if p.dash_charges < s.dashCharges and not p.dead:
 		for i in s.dashCharges:
