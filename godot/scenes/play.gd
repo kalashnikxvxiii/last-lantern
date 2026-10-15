@@ -42,6 +42,8 @@ func _exit_tree() -> void:
 			actors.remove_child(e)
 	Run.actors = null
 	Fx.cam = Vector2.ZERO
+	if opt_menu != null:
+		opt_menu.close()
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 func _physics_process(_delta: float) -> void:
@@ -174,6 +176,8 @@ func open_pause() -> void:
 			map_from = "pause"},
 		{"label": "Options", "action": func():
 			mode = "options"
+			if opt_menu != null:
+				opt_menu.close()
 			opt_menu = OptionsMenu.new(func(): mode = "pause")},
 		{"label": "Save and leave", "disabled": Run.slot < 0, "action": func():
 			if RunSave.save(Run.slot):

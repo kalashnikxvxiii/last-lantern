@@ -37,6 +37,11 @@ func _init(on_back: Callable) -> void:
 func menu() -> Menu:
 	return menus[tab]
 
+# the entries' callbacks hold this menu: drop them when the options are left,
+# or the cycle is never freed
+func close() -> void:
+	menus = []
+
 func _switch(d: int) -> void:
 	tab = (tab + d + TABS.size()) % TABS.size()
 	Sfx.play("select")

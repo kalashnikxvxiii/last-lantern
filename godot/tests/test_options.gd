@@ -352,3 +352,11 @@ func test_pause_takes_its_cancel_key() -> void:
 	Controls.captured = _button_event(JOY_BUTTON_START)
 	m.update()
 	eq(Controls.binds("pad", "pause"), [JOY_BUTTON_START])
+
+# the entries call back into the menu: close() breaks that cycle, or it is never freed
+func test_closed_options_are_freed() -> void:
+	var m := OptionsMenu.new(func(): pass)
+	var w: WeakRef = weakref(m)
+	m.close()
+	m = null
+	check(w.get_ref() == null, "freed")
