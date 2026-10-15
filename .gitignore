@@ -19,3 +19,6 @@ godot/.godot/
 docs/*
 !docs/playtest-checklist.md
 !docs/porting-conventions.md
+!docs/enemies.md
+!docs/enemies.pdf
+!docs/enemies/
