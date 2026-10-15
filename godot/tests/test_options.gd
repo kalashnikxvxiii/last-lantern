@@ -5,12 +5,15 @@ var saved: Dictionary
 var max_fps := 0
 
 func before() -> void:
-	saved = Save.data.settings.duplicate()
+	saved = Save.data.settings.duplicate(true)
 	max_fps = Engine.max_fps
 
 func after() -> void:
 	Controls.sim.clear()
+	Controls.capture = ""
+	Controls.captured = null
 	Save.data.settings = saved
+	Controls.apply_binds()
 	Engine.max_fps = max_fps
 	Display.apply_all()
 
@@ -33,7 +36,7 @@ func _open(tab: String, label: String) -> OptionsMenu:
 	return m
 
 func test_the_tabs() -> void:
-	eq(OptionsMenu.TABS, ["Display", "Picture", "Graphics", "Audio", "Gameplay"])
+	eq(OptionsMenu.TABS, ["Display", "Picture", "Graphics", "Audio", "Gameplay", "Controls"])
 	var m := OptionsMenu.new(func(): pass)
 	eq(m.tab, 0)
 	for t in OptionsMenu.TABS.size():
@@ -208,6 +211,8 @@ func test_tabs_fit_the_panel() -> void:
 	var m := OptionsMenu.new(func(): pass)
 	for t in OptionsMenu.TABS.size():
 		m.tab = t
+		if OptionsMenu.TABS[t] == "Controls":
+			continue   # it scrolls
 		check(m.menu().items.size() <= OptionsMenu.MAX_ENTRIES, OptionsMenu.TABS[t] + " fits the panel")
 
 func test_the_mouse_on_the_tab_row() -> void:
@@ -222,3 +227,100 @@ func test_the_mouse_on_the_tab_row() -> void:
 	Controls.sim = {"device": "mouse", "mouse": Vector2(200, 200)}
 	m.update()
 	check(not m.on_tabs, "off the row the focus goes back to the entries")
+
+func _controls(dev: String, bind: String) -> OptionsMenu:
+	var m := OptionsMenu.new(func(): pass)
+	m.tab = OptionsMenu.TABS.find("Controls")
+	m.set_device(dev)
+	var items: Array = m.menu().items
+	for i in items.size():
+		if items[i].get("bind", "") == bind:
+			m.menu().sel = i
+	return m
+
+static func _key_event(k: Key) -> InputEventKey:
+	var e := InputEventKey.new()
+	e.physical_keycode = k
+	e.pressed = true
+	return e
+
+func test_controls_tab_lists_every_action() -> void:
+	var m := _controls("kb", "")
+	var binds := m.menu().items.map(func(it: Dictionary) -> String: return it.get("bind", ""))
+	for a in Controls.BINDABLE.kb:
+		check(a in binds, a + " on the keyboard list")
+	eq(m.menu().items[-1].label, "Back")
+	m.set_device("pad")
+	binds = m.menu().items.map(func(it: Dictionary) -> String: return it.get("bind", ""))
+	for a in Controls.BINDABLE.pad:
+		check(a in binds, a + " on the gamepad list")
+
+func test_device_entry_switches_the_list() -> void:
+	var m := _controls("kb", "")
+	m.menu().sel = 0
+	_press(m, "nav_right")
+	eq(m.device, "pad")
+	check(not m.menu().items.any(func(it: Dictionary) -> bool: return it.get("bind", "") == "move_up"), "no keys on the gamepad list")
+
+func test_rebinding_from_the_menu() -> void:
+	var m := _controls("kb", "dash")
+	_press(m, "confirm")
+	check(m.capturing(), "waits for a key")
+	eq(Controls.capture, "kb")
+	m.update()
+	check(m.capturing(), "still waiting with no key")
+	Controls.captured = _key_event(KEY_Q)
+	m.update()
+	check(not m.capturing())
+	eq(Controls.binds("kb", "dash"), [KEY_Q])
+
+func test_escape_cancels_the_rebinding() -> void:
+	var m := _controls("kb", "dash")
+	_press(m, "confirm")
+	Controls.captured = _key_event(KEY_ESCAPE)
+	m.update()
+	check(not m.capturing())
+	eq(Controls.binds("kb", "dash"), [KEY_SPACE, KEY_SHIFT], "unchanged")
+
+func test_a_key_does_not_bind_the_gamepad() -> void:
+	var m := _controls("pad", "dash")
+	_press(m, "confirm")
+	eq(Controls.capture, "pad")
+	Controls.captured = _key_event(KEY_Q)
+	m.update()
+	check(not m.capturing(), "a key cancels")
+	eq(Controls.binds("pad", "dash"), [JOY_BUTTON_A, JOY_BUTTON_LEFT_SHOULDER])
+	_press(m, "confirm")
+	var b := InputEventJoypadButton.new()
+	b.button_index = JOY_BUTTON_Y
+	b.pressed = true
+	Controls.captured = b
+	m.update()
+	eq(Controls.binds("pad", "dash"), [JOY_BUTTON_Y])
+
+func _element(els: Array, code: int, fixed: String = "") -> Dictionary:
+	for el in els:
+		if el.code == code and (fixed == "" or el.fixed == fixed):
+			return el
+	return {}
+
+func test_the_picture_lights_the_selected_action() -> void:
+	var els := ControlsDraw.elements("kb", 0, 0)
+	var space := _element(els, KEY_SPACE)
+	check(not space.is_empty(), "the keyboard has a space bar")
+	check(ControlsDraw.lit(space, "kb", "dash"))
+	check(not ControlsDraw.lit(space, "kb", "flare"))
+	var left := _element(ControlsDraw.elements("pad", 0, 0), JOY_BUTTON_LEFT_STICK)
+	check(ControlsDraw.lit(left, "pad", "move"), "the left stick moves")
+
+func test_the_mouse_on_the_picture_selects_the_action() -> void:
+	var m := _controls("kb", "move_up")
+	m.img = ControlsDraw.elements("kb", 0, 0)
+	var f := _element(m.img, KEY_F)
+	Controls.sim = {"device": "mouse", "mouse": (f.r as Rect2).get_center()}
+	m.update()
+	eq(m.menu().current().get("bind"), "flare")
+	eq(m.menu().hover, m.menu().sel, "the entry is lit")
+	Controls.sim = {"device": "mouse", "mouse": (f.r as Rect2).get_center(), "pressed": ["fire"]}
+	m.update()
+	check(m.capturing(), "a click on the key rebinds it")

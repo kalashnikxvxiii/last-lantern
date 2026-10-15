@@ -102,7 +102,7 @@ func tick(dt: float) -> void:
 			if Controls.map() or Controls.pause() or Controls.back() or Controls.confirm() or Controls.mouse_left_pressed():
 				mode = "pause" if map_from == "pause" else "play"
 		"options":
-			if Controls.back() or Controls.pause():
+			if (Controls.back() or Controls.pause()) and not opt_menu.capturing():
 				mode = "pause"
 				return
 			opt_menu.update()
