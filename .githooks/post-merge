@@ -1,0 +1,12 @@
+#!/bin/sh
+# Refreshes Godot's class and import cache (godot/.godot/, not tracked) after a
+# pull, so `godot --path godot` sees the class_name scripts the pull added.
+# Enabled once per clone with: git config core.hooksPath .githooks
+if ! command -v godot >/dev/null 2>&1; then
+	echo "githooks: godot is not in the PATH, run: godot --headless --path godot --import"
+	exit 0
+fi
+echo "githooks: refreshing the Godot import cache..."
+godot --headless --path "$(git rev-parse --show-toplevel)/godot" --import >/dev/null 2>&1 \
+	|| echo "githooks: the import failed, run: godot --headless --path godot --import"
+exit 0

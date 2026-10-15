@@ -1,0 +1,4 @@
+#!/bin/sh
+# Branch switches only ($3 = 1), not checkouts of single files.
+[ "$3" = "1" ] || exit 0
+exec "$(dirname "$0")/post-merge"
