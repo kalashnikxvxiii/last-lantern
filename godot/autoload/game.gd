@@ -119,10 +119,10 @@ class ErrorBar extends Node2D:
 	func _process(_delta: float) -> void:
 		queue_redraw()
 	func _draw() -> void:
-		# bottom left: the bottom right holds the version and the active cheats;
-		# the debug readout sits there too and has its own FPS
+		# top right, just left of the minimap: the bottom left holds the level,
+		# the coins, the keys and the consumables, the bottom right the cheats
 		if Save.data.settings.showFps and not CheatMenu.info_shown():
-			UiDraw.text(self, str(int(Engine.get_frames_per_second())) + " FPS", 3, Consts.H - 10, {"color": "#8a8294"})
+			UiDraw.text(self, str(int(Engine.get_frames_per_second())) + " FPS", 387, 6, {"align": "right", "color": "#8a8294"})
 		var g := get_node("/root/Game")
 		if g.error == "":
 			return
