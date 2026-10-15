@@ -7,7 +7,7 @@ func enter() -> void:
 	options = OptionsMenu.new(func(): Game.set_scene("title"))
 
 func update(_dt: float) -> void:
-	if Controls.back():
+	if Controls.back() and not options.capturing():
 		Game.set_scene("title")
 		return
 	options.update()

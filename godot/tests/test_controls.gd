@@ -1,9 +1,16 @@
 extends TestCase
-# Input: normalized movement, aim from the last device, simulated input.
+# Input: normalized movement, aim from the last device, simulated input, rebinding.
+
+var saved: Dictionary
+
+func before() -> void:
+	saved = Save.data.settings.duplicate(true)
 
 func after() -> void:
 	Controls.sim.clear()
 	Controls.mouse_aim = false
+	Save.data.settings = saved
+	Controls.apply_binds()
 	for a in ["move_right", "move_down", "aim_left"]:
 		Input.action_release(a)
 
@@ -79,3 +86,59 @@ func test_moving_keeps_the_mouse_aim() -> void:
 	_key(KEY_LEFT, true)
 	_key(KEY_LEFT, false)
 	check(not Controls.mouse_aim, "the arrows aim: no crosshair")
+
+static func _has_key(a: String, k: Key) -> bool:
+	for e in InputMap.action_get_events(a):
+		if e is InputEventKey and e.physical_keycode == k:
+			return true
+	return false
+
+static func _has_button(a: String, b: JoyButton) -> bool:
+	for e in InputMap.action_get_events(a):
+		if e is InputEventJoypadButton and e.button_index == b:
+			return true
+	return false
+
+func test_rebinding_a_key() -> void:
+	Controls.rebind("kb", "dash", KEY_Q)
+	eq(Controls.binds("kb", "dash"), [KEY_Q])
+	check(_has_key("dash", KEY_Q), "the new key is in the input map")
+	check(not _has_key("dash", KEY_SPACE), "the old keys are gone")
+	check(_has_button("dash", JOY_BUTTON_A), "the gamepad is untouched")
+	eq(Save.data.settings.binds.kb.dash, [KEY_Q], "saved")
+
+func test_a_taken_key_swaps() -> void:
+	Controls.rebind("kb", "dash", KEY_F)
+	eq(Controls.binds("kb", "dash"), [KEY_F])
+	eq(Controls.binds("kb", "flare"), [KEY_SPACE], "Flare gets the old key of Dash")
+	check(_has_key("flare", KEY_SPACE))
+
+func test_rebinding_a_button() -> void:
+	Controls.rebind("pad", "interact", JOY_BUTTON_Y)
+	check(_has_button("interact", JOY_BUTTON_Y))
+	check(not _has_button("interact", JOY_BUTTON_X))
+	check(_has_key("interact", KEY_E), "the keyboard is untouched")
+
+func test_reset_binds() -> void:
+	Controls.rebind("kb", "map", KEY_J)
+	Controls.reset_binds("kb")
+	eq(Controls.binds("kb", "map"), [KEY_TAB, KEY_M])
+	check(_has_key("map", KEY_TAB))
+
+func test_saved_binds_from_json() -> void:
+	# JSON gives floats back; junk is ignored, and menu actions cannot be rebound
+	Save.data.settings.binds = {"kb": {"dash": [81.0], "back": [KEY_J], "flare": "junk"}}
+	Controls.apply_binds()
+	eq(Controls.binds("kb", "dash"), [KEY_Q])
+	eq(Controls.binds("kb", "back"), [KEY_ESCAPE, KEY_BACKSPACE])
+	eq(Controls.binds("kb", "flare"), [KEY_F])
+	Save.data.settings.binds = "junk"
+	eq(Controls.binds("kb", "dash"), [KEY_SPACE, KEY_SHIFT])
+
+func test_prompt_follows_the_binding() -> void:
+	Controls.sim = {"device": "kb"}
+	eq(Controls.bind_name("interact"), "E")
+	Controls.rebind("kb", "interact", KEY_G)
+	eq(Controls.bind_name("interact"), "G")
+	Controls.sim = {"device": "pad"}
+	eq(Controls.bind_name("interact"), "X")

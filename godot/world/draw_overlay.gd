@@ -218,5 +218,5 @@ static func prompt(ci: CanvasItem) -> void:
 		UiDraw.text(ci, extra, x + 6, yy, {})
 		yy += 10
 	if verb != "":
-		var kw := UiDraw.keycap(ci, x + 6, yy + 1, "X" if Controls.device() == "pad" else "E")
+		var kw := UiDraw.keycap(ci, x + 6, yy + 1, Controls.bind_name("interact"))
 		UiDraw.text(ci, verb, x + 10 + kw, yy + 2, {"color": Txt.COLORS.y})

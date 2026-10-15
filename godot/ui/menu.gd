@@ -2,6 +2,7 @@ class_name Menu
 extends RefCounted
 # Generic menu (class Menu in js/ui.js): keyboard, mouse, gamepad.
 # Entries: {label: String | Callable, value: Callable, adjust: Callable, action: Callable, disabled: bool | Callable}
+# Godot-only: a list longer than the "rows" drawn scrolls with the cursor and the wheel.
 
 var items: Array
 var sel := 0
@@ -10,6 +11,8 @@ var o: Dictionary
 var hover := -1          # entry under the mouse, -1 when it is off them
 var show_cursor := true  # the options tab row hides the entry cursor
 var lit_prev := true     # an entry was lit on the previous tick
+var top := 0             # first entry drawn
+var rows := 0            # entries drawn, 0 = all
 
 func _init(items_: Array, o_: Dictionary = {}) -> void:
 	items = items_
@@ -39,6 +42,9 @@ func update() -> void:
 	if mouse and hover >= 0 and sel != hover and (not is_disabled(items[hover]) or o.get("allowDisabled", false)):
 		sel = hover
 		Sfx.play("select")
+	if mouse and rows > 0 and Controls.wheel() != 0:
+		top = clampi(top + Controls.wheel(), 0, maxi(0, items.size() - rows))
+		sel = clampi(sel, top, top + rows - 1)
 	if Controls.up():
 		_step(-1)
 	if Controls.down():
@@ -79,8 +85,11 @@ static func is_disabled(it: Dictionary) -> bool:
 	var d: Variant = it.get("disabled", false)
 	return d.call() if d is Callable else d
 
+static func name_of(it: Dictionary) -> String:
+	return Loc.t(it.label.call() if it.label is Callable else it.label)
+
 static func label_of(it: Dictionary) -> String:
-	var label: String = Loc.t(it.label.call() if it.label is Callable else it.label)
+	var label := name_of(it)
 	if it.has("value"):
 		label += "   " + Loc.t(str(it.value.call()))
 	return label
@@ -88,17 +97,27 @@ static func label_of(it: Dictionary) -> String:
 func draw(ci: CanvasItem, x: float, y: float, oo: Dictionary = {}) -> void:
 	var lh: float = oo.get("lineH", 14)
 	var align: String = oo.get("align", "center")
+	var value_x: float = oo.get("valueX", -1.0)   # right edge of a value column, -1 = after the label
 	var mouse := Controls.device() == "mouse"
+	rows = oo.get("rows", 0)
+	var n := rows if rows > 0 else items.size()
+	top = clampi(clampi(top, sel - n + 1, sel), 0, maxi(0, items.size() - n))
 	rects = []
 	for i in items.size():
+		if i < top or i >= top + n:
+			rects.append(Rect2())   # off the list: the mouse cannot hit it
+			continue
 		var it: Dictionary = items[i]
 		var is_sel := show_cursor and (i == hover if mouse else i == sel)
-		var label := label_of(it)
+		var split := value_x >= 0 and it.has("value")
+		var label := name_of(it) if split else label_of(it)
 		var col: Variant = "#55505e" if is_disabled(it) else (UiDraw.UI.sel if is_sel else "#c8c0d0")
 		var w := Txt.width(label)
 		var lx := x - w / 2 if align == "center" else x
-		var yy := y + i * lh
-		rects.append(Rect2(lx - 14, yy - 3, w + 28, lh))
+		var yy := y + (i - top) * lh
+		rects.append(Rect2(lx - 14, yy - 3, (value_x - lx if value_x >= 0 else w) + 28, lh))
+		if split:
+			UiDraw.text(ci, str(it.value.call()), value_x, yy, {"align": "right", "color": col})
 		if is_sel:
 			# small flame next to the selected entry
 			var fx := lx - 9
@@ -111,3 +130,12 @@ func draw(ci: CanvasItem, x: float, y: float, oo: Dictionary = {}) -> void:
 				UiDraw.px_rect(ci, lx + w + 6, fy - 2, 3, 4, "#f29c38")
 				UiDraw.px_rect(ci, lx + w + 7, fy - 3 - (int(floor(tt * 8 + 1)) % 2), 1, 2, "#f6cf57")
 		UiDraw.text(ci, label, lx, yy, {"color": col})
+	# more entries above or below
+	if top > 0:
+		_caret(ci, x + 2, y - 6, -1)
+	if top + n < items.size():
+		_caret(ci, x + 2, y + n * lh - 1, 1)
+
+static func _caret(ci: CanvasItem, x: float, y: float, d: int) -> void:
+	for k in 3:
+		UiDraw.px_rect(ci, x - k, y + (2 - k if d > 0 else k), k * 2 + 1, 1, UiDraw.UI.brass)
