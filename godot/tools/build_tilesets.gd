@@ -8,12 +8,14 @@ func _initialize() -> void:
 		push_error("layout.json not readable")
 		quit(1)
 		return
-	var px := int(j.data.tile)
 	for biome in j.data.biomes:
+		var tex: Texture2D = load("res://assets/tiles/%s.png" % biome)
+		# 16 px tiles, or HD ones (64 px): the atlas width says which
+		var px := tex.get_width() / int(j.data.columns)
 		var ts := TileSet.new()
 		ts.tile_size = Vector2i(px, px)
 		var src := TileSetAtlasSource.new()
-		src.texture = load("res://assets/tiles/%s.png" % biome)
+		src.texture = tex
 		src.texture_region_size = Vector2i(px, px)
 		for key in j.data.biomes[biome]:
 			var c: Array = j.data.biomes[biome][key]

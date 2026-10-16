@@ -34,6 +34,7 @@ func show_room(room: Dictionary) -> void:
 	var ts := TilePick.tileset(biome.id)
 	for layer in [floor_layer, walls, rocks]:
 		layer.tile_set = ts
+		layer.scale = Vector2.ONE * Consts.TS / ts.tile_size.x   # Godot-only: HD tiles on the 16 px grid
 		layer.clear()
 	var s: int = room.seed % 1000
 	for ty in Consts.RH:
