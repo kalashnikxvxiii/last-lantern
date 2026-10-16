@@ -67,6 +67,9 @@ func paint() -> void:
 	UiDraw.alpha = ga * LANTERN_DIM
 	WellBg.big_lantern(self, 60, 50, "#f6cf57", sin(t * 1.3) * 0.12, 3)
 	UiDraw.alpha = ga
+	if _logo == null:   # fallback: the old title text
+		UiDraw.text(self, "LAST", W / 2.0, 92, {"align": "center", "color": "#c8a050", "scale": 3, "shadowColor": "#2a1408"})
+		UiDraw.text(self, "LANTERN", W / 2.0, 118, {"align": "center", "color": "#f6cf57", "scale": 4, "shadowColor": "#2a1408"})
 	UiDraw.text(self, "a descent into the sunless well", W / 2.0, 160, {"align": "center", "color": "#8a8294"})
 	menu.draw(self, W / 2.0, 172, {"lineH": 14})
 	var st: Dictionary = Save.data.stats
@@ -83,4 +86,5 @@ func _draw_logo(ci: CanvasItem, cx: float) -> void:
 	var h := U.jround(LOGO_W * LOGO_SRC.size.y / LOGO_SRC.size.x)
 	var x := U.jround(cx - w / 2.0)
 	var y := U.jround(LOGO_CY - h / 2.0)
-	ci.draw_texture_rect_region(_logo, Rect2(x, y, w, h), LOGO_SRC, Color(1, 1, 1, UiDraw.alpha))
+	# Drawn once, never redrawn: so no UiDraw.alpha, which it would not follow.
+	ci.draw_texture_rect_region(_logo, Rect2(x, y, w, h), LOGO_SRC)

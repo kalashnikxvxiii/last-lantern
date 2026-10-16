@@ -30,3 +30,10 @@ func test_quit_asks_first() -> void:
 	check(not sc.confirm_quit, "moving away cancels the confirmation")
 	_press("nav_down")
 	eq(Menu.label_of(m.current()), "Quit the game")
+
+func test_logo_layer() -> void:
+	check(sc._logo != null, "the logo texture loads")
+	var layers := sc.get_children().filter(func(n): return n is CanvasLayer)
+	eq(layers.size(), 1)
+	eq(layers[0].layer, 1, "the logo sits above the screen bloom")
+	eq(layers[0].get_child_count(), 1)
