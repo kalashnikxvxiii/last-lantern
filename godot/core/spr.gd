@@ -2,9 +2,11 @@ class_name Spr
 extends RefCounted
 # Exported sprites (assets/sprites) and drawing like drawSpr in js/gfx.js.
 # White silhouettes for flash and tint are generated at load time.
+# Godot-only: the art may hold k texels per logical pixel (HD art, k = 4); the
+# manifest keeps the logical size, so it is drawn in the same rect.
 
 const DIR := "res://assets/sprites/"
-static var db: Dictionary = {}   # name -> {tex, sil, w, h, frames}
+static var db: Dictionary = {}   # name -> {tex, sil, w, h, frames, k}
 # Godot-only: an Array while the 3D view collects the sprites that stand up
 # (draw then records them instead of drawing; o.flat keeps one on the floor)
 static var capture: Variant = null
@@ -18,8 +20,15 @@ static func ensure() -> void:
 		return
 	for name in j.data:
 		var m: Dictionary = j.data[name]
-		var tex: Texture2D = load(DIR + name + ".png")
-		db[name] = {"tex": tex, "sil": _silhouette(tex), "w": int(m.w), "h": int(m.h), "frames": int(m.frames)}
+		db[name] = entry(load(DIR + name + ".png"), m)
+
+static func entry(tex: Texture2D, m: Dictionary) -> Dictionary:
+	var k: int = maxi(1, tex.get_width() / (int(m.w) * int(m.frames)))
+	return {"tex": tex, "sil": _silhouette(tex), "w": int(m.w), "h": int(m.h), "frames": int(m.frames), "k": k}
+
+# frame f in the texture, in texels
+static func src_rect(s: Dictionary, f: int) -> Rect2:
+	return Rect2(f * s.w * s.k, 0, s.w * s.k, s.h * s.k)
 
 static func _silhouette(tex: Texture2D) -> Texture2D:
 	var img := tex.get_image()
@@ -74,7 +83,7 @@ static func draw(ci: CanvasItem, name: String, frame: float, x: float, y: float,
 	var a: float = o.get("alpha", 1.0) * UiDraw.alpha
 	if a <= 0.0:
 		return
-	var src := Rect2(f * s.w, 0, s.w, s.h)
+	var src := src_rect(s, f)
 	var flip: bool = o.get("flip", false)
 	_blit(ci, s.sil if o.get("flash", false) else s.tex, src, dx, dy, w, h, flip, Color(1, 1, 1, a))
 	if o.get("tint") != null:
@@ -89,4 +98,4 @@ static func draw_sil(ci: CanvasItem, name: String, frame: float, dx: float, dy: 
 	var s: Dictionary = db[name]
 	var f := int(frame) % int(s.frames)
 	var k := UiDraw.col(color)
-	_blit(ci, s.sil, Rect2(f * s.w, 0, s.w, s.h), dx, dy, s.w, s.h, flip, Color(k.r, k.g, k.b, k.a * UiDraw.alpha))
+	_blit(ci, s.sil, src_rect(s, f), dx, dy, s.w, s.h, flip, Color(k.r, k.g, k.b, k.a * UiDraw.alpha))

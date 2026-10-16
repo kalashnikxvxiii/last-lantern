@@ -66,3 +66,15 @@ func test_play_clears_the_flag_after_the_views() -> void:
 	check(not Run.room.get("bgDirty", false), "Play clears bgDirty once the views have rebuilt")
 	play.queue_free()
 	await (Engine.get_main_loop() as SceneTree).process_frame
+
+func test_hd_tiles_draw_at_the_logical_size() -> void:
+	# a 64 px tileset is scaled down to the 16 px grid
+	var ts := TileSet.new()
+	ts.tile_size = Vector2i(64, 64)
+	TilePick._sets[DB.biome_of(Run.floor.depth).id] = ts
+	var rv := _room_view()
+	rv.show_room(TH.arena())
+	eq(rv.floor_layer.scale, Vector2(0.25, 0.25))
+	eq(rv.rocks.scale, Vector2(0.25, 0.25))
+	TilePick._sets = {}
+	rv.free()

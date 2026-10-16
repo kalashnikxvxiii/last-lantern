@@ -383,9 +383,10 @@ func _pose(s: Sprite3D, stt: Dictionary, base: Vector3, bias: float) -> void:
 	var o: Dictionary = stt.o
 	var f := int(stt.frame) % int(d.frames)
 	s.texture = d.sil if o.get("flash", false) else d.tex
-	s.region_rect = Rect2(f * d.w, 0, d.w, d.h)
+	s.region_rect = Spr.src_rect(d, f)
+	s.pixel_size = 1.0 / d.k   # HD art: k texels per logical pixel
 	s.flip_h = o.get("flip", false)
-	s.offset = Vector2(0, d.h / 2.0)   # stands on its bottom edge
+	s.offset = Vector2(0, d.h * d.k / 2.0)   # stands on its bottom edge (in texels)
 	var sc: float = o.get("scale", 1.0)
 	s.scale = Vector3(sc, sc, sc)
 	var c := Color.WHITE
