@@ -5,7 +5,6 @@ desktop/build/
 node_modules/
 godot/.godot/
 .superpowers/
-start.sh
 
 # Markdown files are ignored (keeps third-party/AI-generated notes and design
 # docs out of the repo). Only the files below are tracked.
