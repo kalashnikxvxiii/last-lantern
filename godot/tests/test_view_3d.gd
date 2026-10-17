@@ -55,6 +55,25 @@ func test_walls_and_rocks_become_a_mesh() -> void:
 	var m := v.build_solids(Run.room)
 	check(m.get_surface_count() > 0, "the room has walls and a rock")
 
+func test_the_tops_of_the_walls_use_the_cap_tiles() -> void:
+	Run.floor.depth = 5
+	var src := TilePick.tileset("heart").get_source(0) as TileSetAtlasSource
+	var size := Vector2(src.texture.get_size())
+	var caps: Array[Rect2] = []
+	for i in 4:
+		var r := src.get_tile_texture_region(TilePick.coords("heart", "wall_cap_%d" % i))
+		caps.append(Rect2(Vector2(r.position) / size, Vector2(r.size) / size).grow(1e-4))
+	var a := v.build_solids(Run.room).surface_get_arrays(0)
+	var verts: PackedVector3Array = a[Mesh.ARRAY_VERTEX]
+	var uvs: PackedVector2Array = a[Mesh.ARRAY_TEX_UV]
+	var tops := 0
+	for i in range(0, verts.size(), 3):
+		if verts[i].y == View3D.WALL_H and verts[i + 1].y == View3D.WALL_H and verts[i + 2].y == View3D.WALL_H:
+			tops += 1
+			for k in 3:
+				check(caps.any(func(c: Rect2) -> bool: return c.has_point(uvs[i + k])), "top face uv %s" % uvs[i + k])
+	check(tops > 0, "the room has wall tops")
+
 func test_no_sprite_for_the_dead_or_spawning() -> void:
 	var p := Run.player
 	check(not p.sprite_state().is_empty())
