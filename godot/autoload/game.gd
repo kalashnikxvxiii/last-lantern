@@ -119,11 +119,14 @@ class ErrorBar extends Node2D:
 	func _process(_delta: float) -> void:
 		queue_redraw()
 	func _draw() -> void:
-		# top right, just left of the minimap: the bottom left holds the level,
-		# the coins, the keys and the consumables, the bottom right the cheats
-		if Save.data.settings.showFps and not CheatMenu.info_shown():
-			UiDraw.text(self, str(int(Engine.get_frames_per_second())) + " FPS", 387, 6, {"align": "right", "color": "#8a8294"})
 		var g := get_node("/root/Game")
+		# in the play scene the minimap sits in the top-right corner, so the readout
+		# goes just left of it; on every other screen (title, menus, game over) it
+		# stays in the corner. The bottom left holds the level, coins, keys and
+		# the consumables, the bottom right the cheats
+		var in_game: bool = g.scene_name == "play"
+		if Save.data.settings.showFps and not CheatMenu.info_shown():
+			UiDraw.text(self, str(int(Engine.get_frames_per_second())) + " FPS", 387.0 if in_game else Consts.W - 3.0, 6.0 if in_game else 2.0, {"align": "right", "color": "#8a8294"})
 		if g.error == "":
 			return
 		UiDraw.px_rect(self, 0, Consts.H - 32, Consts.W, 32, "#300810")
