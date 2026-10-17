@@ -36,3 +36,11 @@ func test_floor_choice_like_the_js() -> void:
 			check(k.contains("_seam_"), k)
 		else:
 			check(k.contains("_plain_"), k)
+
+func test_wall_caps_tile_as_one_2x2_texture() -> void:
+	eq(TilePick.cap_key(4, 0), "wall_cap_0")
+	eq(TilePick.cap_key(5, 0), "wall_cap_1")
+	eq(TilePick.cap_key(0, 3), "wall_cap_2")
+	eq(TilePick.cap_key(27, 13), "wall_cap_3")
+	for i in 4:
+		check(TilePick.coords("heart", "wall_cap_%d" % i) != Vector2i(-1, -1), "cap %d in heart" % i)

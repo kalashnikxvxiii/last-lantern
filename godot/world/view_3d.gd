@@ -196,7 +196,14 @@ func build_solids(room: Dictionary) -> ArrayMesh:
 			var z := float(Consts.RY + ty * Consts.TS)
 			if t == Consts.T.WALL:
 				var r := src.get_tile_texture_region(TilePick.coords(biome.id, TilePick.wall_key(tx, ty, s)))
-				_box(st, room, tx, ty, x, z, Rect2(Vector2(r.position) / ts, Vector2(r.size) / ts))
+				var face := Rect2(Vector2(r.position) / ts, Vector2(r.size) / ts)
+				# the top gets its own tiles where the biome has them, else the face again
+				var cap := face
+				var cc := TilePick.coords(biome.id, TilePick.cap_key(tx, ty))
+				if cc != Vector2i(-1, -1):
+					r = src.get_tile_texture_region(cc)
+					cap = Rect2(Vector2(r.position) / ts, Vector2(r.size) / ts)
+				_box(st, room, tx, ty, x, z, face, cap)
 			elif t == Consts.T.ROCK or t == Consts.T.CRACK:
 				var r := src.get_tile_texture_region(TilePick.coords(biome.id, TilePick.rock_key(tx, ty, s, t == Consts.T.CRACK)))
 				_rock(st, x + Consts.TS / 2.0, z + Consts.TS / 2.0, Rect2(Vector2(r.position) / ts, Vector2(r.size) / ts))
@@ -227,11 +234,11 @@ static func _quad(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, d: Vector
 static func _is_wall(room: Dictionary, tx: int, ty: int) -> bool:
 	return tx >= 0 and ty >= 0 and tx < Consts.RW and ty < Consts.RH and room.grid[ty][tx] == Consts.T.WALL
 
-func _box(st: SurfaceTool, room: Dictionary, tx: int, ty: int, x: float, z: float, uv: Rect2) -> void:
+func _box(st: SurfaceTool, room: Dictionary, tx: int, ty: int, x: float, z: float, uv: Rect2, cap: Rect2) -> void:
 	var w := float(Consts.TS)
 	var h := WALL_H
 	st.set_smooth_group(0xFFFFFFFF)   # flat faces: smoothed edges would catch light like polished metal
-	_quad(st, Vector3(x, h, z), Vector3(x + w, h, z), Vector3(x + w, h, z + w), Vector3(x, h, z + w), uv)
+	_quad(st, Vector3(x, h, z), Vector3(x + w, h, z), Vector3(x + w, h, z + w), Vector3(x, h, z + w), cap)
 	# side faces only where nothing covers them
 	if not _is_wall(room, tx, ty + 1):
 		_quad(st, Vector3(x, h, z + w), Vector3(x + w, h, z + w), Vector3(x + w, 0, z + w), Vector3(x, 0, z + w), uv)

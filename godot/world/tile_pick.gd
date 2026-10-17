@@ -34,6 +34,10 @@ static func wall_key(tx: int, ty: int, s: int) -> String:
 		edge = "right%d" % (ty % 2)
 	return "wall_%s_%d" % [edge, 1 if U.hash2(tx, ty, s + 77) < 0.1 else 0]
 
+# the top face of a wall in the 3D view (Godot only): four cells that tile as one 2x2 texture
+static func cap_key(tx: int, ty: int) -> String:
+	return "wall_cap_%d" % (tx % 2 + 2 * (ty % 2))
+
 static func rock_key(tx: int, ty: int, s: int, cracked: bool) -> String:
 	return "rock_%d_%d" % [1 if cracked else 0, 1 if U.hash2(tx, ty, s) > 0.5 else 0]
 
