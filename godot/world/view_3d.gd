@@ -13,6 +13,7 @@ const DIST := 590.0          # from the camera to the point it looks at
 const LOOK_DY := 0.0         # the camera looks at the middle of the room (the top bar it made room for is gone)
 const WALL_H := 24.0           # a tile and a half
 const ROCK_H := 11.0
+const LIGHT_H := 16.0          # a held lantern: under the tops of the walls, which it cannot light, above the rocks
 const ROCK_R := 7.5
 const AIR_H := 8.0           # height of the projectiles' plane
 const SPRITE_BIAS := 8.0     # sprites move this much toward the camera: no clipping into walls
@@ -57,7 +58,7 @@ func _ready() -> void:
 	for i in MAX_LIGHTS:
 		var l := OmniLight3D.new()
 		l.shadow_enabled = i < SHADOW_LIGHTS
-		l.omni_attenuation = 1.4
+		l.omni_attenuation = 0.0   # distances are in px: a power falloff would leave almost nothing a tile away
 		lights.append(l)
 		add_child(l)
 	if flat != null:
@@ -177,7 +178,7 @@ func light_pos(x: float, y: float) -> Vector3:
 	var z := y + 12.0
 	while z > y - 12.0 and _is_wall(Run.room, floori((x - Consts.RX) / Consts.TS), floori((z + 4.0 - Consts.RY) / Consts.TS)):
 		z -= 1.0   # and 4 px away from it, even behind the source
-	return Vector3(x, 24, z)
+	return Vector3(x, LIGHT_H, z)
 
 # --- walls and rocks: one mesh, textured from the biome tileset ---
 
@@ -425,5 +426,5 @@ func _sync_lights() -> void:
 		var d: Dictionary = L[i]
 		l.position = light_pos(d.x, d.y)
 		l.omni_range = d.r * 1.3
-		l.light_energy = d.a * 2.2
+		l.light_energy = d.a * 1.0
 		l.light_color = UiDraw.col(d.col) if d.get("col") != null else Color(1, 0.85, 0.6)

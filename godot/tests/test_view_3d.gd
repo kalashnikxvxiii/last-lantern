@@ -34,6 +34,7 @@ func test_lights_stay_out_of_the_walls() -> void:
 	var p := v.light_pos(c.x, c.y)
 	check(p.z > c.y, "still a bit toward the camera")
 	check(p.z <= Consts.RY + (ty + 1) * Consts.TS - 4.0, "but 4 px in front of the wall, not inside it")
+	check(p.y < View3D.WALL_H and p.y > View3D.ROCK_H, "held below the top of the walls, above the rocks")
 	var q := v.light_pos(c.x, c.y - 32.0)
 	near(q.z, c.y - 32.0 + 12.0, 1e-6, "in the open: the full offset")
 
