@@ -68,11 +68,13 @@ func test_every_biome_has_a_sheen() -> void:
 	eq(Lighting.sheen("crypt"), 0.0, "the crypts are dry rock")
 	check(Lighting.sheen("forge") > Lighting.sheen("crypt"), "the forge shines more")
 
-func test_walls_take_the_biome_material() -> void:
+func test_walls_are_matte_in_every_biome() -> void:
 	var v := View3D.new()
-	var m := v.build_solids(Run.room).surface_get_material(0) as StandardMaterial3D
-	near(m.roughness, 1.0, 1e-6, "rock is fully rough")
-	near(m.metallic_specular, 0.0, 1e-6, "and gives no highlights")
+	for d in range(1, 6):   # one floor of each biome
+		Run.floor.depth = d
+		var m := v.build_solids(Run.room).surface_get_material(0) as StandardMaterial3D
+		eq(m.specular_mode, BaseMaterial3D.SPECULAR_DISABLED, "depth %d: the light rests on the wall, no glare" % d)
+		near(m.roughness, 1.0, 1e-6, "depth %d: fully rough" % d)
 	v.free()
 
 func test_lifted_details_follow_the_picture_settings() -> void:

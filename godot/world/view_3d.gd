@@ -214,10 +214,10 @@ func build_solids(room: Dictionary) -> ArrayMesh:
 	m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 	m.cull_mode = BaseMaterial3D.CULL_DISABLED
 	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
-	# rock stays matte; wet or metal walls are smoother and catch highlights
-	var sh := Lighting.sheen(biome.id)
-	m.roughness = 1.0 - 0.6 * sh
-	m.metallic_specular = 0.5 * sh
+	# the light rests on the walls: no glare off them, in any biome
+	m.roughness = 1.0
+	m.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
+	m.diffuse_mode = BaseMaterial3D.DIFFUSE_LAMBERT
 	mesh.surface_set_material(0, m)
 	return mesh
 
