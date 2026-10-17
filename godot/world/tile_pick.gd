@@ -41,6 +41,10 @@ static func cap_key(tx: int, ty: int) -> String:
 static func rock_key(tx: int, ty: int, s: int, cracked: bool) -> String:
 	return "rock_%d_%d" % [1 if cracked else 0, 1 if U.hash2(tx, ty, s) > 0.5 else 0]
 
+# Godot-only: what a blown rock leaves on the floor
+static func rubble_key(tx: int, ty: int, s: int) -> String:
+	return "rubble_%d" % (1 if U.hash2(ty, tx, s) > 0.5 else 0)
+
 static func coords(biome_id: String, key: String) -> Vector2i:
 	_ensure()
 	var c: Variant = _layout.biomes.get(biome_id, {}).get(key)

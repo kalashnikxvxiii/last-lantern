@@ -31,6 +31,19 @@ func test_show_room_drops_a_destroyed_rock() -> void:
 	check(not rv.rocks.get_used_cells().has(Vector2i(10, 5)), "the broken rock is gone")
 	rv.free()
 
+func test_a_blown_rock_leaves_rubble() -> void:
+	var room := TH.arena()
+	room.grid[5][10] = Consts.T.ROCK
+	var c := RoomU.tile_center(10, 5)
+	Effects.explosion_hit({"x": c.x, "y": c.y, "r": 10.0, "dmg": 0.0, "owner": "neutral"})
+	eq(room.grid[5][10], Consts.T.FLOOR, "the rock is gone")
+	check(room.rubble.has(5 * Consts.RW + 10), "the rock leaves rubble")
+	var rv := _room_view()
+	rv.show_room(room)
+	check(rv.rubble.get_used_cells().has(Vector2i(10, 5)), "the rubble is drawn")
+	check(rv.rubble.get_cell_atlas_coords(Vector2i(10, 5)) != Vector2i(-1, -1), "the rubble tile is in the atlas")
+	rv.free()
+
 func _verts(v: View3D) -> int:
 	if v.solids.mesh == null or v.solids.mesh.get_surface_count() == 0:
 		return 0

@@ -176,6 +176,7 @@ static func explosion_hit(f: Dictionary) -> void:
 					Combat.break_urn(tx, ty)
 				elif (t == Consts.T.CRACK or t == Consts.T.ROCK) and f.owner == "neutral":
 					room.grid[ty][tx] = Consts.T.FLOOR
+					room.get_or_add("rubble", {})[ty * Consts.RW + tx] = true   # Godot-only: drawn on the floor by room_view
 					room.bgDirty = true
 					Particles.burst(c.x, c.y, 12, ["#55505e", "#3b3546", "#8a8294"], 80, 0.6, {"grav": 100})
 					if t == Consts.T.CRACK and U.random() < 0.6:
