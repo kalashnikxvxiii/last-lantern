@@ -8,6 +8,7 @@ class DrawCall extends Node2D:
 		fn.call(self)
 
 var floor_layer := TileMapLayer.new()
+var rubble := TileMapLayer.new()   # Godot-only: what blown rocks leave
 var decals := DrawCall.new()
 var walls := TileMapLayer.new()
 var shadow := DrawCall.new()
@@ -18,7 +19,7 @@ func _ready() -> void:
 	position = Vector2(Consts.RX, Consts.RY)
 	decals.fn = _draw_decals
 	shadow.fn = _draw_wall_shadow
-	for n in [floor_layer, decals, walls, shadow, rocks]:
+	for n in [floor_layer, rubble, decals, walls, shadow, rocks]:
 		add_child(n)
 
 func _process(_delta: float) -> void:
@@ -32,7 +33,7 @@ func show_room(room: Dictionary) -> void:
 	shown = room
 	var biome := DB.biome_of(Run.floor.depth)
 	var ts := TilePick.tileset(biome.id)
-	for layer in [floor_layer, walls, rocks]:
+	for layer in [floor_layer, rubble, walls, rocks]:
 		layer.tile_set = ts
 		layer.scale = Vector2.ONE * Consts.TS / ts.tile_size.x   # Godot-only: HD tiles on the 16 px grid
 		layer.clear()
@@ -45,6 +46,8 @@ func show_room(room: Dictionary) -> void:
 				walls.set_cell(cell, 0, TilePick.coords(biome.id, TilePick.wall_key(tx, ty, s)))
 			else:
 				floor_layer.set_cell(cell, 0, TilePick.coords(biome.id, TilePick.floor_key(tx, ty, s)))
+			if t == Consts.T.FLOOR and room.get("rubble", {}).has(ty * Consts.RW + tx):
+				rubble.set_cell(cell, 0, TilePick.coords(biome.id, TilePick.rubble_key(tx, ty, s)))
 			if t == Consts.T.ROCK or t == Consts.T.CRACK:
 				rocks.set_cell(cell, 0, TilePick.coords(biome.id, TilePick.rock_key(tx, ty, s, t == Consts.T.CRACK)))
 	decals.queue_redraw()
