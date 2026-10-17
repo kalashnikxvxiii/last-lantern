@@ -48,6 +48,10 @@ Add the folder containing `godot.exe` to the PATH too, then restart your termina
 and the application that launched it. From PowerShell or Git Bash, run
 `bash tools/test.sh`.
 
+### Shared notes (Obsidian)
+
+The team keeps its working notes in `notes/`, opened with [Obsidian](https://obsidian.md): choose **Open folder as vault** and pick the repository root (start from `notes/Home.md`). The shared `.obsidian/` settings are tracked; per-user state (window layout, hotkeys, cache) stays local. New Markdown outside `notes/` is still git-ignored, so put shared notes under `notes/` or add a `!path/file.md` line to `.gitignore` on purpose.
+
 ### Development arguments
 
 After `--` you can jump straight to a situation:

@@ -22,3 +22,13 @@ docs/*
 !docs/enemies.md
 !docs/enemies.pdf
 !docs/enemies/
+
+# Obsidian vault. Unlike the docs above, notes/ and .obsidian/ are shared team
+# notes, opened with Obsidian (see notes/Home.md). Per-user state stays local.
+!notes/
+!notes/**/*.md
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/hotkeys.json
+.obsidian/cache/
+.obsidian/.trash/
