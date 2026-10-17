@@ -42,6 +42,10 @@ review it. Copy them again when `.githooks/` changes.
 
 To work in the editor: `godot -e --path godot`.
 
+### Shared notes (Obsidian)
+
+The team keeps its working notes in `notes/`, opened with [Obsidian](https://obsidian.md): choose **Open folder as vault** and pick the repository root (start from `notes/Home.md`). The shared `.obsidian/` settings are tracked; per-user state (window layout, hotkeys, cache) stays local. New Markdown outside `notes/` is still git-ignored, so put shared notes under `notes/` or add a `!path/file.md` line to `.gitignore` on purpose.
+
 On Windows, install Git for Windows and add its `bin` folder (usually
 `C:\Program Files\Git\bin`) to your user PATH so Python can find `bash`.
 Add the folder containing `godot.exe` to the PATH too, then restart your terminal

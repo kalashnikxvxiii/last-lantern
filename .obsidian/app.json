@@ -1,0 +1,18 @@
+{
+  "alwaysUpdateLinks": true,
+  "newFileLocation": "folder",
+  "newFileFolderPath": "notes",
+  "attachmentFolderPath": "notes/attachments",
+  "useMarkdownLinks": false,
+  "showLineNumber": true,
+  "readableLineLength": true,
+  "strictLineBreaks": false,
+  "showUnsupportedFiles": false,
+  "userIgnoreFilters": [
+    "js/",
+    "godot/",
+    "tools/",
+    "desktop/",
+    "dist/"
+  ]
+}
