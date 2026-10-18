@@ -44,6 +44,7 @@ func refresh(offset: Vector2) -> void:
 		return
 	var room := Run.room
 	var amb := ambient(DB.biome_of(Run.depth).dark, Run.depth, room.cleared, room.type == "boss", Run.player.oil <= 0, room.combat)
+	amb = lerpf(1.0, amb, View3D.reveal())   # Godot-only: a room just entered lights up with the camera's move
 	var L := Lights.collect()
 	var n := mini(L.size(), MAX_LIGHTS)
 	var pos := PackedVector4Array()

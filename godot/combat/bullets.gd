@@ -21,6 +21,21 @@ static func shot_opts(e) -> Dictionary:
 		o.status = "poison"
 	return o
 
+# Godot-only: a shot over the room beyond door d flies straight on, harmless there:
+# that room's walls, rocks and objects only stop it
+static func _fly_beyond(b: Dictionary, d: String, dt: float) -> void:
+	var n: Variant = Run.room.doors.get(d)
+	var nx: float = b.x + b.vx * dt
+	var ny: float = b.y + b.vy * dt
+	var off := RoomU.room_offset(d)
+	var t := RoomU.world_to_tile(nx - off.x, ny - off.y)
+	if n == null or not RoomU.walkable(RoomU.tile_at(RoomBuilder.layout_of(n), t.x, t.y)):
+		b.dead = true
+		Particles.burst(b.x, b.y, 4, ["#f29c38", "#f6cf57"], 40, 0.25)
+		return
+	b.x = nx
+	b.y = ny
+
 static func update_player(dt: float) -> void:
 	var room := Run.room
 	var s := Run.player.stats
@@ -34,6 +49,10 @@ static func update_player(dt: float) -> void:
 		b.life -= dt
 		if b.life <= 0:
 			b.dead = true
+			continue
+		var out := RoomU.beyond_dir(b.x, b.y)
+		if out != "":
+			_fly_beyond(b, out, dt)
 			continue
 		if s.homing and b.kind != "shard":
 			var best = null
@@ -57,7 +76,8 @@ static func update_player(dt: float) -> void:
 		var ny: float = b.y + b.vy * dt
 		var t := RoomU.world_to_tile(nx, b.y)
 		var hit_wall := false
-		if RoomU.blocks_shot(room, t.x, t.y):
+		# Godot-only: through an open door the shot goes on, over the room next door
+		if RoomU.blocks_shot(room, t.x, t.y, true):
 			Combat.damage_tile(t.x, t.y, b.dmg)
 			if b.bounce > 0:
 				b.vx = -b.vx
@@ -67,7 +87,7 @@ static func update_player(dt: float) -> void:
 		else:
 			b.x = nx
 		t = RoomU.world_to_tile(b.x, ny)
-		if not hit_wall and RoomU.blocks_shot(room, t.x, t.y):
+		if not hit_wall and RoomU.blocks_shot(room, t.x, t.y, true):
 			Combat.damage_tile(t.x, t.y, b.dmg)
 			if b.bounce > 0:
 				b.vy = -b.vy

@@ -65,3 +65,46 @@ func test_ghost_shots_leave_the_edge() -> void:
 	for i in 5:
 		Bullets.update_enemy(Consts.DT)
 	eq(Run.ebullets.size(), 0)
+
+# Godot-only: the rooms lie side by side; a shot through an open door flies on over
+# the room next door, harmless there
+func _next_room_north() -> Dictionary:
+	TH.new_run(7)   # the start room: cleared, its only door to the north
+	var next: Dictionary = Run.room.doors["n"]
+	RoomBuilder.build_room(next, Run.floor)
+	return next
+
+func test_a_shot_flies_on_through_an_open_door() -> void:
+	_next_room_north()
+	var c := RoomU.door_center("n")
+	var b := _shot(c.x, c.y + 20, 0, -200)
+	for i in 30:
+		Bullets.update_player(Consts.DT)
+	check(not b.get("dead", false), "still flying")
+	check(b.y < Consts.RY - Consts.TS, "past the edge, over the room next door: %s" % b.y)
+
+func test_a_shot_stops_on_the_next_room_without_harming_it() -> void:
+	var next := _next_room_north()
+	var k := 12 * Consts.RW + 14
+	next.grid[12][14] = Consts.T.BARREL
+	next.tileHp[k] = 18
+	var c := RoomU.door_center("n")
+	var b := _shot(c.x, c.y + 20, 0, -200)
+	for i in 60:
+		Bullets.update_player(Consts.DT)
+	check(b.get("dead", false), "stopped by the barrel")
+	var barrel_bottom := Consts.RY + 13 * Consts.TS - Consts.RH * Consts.TS   # in this room's coordinates
+	check(b.y < Consts.RY - Consts.TS and b.y >= barrel_bottom - 4.0, "at the barrel, not before nor through it: %s" % b.y)
+	eq(next.tileHp[k], 18, "the barrel takes no damage")
+	eq(next.grid[12][14], Consts.T.BARREL)
+
+func test_a_closed_door_still_stops_a_shot() -> void:
+	_next_room_north()
+	Run.room.cleared = false
+	Run.room.combat = true
+	var c := RoomU.door_center("n")
+	var b := _shot(c.x, c.y + 20, 0, -200)
+	for i in 30:
+		Bullets.update_player(Consts.DT)
+	check(b.get("dead", false))
+	check(b.y >= Consts.RY, "at the gate")

@@ -10,6 +10,7 @@ func before() -> void:
 
 func after() -> void:
 	v.free()
+	Fx.cam = Vector2.ZERO
 	Run.reset()
 
 func test_the_bottom_wall_hides_what_is_behind_it() -> void:
@@ -157,3 +158,77 @@ func test_the_gate_behind_the_player_closes_after_them() -> void:
 	check(v.gates["s"].position.y > -View3D.WALL_H, "and rising")
 	v.build_gates(room, false)
 	eq(v.gates["s"].position.y, 0.0, "a rebuild inside the room: no entry")
+
+func test_the_rooms_beyond_the_doors_stand_unlit_next_to_this_one() -> void:
+	var room := Run.room
+	var offered: Dictionary = Run.offered_relics.duplicate()
+	v.build_neighbors(room)
+	for d in room.doors:
+		if not RoomU.door_visible(room, d):
+			check(not v.neighbors.has(d), "%s: a hidden door shows nothing" % d)
+			continue
+		var n: MeshInstance3D = v.neighbors[d]
+		var off := RoomU.room_offset(d)
+		eq(Vector2(n.position.x, n.position.z), off, "%s: right beyond the wall" % d)
+		eq(n.layers, View3D.NEIGHBOR_LAYER)
+		check((n.mesh.surface_get_material(0) as StandardMaterial3D).disable_ambient_light, "dark until a light reaches it")
+		check(not room.doors[d].built, "%s: only laid out, not built" % d)
+	eq(Run.offered_relics, offered, "laying out draws no relics")
+
+func test_a_laid_out_room_has_the_grid_it_will_be_built_with() -> void:
+	var r: Dictionary = Run.floor.rooms.filter(func(x): return not x.built)[0]
+	var g: Array = RoomBuilder.layout_of(r).grid
+	RoomBuilder.build_room(r, Run.floor)
+	eq(g, r.grid)
+
+func test_the_camera_eases_into_the_next_room() -> void:
+	var room := Run.room
+	var d: String = room.doors.keys()[0]
+	Fx.cam = Vector2(0, -10)
+	var target := Fx.cam_target(Run.player.x, Run.player.y)
+	v.start_pan(room, room.doors[d])
+	# the follow's own jump (the player is now at the other side of the room) is part of the move
+	var from := RoomU.room_offset(RoomU.DIRS[d].opp) + Vector2(0, -10) - target
+	eq(Fx.cam, target, "the follow is where it wants to be")
+	eq(v.pan_offset(), from, "the camera starts where it was, over the room left behind")
+	v.pan_t = View3D.PAN_TIME * 0.1
+	check(v.pan_offset().length() > from.length() * 0.98, "ease in: a gentle start")
+	v.pan_t = View3D.PAN_TIME / 2.0
+	near(v.pan_offset().length(), from.length() * 0.5, 1e-3, "halfway at half time")
+	v.pan_t = View3D.PAN_TIME * 0.9
+	check(v.pan_offset().length() < from.length() * 0.02, "ease out: a soft landing")
+	v.pan_t = View3D.PAN_TIME
+	eq(v.pan_offset(), Vector2.ZERO)
+	v.start_pan({}, room)
+	eq(v.pan_offset(), Vector2.ZERO, "from elsewhere (a new floor): no move")
+	Fx.cam = Vector2.ZERO
+
+func test_the_lights_change_rooms_with_the_camera() -> void:
+	View3D.current = v
+	var room := Run.room
+	var d: String = room.doors.keys()[0]
+	var next: Dictionary = room.doors[d]
+	RoomBuilder.build_room(next, Run.floor)
+	Run.room = next
+	v.start_pan(room, next)
+	v.build_neighbors(next)
+	eq(View3D.reveal(), 0.0, "entering: the new room's ambient light is still off")
+	var back: MeshInstance3D = v.neighbors[RoomU.DIRS[d].opp]
+	var m := back.mesh.surface_get_material(0) as StandardMaterial3D
+	v.fade_left_room(1.0)
+	near(m.emission_energy_multiplier, 1.0, 1e-6, "the room left behind keeps its light")
+	v.pan_t = View3D.PAN_TIME / 2.0
+	v.fade_left_room(1.0)
+	near(View3D.reveal(), 0.5, 1e-3)
+	near(m.emission_energy_multiplier, 0.5, 1e-3, "and loses it as the camera moves away")
+	v.pan_t = View3D.PAN_TIME
+	v.fade_left_room(1.0)
+	eq(View3D.reveal(), 1.0)
+	eq(m.emission_energy_multiplier, 0.0, "dark once the camera has arrived")
+	View3D.current = null
+
+func test_the_shots_plane_reaches_over_the_rooms_next_door() -> void:
+	var r := View3D.air_view()
+	for d in RoomU.DIRS:
+		var c := RoomU.door_center(d) + Vector2(RoomU.DIRS[d].dx, RoomU.DIRS[d].dy) * Consts.TS * 3.0
+		check(r.has_point(c), "%s: a shot three tiles past the door still drawn" % d)

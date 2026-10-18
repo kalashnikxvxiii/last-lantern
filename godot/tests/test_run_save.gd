@@ -67,6 +67,19 @@ func test_fight_restarts_on_resume() -> void:
 	eq(Run.room.waveIdx, 0)
 	eq(Run.enemies.size(), 0)
 
+# Godot-only: saved while still in the doorway of a room not started yet
+func test_a_save_in_a_doorway_resumes_behind_closed_gates() -> void:
+	TH.new_run(6)
+	var r := TH.enter("normal")
+	var d: String = r.doors.keys()[0]
+	r.combat = false
+	r.entering = d
+	check(RunSave.save(0))
+	check(RunSave.resume(0))
+	check(Run.room.combat, "the fight starts on resume")
+	check(not Run.room.has("entering"))
+	check(not RoomU.door_open(Run.room, d), "and its way in is shut")
+
 func test_slot_missing_a_key_reads_as_empty() -> void:
 	TH.new_run(5)
 	check(RunSave.save(0))

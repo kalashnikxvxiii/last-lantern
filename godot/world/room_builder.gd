@@ -42,6 +42,59 @@ static func expand_quad(q: Array) -> Array:
 static func build_room(room: Dictionary, fl: Dictionary) -> void:
 	var rng := RNG.new(room.seed)
 	var biome := DB.biome_of(fl.depth)
+	lay_out(room, fl, rng)
+	var rw := Consts.RW
+	var rh := Consts.RH
+	# decorations
+	var n_dec := rng.rint(10, 22)
+	for k in n_dec:
+		room.decals.append({"x": rng.rint(Consts.RX + 18, Consts.RX + rw * Consts.TS - 18), "y": rng.rint(Consts.RY + 18, Consts.RY + rh * Consts.TS - 18),
+			"k": rng.rint(0, 5), "s": rng.next()})
+
+	# contents
+	var c := RoomU.tile_center(14, 7)
+	match room.type:
+		"normal", "elite":
+			plan_waves(room, fl, rng, biome)
+		"boss":
+			room.waves = [[{"type": "BOSS", "boss": biome.boss}]]
+		"treasure":
+			var picks: Array = random_relics(2, rng)
+			if picks.is_empty():
+				picks.append(null)
+			for i in picks.size():
+				var id: Variant = picks[i]
+				var x: float = c.x if picks.size() == 1 else c.x + (-36 if i == 0 else 36)
+				if id != null:
+					room.objects.append({"type": "relic", "id": id, "x": x, "y": c.y, "group": "treasure"})
+				else:
+					room.objects.append({"type": "chest", "gold": true, "x": x, "y": c.y})
+		"shop":
+			make_shop(room, fl, rng)
+		"shrine":
+			make_shrine(room, fl, rng)
+		"secret":
+			room.objects.append({"type": "chest", "gold": true, "open": false, "x": c.x, "y": c.y + 12})
+			if rng.chance(0.5):
+				var r: Array = random_relics(1, rng)
+				if not r.is_empty():
+					room.objects.append({"type": "relic", "id": r[0], "x": c.x, "y": c.y - 24})
+			var k := 0
+			while k < rng.rint(6, 10):
+				var type := "coin5" if rng.chance(0.2) else "coin"
+				var px := c.x + rng.frange(-50, 50)
+				var py := c.y + rng.frange(-30, 40)
+				room.pickups.append(Pickups.make(type, px, py))
+				k += 1
+		"start":
+			if fl.depth == 1:
+				room.tutorial = true
+
+# Godot-only split of buildRoom: the grid (walls, layout, doors) and its first random
+# draws, without the contents. View3D lays out the rooms beyond the doors with it:
+# building them early would draw their relics now.
+static func lay_out(room: Dictionary, fl: Dictionary, rng: RNG) -> void:
+	var biome := DB.biome_of(fl.depth)
 	var rw := Consts.RW
 	var rh := Consts.RH
 	room.built = true
@@ -112,50 +165,22 @@ static func build_room(room: Dictionary, fl: Dictionary) -> void:
 			for x in range(1, rw - 1):
 				room.grid[y][x] = Consts.T.FLOOR
 		room.tileHp = {}
-	# decorations
-	var n_dec := rng.rint(10, 22)
-	for k in n_dec:
-		room.decals.append({"x": rng.rint(Consts.RX + 18, Consts.RX + rw * Consts.TS - 18), "y": rng.rint(Consts.RY + 18, Consts.RY + rh * Consts.TS - 18),
-			"k": rng.rint(0, 5), "s": rng.next()})
 
-	# contents
-	var c := RoomU.tile_center(14, 7)
-	match room.type:
-		"normal", "elite":
-			plan_waves(room, fl, rng, biome)
-		"boss":
-			room.waves = [[{"type": "BOSS", "boss": biome.boss}]]
-		"treasure":
-			var picks: Array = random_relics(2, rng)
-			if picks.is_empty():
-				picks.append(null)
-			for i in picks.size():
-				var id: Variant = picks[i]
-				var x: float = c.x if picks.size() == 1 else c.x + (-36 if i == 0 else 36)
-				if id != null:
-					room.objects.append({"type": "relic", "id": id, "x": x, "y": c.y, "group": "treasure"})
-				else:
-					room.objects.append({"type": "chest", "gold": true, "x": x, "y": c.y})
-		"shop":
-			make_shop(room, fl, rng)
-		"shrine":
-			make_shrine(room, fl, rng)
-		"secret":
-			room.objects.append({"type": "chest", "gold": true, "open": false, "x": c.x, "y": c.y + 12})
-			if rng.chance(0.5):
-				var r: Array = random_relics(1, rng)
-				if not r.is_empty():
-					room.objects.append({"type": "relic", "id": r[0], "x": c.x, "y": c.y - 24})
-			var k := 0
-			while k < rng.rint(6, 10):
-				var type := "coin5" if rng.chance(0.2) else "coin"
-				var px := c.x + rng.frange(-50, 50)
-				var py := c.y + rng.frange(-30, 40)
-				room.pickups.append(Pickups.make(type, px, py))
-				k += 1
-		"start":
-			if fl.depth == 1:
-				room.tutorial = true
+# Godot-only: a room as it will be built, for the view and the shots beyond the doors.
+# One not built yet is laid out on a copy (building it would draw its contents now),
+# kept per grid cell while it is the same room
+static var _laid: Dictionary = {}
+
+static func layout_of(r: Dictionary) -> Dictionary:
+	if r.built:
+		return r
+	var c: Variant = _laid.get(RoomU.key(r))
+	if c == null or not is_same(c.src, r):
+		c = r.duplicate()
+		lay_out(c, Run.floor, RNG.new(r.seed))
+		c.src = r
+		_laid[RoomU.key(r)] = c
+	return c
 
 static func clear_door_zone(room: Dictionary, d: String) -> void:
 	var z: Array = {"n": [11, 1, 17, 2], "s": [11, 12, 17, 13], "w": [1, 5, 2, 9], "e": [26, 5, 27, 9]}[d]

@@ -37,24 +37,69 @@ func test_entering_through_a_door() -> void:
 func test_open_door_and_transition() -> void:
 	var start := Run.room
 	var d: String = start.doors.keys()[0]
-	var dc := RoomU.door_center(d)
+	var next: Dictionary = start.doors[d]
+	var dir := Vector2(RoomU.DIRS[d].dx, RoomU.DIRS[d].dy)
 	var p := Run.player
-	p.x = dc.x
-	p.y = dc.y
-	match d:
-		"n":
-			p.y = Consts.RY + 10
-		"s":
-			p.y = Consts.RY + (Consts.RH - 1) * Consts.TS + 6
-		"w":
-			p.x = Consts.RX + 10
-		"e":
-			p.x = Consts.RX + (Consts.RW - 1) * Consts.TS + 6
+	# 1 px past this room's edge, in the doorway: still the room's floor
+	var at := RoomU.door_center(d) + dir * (Consts.TS / 2.0 + 1.0)
+	p.x = at.x
+	p.y = at.y
+	p.dash_t = 0.1
+	Run.bullets = [{"x": at.x - dir.x * 20, "y": at.y - dir.y * 20, "vx": 0.0, "vy": 0.0}]
 	Flow.check_doors(Consts.DT)
-	check(Run.trans != null and Run.trans.kind == "room")
-	for i in 9:
-		Flow.update_trans(Consts.DT)
-	check(is_same(Run.room, start.doors[d]), "after 0.13 s the room changes")
+	check(is_same(Run.room, next), "the room changes at the edge")
+	check(Run.trans == null, "no fade, no pause")
+	var off := RoomU.room_offset(d)
+	eq(Vector2(p.x, p.y), at - off, "no jump: the same spot, seen from the next room")
+	near(p.dash_t, 0.1, 1e-9, "a dash goes on")
+	eq(Run.bullets.size(), 1, "the shots go on")
+	eq(Vector2(Run.bullets[0].x, Run.bullets[0].y), at - dir * 20 - off)
+	var back: String = RoomU.DIRS[d].opp
+	check(RoomU.door_open(next, back), "the way in stays open while the player is in it")
+	check(not Coll.collides(next, p.x, p.y, p.r, false, true), "and lets them through")
+	var e := RoomU.door_entry(back)
+	p.x = e.x
+	p.y = e.y
+	Flow.check_doors(Consts.DT)
+	check(not next.has("entering"), "inside: the door is the room's again")
+	eq(RoomU.door_open(next, back), next.cleared, "open only if the room is clear")
+
+# Godot-only: the room starts (gates, waves) once the player is past its gate
+func test_the_fight_waits_until_the_player_is_past_the_gate() -> void:
+	var start := Run.room
+	var d: String = start.doors.keys()[0]
+	var next: Dictionary = start.doors[d]
+	RoomBuilder.build_room(next, Run.floor)
+	next.cleared = false
+	next.waves = [[{"type": "rat", "mod": null}]]
+	var dir := Vector2(RoomU.DIRS[d].dx, RoomU.DIRS[d].dy)
+	var p := Run.player
+	var at := RoomU.door_center(d) + dir * (Consts.TS / 2.0 + 1.0)
+	p.x = at.x
+	p.y = at.y
+	Flow.check_doors(Consts.DT)
+	check(is_same(Run.room, next))
+	check(not next.combat, "in the doorway: no fight yet")
+	for i in 120:
+		Flow.update_game(Consts.DT)
+	check(Run.enemies.is_empty() and Run.fx.is_empty(), "and no enemies")
+	# back out, through the gate still open
+	var back := RoomU.door_center(RoomU.DIRS[d].opp) - dir * (Consts.TS / 2.0 + 1.0)
+	p.x = back.x
+	p.y = back.y
+	Flow.check_doors(Consts.DT)
+	check(is_same(Run.room, start), "the player can go back")
+	check(not next.has("entering") and not next.combat, "the room left untouched")
+	# in again, and on past the gate
+	p.x = at.x
+	p.y = at.y
+	Flow.check_doors(Consts.DT)
+	var e := RoomU.door_entry(RoomU.DIRS[d].opp)
+	p.x = e.x
+	p.y = e.y
+	Flow.check_doors(Consts.DT)
+	check(next.combat, "past the gate: the fight starts")
+	check(not RoomU.door_open(next, RoomU.DIRS[d].opp), "and the gate closes")
 
 func test_movement_and_dash() -> void:
 	var p := Run.player
