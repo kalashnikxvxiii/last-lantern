@@ -88,6 +88,7 @@ static func enter_room(room: Dictionary, from_dir: Variant, through := false) ->
 	Run.boss_ref = null
 	Particles.clear()
 	if not through:
+		room.erase("entering")   # left by a save made in the doorway
 		start_room(room)
 	if room.type == "shop" and not room.get("greeted", false):
 		room.greeted = true
