@@ -21,6 +21,7 @@ const MAX_LIGHTS := 12
 const SHADOW_LIGHTS := 3
 const GATE_SPEED := 60.0     # px/s: a gate sinks into the floor (or rises) in 0.4 s
 const NEIGHBOR_LAYER := 4     # the rooms beyond the doors: only the lights that cast shadows reach them
+const AIR_MARGIN := 64        # px: the shots' plane reaches this far past the screen, over the rooms next door
 const PAN_TIME := 0.6         # s: the camera moves into the room the player walks into
 
 static var on := false       # actors leave their sprite to the view while it is up
@@ -74,10 +75,19 @@ func _ready() -> void:
 		_screen_plane(floor_mesh, flat, 0.0, Rect2(Consts.RX, Consts.RY, Consts.RW * Consts.TS, Consts.RH * Consts.TS), Rect2(0, 0, Consts.W, Consts.H))
 		floor_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	if air != null:
-		_screen_plane(air_mesh, air, AIR_H, Rect2(0, 0, Consts.W, Consts.H), Rect2(0, 0, Consts.W, Consts.H))
+		# wider than the screen, the same pixels per point as the floor
+		var v := air_view()
+		air.size = Vector2i(v.size * float(flat.size.x if flat != null else Consts.W) / Consts.W)
+		air.size_2d_override = Vector2i(v.size)
+		air.canvas_transform = Transform2D(0.0, -v.position)
+		_screen_plane(air_mesh, air, AIR_H, v, v)
 		(air_mesh.material_override as StandardMaterial3D).transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	Controls.to_world = screen_to_floor
 	place_camera(Vector2.ZERO, Vector2.ZERO)
+
+# what the shots' viewport shows of the room: the screen and a margin around it
+static func air_view() -> Rect2:
+	return Rect2(-AIR_MARGIN, -AIR_MARGIN, Consts.W + 2 * AIR_MARGIN, Consts.H + 2 * AIR_MARGIN)
 
 # the part r of a 2D viewport showing view laid on a horizontal plane at height h (its lighting is in the texture)
 func _screen_plane(mi: MeshInstance3D, vp: SubViewport, h: float, r: Rect2, view: Rect2) -> void:

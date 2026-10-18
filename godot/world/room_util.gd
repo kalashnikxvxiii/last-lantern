@@ -54,6 +54,18 @@ static func tile_at(room: Dictionary, tx: int, ty: int, doorways := false) -> in
 static func door_dir_at(room: Dictionary, tx: int, ty: int) -> String:
 	return room.doorDir[clampi(ty, 0, Consts.RH - 1) * Consts.RW + clampi(tx, 0, Consts.RW - 1)]
 
+# Godot-only: the door whose room next door a point outside this room lies over, or ""
+static func beyond_dir(x: float, y: float) -> String:
+	if x < Consts.RX:
+		return "w"
+	if x >= Consts.RX + Consts.RW * Consts.TS:
+		return "e"
+	if y < Consts.RY:
+		return "n"
+	if y >= Consts.RY + Consts.RH * Consts.TS:
+		return "s"
+	return ""
+
 # Godot-only: whether a circle at x, y keeps clear of door dir and the doorway past it
 static func clear_of_door(dir: String, x: float, y: float, r: float) -> bool:
 	var t0: Array = DIRS[dir].tiles[0]
@@ -100,8 +112,8 @@ static func is_solid_tile(room: Dictionary, tx: int, ty: int, fly: bool, doorway
 		return false
 	return true
 
-static func blocks_shot(room: Dictionary, tx: int, ty: int) -> bool:
-	var t := tile_at(room, tx, ty)
+static func blocks_shot(room: Dictionary, tx: int, ty: int, doorways := false) -> bool:
+	var t := tile_at(room, tx, ty, doorways)
 	return not (t == Consts.T.FLOOR or t == Consts.T.SPIKE or (t == Consts.T.DOOR and door_open(room, door_dir_at(room, tx, ty))))
 
 static func walkable(t: int) -> bool:

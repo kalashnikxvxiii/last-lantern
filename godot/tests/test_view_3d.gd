@@ -226,3 +226,9 @@ func test_the_lights_change_rooms_with_the_camera() -> void:
 	eq(View3D.reveal(), 1.0)
 	eq(m.emission_energy_multiplier, 0.0, "dark once the camera has arrived")
 	View3D.current = null
+
+func test_the_shots_plane_reaches_over_the_rooms_next_door() -> void:
+	var r := View3D.air_view()
+	for d in RoomU.DIRS:
+		var c := RoomU.door_center(d) + Vector2(RoomU.DIRS[d].dx, RoomU.DIRS[d].dy) * Consts.TS * 3.0
+		check(r.has_point(c), "%s: a shot three tiles past the door still drawn" % d)
