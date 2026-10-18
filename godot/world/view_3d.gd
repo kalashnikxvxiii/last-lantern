@@ -20,6 +20,8 @@ const SPRITE_BIAS := 8.0     # sprites move this much toward the camera: no clip
 const MAX_LIGHTS := 12
 const SHADOW_LIGHTS := 3
 const GATE_SPEED := 60.0     # px/s: a gate sinks into the floor (or rises) in 0.4 s
+const NEIGHBOR_LAYER := 4     # the rooms beyond the doors: only the lights that cast shadows reach them
+const PAN_TIME := 0.6         # s: the camera moves into the room the player walks into
 
 static var on := false       # actors leave their sprite to the view while it is up
 static var current: View3D
@@ -37,6 +39,10 @@ var item_pool: Array[Sprite3D] = []
 var lights: Array[OmniLight3D] = []
 var shown: Dictionary = {}
 var gates: Dictionary = {}     # door dir -> its bars, lowered into the floor while the door is open
+var neighbors: Dictionary = {}   # door dir -> the room beyond it, walls and floor, dark but for the lights
+var pan_from := Vector2.ZERO   # where the camera starts, from the room the player left
+var pan_t := PAN_TIME
+var pan_dir := ""              # the door back to the room the player left, while its light fades
 
 func _ready() -> void:
 	on = true
@@ -59,25 +65,31 @@ func _ready() -> void:
 		var l := OmniLight3D.new()
 		l.shadow_enabled = i < SHADOW_LIGHTS
 		l.omni_attenuation = 0.0   # distances are in px: a power falloff would leave almost nothing a tile away
+		if i >= SHADOW_LIGHTS:
+			l.light_cull_mask &= ~NEIGHBOR_LAYER   # it would shine through the walls
 		lights.append(l)
 		add_child(l)
 	if flat != null:
-		_screen_plane(floor_mesh, flat, 0.0)
+		# only the room: around it the rooms beyond the doors lie on the same floor
+		_screen_plane(floor_mesh, flat, 0.0, Rect2(Consts.RX, Consts.RY, Consts.RW * Consts.TS, Consts.RH * Consts.TS), Rect2(0, 0, Consts.W, Consts.H))
+		floor_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	if air != null:
-		_screen_plane(air_mesh, air, AIR_H)
+		_screen_plane(air_mesh, air, AIR_H, Rect2(0, 0, Consts.W, Consts.H), Rect2(0, 0, Consts.W, Consts.H))
 		(air_mesh.material_override as StandardMaterial3D).transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	Controls.to_world = screen_to_floor
 	place_camera(Vector2.ZERO, Vector2.ZERO)
 
-# a 2D viewport laid on a horizontal plane at height h (its lighting is in the texture)
-func _screen_plane(mi: MeshInstance3D, vp: SubViewport, h: float) -> void:
+# the part r of a 2D viewport showing view laid on a horizontal plane at height h (its lighting is in the texture)
+func _screen_plane(mi: MeshInstance3D, vp: SubViewport, h: float, r: Rect2, view: Rect2) -> void:
 	var plane := PlaneMesh.new()
-	plane.size = Vector2(Consts.W, Consts.H)
+	plane.size = r.size
 	mi.mesh = plane
-	mi.position = Vector3(Consts.W / 2.0, h, Consts.H / 2.0)
+	mi.position = Vector3(r.get_center().x, h, r.get_center().y)
 	var m := StandardMaterial3D.new()
 	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	m.albedo_texture = vp.get_texture()
+	m.uv1_scale = Vector3(r.size.x / view.size.x, r.size.y / view.size.y, 1)
+	m.uv1_offset = Vector3((r.position.x - view.position.x) / view.size.x, (r.position.y - view.position.y) / view.size.y, 0)
 	m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 	mi.material_override = m
 
@@ -95,11 +107,15 @@ func _process(delta: float) -> void:
 	if not Run.active or Run.room.is_empty():
 		return
 	if not is_same(Run.room, shown) or Run.room.get("bgDirty", false):
+		if not is_same(Run.room, shown):
+			start_pan(shown, Run.room)
 		solids.mesh = build_solids(Run.room)
 		build_gates(Run.room, not is_same(Run.room, shown))
+		build_neighbors(Run.room)
 		shown = Run.room
 	sync_gates(delta)
-	place_camera(Fx.cam, Fx.offset())
+	pan_t += delta
+	place_camera(Fx.cam + pan_offset(), Fx.offset())
 	_sync_sprites()
 	_sync_items()
 	_sync_lights()
@@ -112,6 +128,63 @@ func place_camera(follow: Vector2, shake: Vector2) -> void:
 	cam.rotation = Vector3(-p, 0, 0)
 	cam.h_offset = -shake.x
 	cam.v_offset = shake.y
+
+# --- the rooms beyond the doors, and the camera's move into them ---
+
+# entering room to from its neighbor from, the camera starts over from (the game
+# moves the player at once: Flow.check_doors) and eases in and out to its place
+func start_pan(from: Dictionary, to: Dictionary) -> void:
+	pan_t = PAN_TIME
+	pan_dir = ""
+	for d in to.doors:
+		if is_same(to.doors[d], from):
+			# the follow wants the other side of the new room now: its jump is part of the move too
+			var target := Fx.cam_target(Run.player.x, Run.player.y)
+			pan_from = RoomU.room_offset(d) + Fx.cam - target
+			Fx.cam = target
+			pan_t = 0.0
+			pan_dir = d
+
+# how far the camera has gone, cubic ease in-out
+func pan_ease() -> float:
+	var k := clampf(pan_t / PAN_TIME, 0.0, 1.0)
+	return 4.0 * k * k * k if k < 0.5 else 1.0 - pow(2.0 - 2.0 * k, 3) / 2.0
+
+func pan_offset() -> Vector2:
+	return pan_from * (1.0 - pan_ease())
+
+# the ambient light comes up in the new room as the camera gets there (Lighting too)
+static func reveal() -> float:
+	return 1.0 if current == null else current.pan_ease()
+
+# and leaves the room behind as the camera moves away: there the room glows with
+# the ambient light it had (energy), fading out
+func fade_left_room(energy: float) -> void:
+	var n: MeshInstance3D = neighbors.get(pan_dir)
+	if n == null:
+		return
+	var m := n.mesh.surface_get_material(0) as StandardMaterial3D
+	m.emission_enabled = true
+	m.emission_texture = m.albedo_texture
+	m.emission_operator = BaseMaterial3D.EMISSION_OP_MULTIPLY   # the tiles' colors, as the ambient light shows them
+	m.emission = env.ambient_light_color
+	m.emission_energy_multiplier = energy * (1.0 - pan_ease())
+
+# the rooms behind the visible doors, unlit: a light that passes a doorway shows them
+func build_neighbors(room: Dictionary) -> void:
+	for n in neighbors.values():
+		n.free()
+	neighbors = {}
+	for d in room.doors:
+		if not RoomU.door_visible(room, d):
+			continue
+		var n := MeshInstance3D.new()
+		n.mesh = build_solids(RoomBuilder.layout_of(room.doors[d]), true)
+		var off := RoomU.room_offset(d)
+		n.position = Vector3(off.x, 0, off.y)
+		n.layers = NEIGHBOR_LAYER
+		neighbors[d] = n
+		add_child(n)
 
 # where a point of the room shows on the 480x270 screen
 func project(p: Vector3) -> Vector2:
@@ -182,7 +255,8 @@ func light_pos(x: float, y: float) -> Vector3:
 
 # --- walls and rocks: one mesh, textured from the biome tileset ---
 
-func build_solids(room: Dictionary) -> ArrayMesh:
+# beyond: a room past a door, with its floor (here the 2D world draws it) and no ambient light
+func build_solids(room: Dictionary, beyond := false) -> ArrayMesh:
 	var biome := DB.biome_of(Run.floor.depth)
 	var src := TilePick.tileset(biome.id).get_source(0) as TileSetAtlasSource
 	var tex := src.texture
@@ -208,6 +282,11 @@ func build_solids(room: Dictionary) -> ArrayMesh:
 			elif t == Consts.T.ROCK or t == Consts.T.CRACK:
 				var r := src.get_tile_texture_region(TilePick.coords(biome.id, TilePick.rock_key(tx, ty, s, t == Consts.T.CRACK)))
 				_rock(st, x + Consts.TS / 2.0, z + Consts.TS / 2.0, Rect2(Vector2(r.position) / ts, Vector2(r.size) / ts))
+			if beyond and t != Consts.T.WALL:
+				var r := src.get_tile_texture_region(TilePick.coords(biome.id, TilePick.floor_key(tx, ty, s)))
+				var w := float(Consts.TS)
+				st.set_smooth_group(0xFFFFFFFF)
+				_quad(st, Vector3(x, 0, z), Vector3(x + w, 0, z), Vector3(x + w, 0, z + w), Vector3(x, 0, z + w), Rect2(Vector2(r.position) / ts, Vector2(r.size) / ts))
 	st.generate_normals()
 	var mesh := st.commit()
 	var m := StandardMaterial3D.new()
@@ -219,6 +298,7 @@ func build_solids(room: Dictionary) -> ArrayMesh:
 	m.roughness = 1.0
 	m.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
 	m.diffuse_mode = BaseMaterial3D.DIFFUSE_LAMBERT
+	m.disable_ambient_light = beyond
 	mesh.surface_set_material(0, m)
 	return mesh
 
@@ -411,7 +491,8 @@ func _pose(s: Sprite3D, stt: Dictionary, base: Vector3, bias: float) -> void:
 func _sync_lights() -> void:
 	var amb := Lighting.ambient(DB.biome_of(Run.depth).dark, Run.depth, Run.room.cleared, Run.room.type == "boss", Run.player.oil <= 0, Run.room.combat)
 	env.ambient_light_color = Color(0.55, 0.5, 0.7)
-	env.ambient_light_energy = (1.0 - amb) * 1.6
+	env.ambient_light_energy = (1.0 - amb) * 1.6 * reveal()
+	fade_left_room((1.0 - amb) * 1.6)
 	var de := Display.environment()
 	env.adjustment_brightness = de.adjustment_brightness
 	env.adjustment_contrast = de.adjustment_contrast

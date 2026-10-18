@@ -57,7 +57,9 @@ static func check_unlocks() -> void:
 				Run.new_unlocks.append(L.name)
 				Run.toast("New lantern unlocked", "#f6cf57", L.name)
 
-static func enter_room(room: Dictionary, from_dir: Variant) -> void:
+# through: Godot-only, walked in through the doorway: the room starts once the
+# player is past its gate (Flow.check_doors)
+static func enter_room(room: Dictionary, from_dir: Variant, through := false) -> void:
 	var p := Run.player
 	Run.room = room
 	if not room.built:
@@ -85,6 +87,17 @@ static func enter_room(room: Dictionary, from_dir: Variant) -> void:
 	Run.flow_t = 0.0
 	Run.boss_ref = null
 	Particles.clear()
+	if not through:
+		start_room(room)
+	if room.type == "shop" and not room.get("greeted", false):
+		room.greeted = true
+		Sfx.play("coin")
+	if room.type == "secret" and not room.get("greeted", false):
+		room.greeted = true
+		Run.toast("A forgotten room", "#f6cf57")
+
+# the fight of enterRoom: gates, waves, music
+static func start_room(room: Dictionary) -> void:
 	if not room.cleared:
 		room.combat = true
 		room.waveIdx = 0
@@ -102,12 +115,6 @@ static func enter_room(room: Dictionary, from_dir: Variant) -> void:
 	else:
 		room.combat = false
 		Music.set_intensity(0)
-	if room.type == "shop" and not room.get("greeted", false):
-		room.greeted = true
-		Sfx.play("coin")
-	if room.type == "secret" and not room.get("greeted", false):
-		room.greeted = true
-		Run.toast("A forgotten room", "#f6cf57")
 
 static func descend() -> void:
 	if Run.trans != null:
@@ -122,6 +129,10 @@ static func check_doors(dt: float) -> void:
 	var ry := Consts.RY
 	var ts := Consts.TS
 	Run.lock_msg_t -= dt
+	# Godot-only: past the gate the room starts; until then the way back is open
+	if room.has("entering") and RoomU.clear_of_door(room.entering, p.x, p.y, p.r):
+		room.erase("entering")
+		start_room(room)
 	for d in room.doors:
 		if not RoomU.door_visible(room, d):
 			continue
@@ -140,27 +151,42 @@ static func check_doors(dt: float) -> void:
 			continue
 		if not RoomU.door_open(room, d):
 			continue
+		# Godot-only: the rooms lie side by side, so the player changes room on the
+		# edge between them, with no fade and no pause, and goes on from the same spot:
+		# moving, dashing, the shots in flight. The camera follows (View3D.start_pan).
 		var go := false
 		match d:
-			"n": go = p.y < ry + 11 and absf(p.x - dc.x) < 26
-			"s": go = p.y > ry + (Consts.RH - 1) * ts + 5 and absf(p.x - dc.x) < 26
-			"w": go = p.x < rx + 11 and absf(p.y - dc.y) < 26
-			"e": go = p.x > rx + (Consts.RW - 1) * ts + 5 and absf(p.y - dc.y) < 26
+			"n": go = p.y < ry and absf(p.x - dc.x) < 26
+			"s": go = p.y > ry + Consts.RH * ts and absf(p.x - dc.x) < 26
+			"w": go = p.x < rx and absf(p.y - dc.y) < 26
+			"e": go = p.x > rx + Consts.RW * ts and absf(p.y - dc.y) < 26
 		if go:
-			Run.trans = {"t": 0.0, "kind": "room", "to": room.doors[d], "dir": d, "swapped": false}
+			var off := RoomU.room_offset(d)
+			var at := Vector2(p.x - off.x, p.y - off.y)
+			var dash := p.dash_t
+			var shots: Array = Run.bullets
+			var parts: Array = Particles.list.duplicate()
+			room.erase("entering")
+			enter_room(room.doors[d], d, true)
+			p.x = at.x
+			p.y = at.y
+			p.dash_t = dash
+			for o in shots + parts:
+				o.x -= off.x
+				o.y -= off.y
+			Run.bullets = shots
+			Particles.list.append_array(parts)
+			Run.room.entering = RoomU.DIRS[d].opp
 			return
 
 static func update_trans(dt: float) -> void:
 	var tr: Dictionary = Run.trans
 	tr.t += dt
-	var half := 0.7 if tr.kind == "descend" else 0.13
+	var half := 0.7
 	if not tr.swapped and tr.t >= half:
 		tr.swapped = true
-		if tr.kind == "room":
-			enter_room(tr.to, tr.dir)
-		else:
-			Run.depth += 1
-			new_floor()
+		Run.depth += 1
+		new_floor()
 	if tr.t >= half * 2:
 		Run.trans = null
 
@@ -168,7 +194,7 @@ static func trans_alpha() -> float:
 	var tr: Variant = Run.trans
 	if tr == null:
 		return 0.0
-	var half := 0.7 if tr.kind == "descend" else 0.13
+	var half := 0.7
 	return tr.t / half if tr.t < half else maxf(0.0, 1 - (tr.t - half) / half)
 
 # updateGame: later tasks add the other lines in the JS order

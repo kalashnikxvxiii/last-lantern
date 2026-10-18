@@ -38,3 +38,19 @@ func test_base_prices() -> void:
 		if c[0] == "cons":
 			it.id = c[1]
 		eq(RoomBuilder.base_price(it, int(c[2])), c[3], "%s" % [c])
+
+func test_a_doorway_goes_on_one_tile_past_the_edge() -> void:
+	TH.new_run(7)
+	var room := Run.room
+	room.doors = {"n": {"type": "normal"}}
+	room.grid[0][14] = Consts.T.DOOR
+	room.doorDir[14] = "n"
+	eq(RoomU.tile_at(room, 14, -1, true), Consts.T.DOOR, "beyond a door: the doorway")
+	eq(RoomU.tile_at(room, 14, -2, true), Consts.T.WALL, "two tiles out: wall")
+	eq(RoomU.tile_at(room, 5, -1, true), Consts.T.WALL, "beyond a wall: wall")
+	eq(RoomU.tile_at(room, 14, -1), Consts.T.WALL, "for the rest of the game the edge stays a wall, as in the JS")
+	room.cleared = true
+	room.combat = false
+	check(not RoomU.is_solid_tile(room, 14, -1, false, true), "open like its door")
+	room.cleared = false
+	check(RoomU.is_solid_tile(room, 14, -1, false, true), "closed like its door")

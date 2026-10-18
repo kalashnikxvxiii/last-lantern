@@ -2,14 +2,15 @@ class_name Coll
 extends RefCounted
 # Collisions with the room grid (js/entities.js:192-223 and 373-383).
 
-static func collides(room: Dictionary, x: float, y: float, r: float, fly: bool) -> bool:
+# doorways: the player's, see RoomU.tile_at
+static func collides(room: Dictionary, x: float, y: float, r: float, fly: bool, doorways := false) -> bool:
 	var x0 := int(floor((x - r - Consts.RX) / Consts.TS))
 	var x1 := int(floor((x + r - 0.01 - Consts.RX) / Consts.TS))
 	var y0 := int(floor((y - r - Consts.RY) / Consts.TS))
 	var y1 := int(floor((y + r - 0.01 - Consts.RY) / Consts.TS))
 	for ty in range(y0, y1 + 1):
 		for tx in range(x0, x1 + 1):
-			if RoomU.is_solid_tile(room, tx, ty, fly):
+			if RoomU.is_solid_tile(room, tx, ty, fly, doorways):
 				return true
 	return false
 
@@ -24,7 +25,7 @@ static func move_axis(a, d: float, axis: int, fly: bool) -> bool:
 			a.x += inc
 		else:
 			a.y += inc
-		if collides(room, a.x, a.y, a.r, fly):
+		if collides(room, a.x, a.y, a.r, fly, a is Player):
 			if axis == 0:
 				a.x -= inc
 			else:
@@ -55,7 +56,7 @@ static func nudge(p, axis: int, d: float) -> void:
 		for s in [1, -1]:
 			var ox := float(s * k) if axis == 1 else 0.0
 			var oy := float(s * k) if axis == 0 else 0.0
-			if not collides(room, p.x + ox, p.y + oy, p.r, false) and not collides(room, p.x + ox + fx, p.y + oy + fy, p.r, false):
+			if not collides(room, p.x + ox, p.y + oy, p.r, false, p is Player) and not collides(room, p.x + ox + fx, p.y + oy + fy, p.r, false, p is Player):
 				move_axis(p, signf(ox) * 0.8, 0, false)
 				move_axis(p, signf(oy) * 0.8, 1, false)
 				return
