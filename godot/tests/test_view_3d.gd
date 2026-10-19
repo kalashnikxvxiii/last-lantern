@@ -309,3 +309,17 @@ func test_behind_the_rooms_there_is_only_black() -> void:
 	eq(v.env.background_color, Color.BLACK)
 	eq(Display.environment().background_canvas_max_layer, 1, "the HUD layers stay in front of the room")
 	v._exit_tree()
+
+func test_the_walls_rows_never_repeat_a_tile_next_to_itself() -> void:
+	var f := View3D.wall_faces(Run.room, Run.room.seed % 1000)
+	var seen := {}
+	for k: Vector3i in f:
+		seen[f[k]] = true
+		for o in [Vector3i(1, 0, 0), Vector3i(2, 0, 0), Vector3i(0, 1, 0), Vector3i(0, 2, 0), Vector3i(0, 0, 1)]:
+			if f.has(k + o):
+				check(f[k] != f[k + o], "%s and %s" % [k, k + o])
+	eq(f.size(), View3D.WALL_ROWS * Run.room.grid.reduce(func(n: int, r: Array) -> int: return n + r.count(Consts.T.WALL), 0), "every row of every wall")
+	check(seen.size() >= 4, "the whole set of wall tiles, not two or three")
+	for k: Vector3i in f:
+		check((k.z > 0) == View3D.WALL_UPPER.has(f[k]), "%s: the upper row has tiles of its own" % k)
+	check(View3D.wall_faces(Run.room, 0, false).values().all(func(t: String) -> bool: return View3D.WALL_FACES.has(t)), "a biome without them repeats the lower ones")

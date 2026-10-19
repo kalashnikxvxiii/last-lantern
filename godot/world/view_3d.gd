@@ -11,7 +11,12 @@ const PITCH := 62.0          # camera angle above the horizon, degrees (90: stra
 const FOV := 28.0
 const DIST := 590.0          # from the camera to the point it looks at
 const LOOK_DY := 0.0         # the camera looks at the middle of the room (the top bar it made room for is gone)
-const WALL_H := 24.0           # a tile and a half
+const WALL_H := 48.0           # two rows of wall tiles, each a tile and a half like the walls once were
+const WALL_ROWS := 2
+const WALL_FACES := ["top", "bottom", "left0", "left1", "right0", "right1", "corner"]   # TilePick.wall_key's tiles, used on any side
+# the upper row's own tiles (atlas row 10): the lower ones are drawn to stand on the floor.
+# A biome without them repeats the lower ones
+const WALL_UPPER := ["upper_0", "upper_1", "upper_2", "upper_3", "upper_4", "upper_5", "upper_6", "upper_7"]
 const ROCK_H := 11.0
 const CASTER_SCALE := Vector2(0.72, 0.67)   # the player's shadow body: slimmer, and under the lantern so its shadow ends ~56 px on
 const LIGHT_H := 12.0          # a held lantern: under the tops of the walls, which it cannot light, above the rocks
@@ -306,21 +311,29 @@ func build_solids(room: Dictionary, beyond := false) -> ArrayMesh:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var s: int = room.seed % 1000
+	var upper := TilePick.coords(biome.id, "wall_upper_0") != Vector2i(-1, -1)
+	var faces := wall_faces(room, s, upper)
 	for ty in Consts.RH:
 		for tx in Consts.RW:
 			var t: int = room.grid[ty][tx]
 			var x := float(Consts.RX + tx * Consts.TS)
 			var z := float(Consts.RY + ty * Consts.TS)
 			if t == Consts.T.WALL:
-				var r := src.get_tile_texture_region(TilePick.coords(biome.id, TilePick.wall_key(tx, ty, s)))
-				var face := Rect2(Vector2(r.position) / ts, Vector2(r.size) / ts)
+				var rows: Array[Rect2] = []
+				for row in WALL_ROWS:
+					var key: String = "wall_" + faces[Vector3i(tx, ty, row)]
+					if row == 0 or not upper:   # the rarer variant (cobwebs, holes) as often as in wall_key
+						key += "_%d" % (1 if U.hash2(tx, ty, s + 77 + row) < 0.1 else 0)
+					var r := src.get_tile_texture_region(TilePick.coords(biome.id, key))
+					rows.append(Rect2(Vector2(r.position) / ts, Vector2(r.size) / ts))
 				# the top gets its own tiles where the biome has them, else the face again
-				var cap := face
+				var r := src.get_tile_texture_region(TilePick.coords(biome.id, TilePick.wall_key(tx, ty, s)))
+				var cap := Rect2(Vector2(r.position) / ts, Vector2(r.size) / ts)
 				var cc := TilePick.coords(biome.id, TilePick.cap_key(tx, ty))
 				if cc != Vector2i(-1, -1):
 					r = src.get_tile_texture_region(cc)
 					cap = Rect2(Vector2(r.position) / ts, Vector2(r.size) / ts)
-				_box(st, room, tx, ty, x, z, face, cap)
+				_box(st, room, tx, ty, x, z, rows, cap)
 			elif t == Consts.T.ROCK or t == Consts.T.CRACK:
 				var r := src.get_tile_texture_region(TilePick.coords(biome.id, TilePick.rock_key(tx, ty, s, t == Consts.T.CRACK)))
 				_rock(st, x + Consts.TS / 2.0, z + Consts.TS / 2.0, Rect2(Vector2(r.position) / ts, Vector2(r.size) / ts))
@@ -354,23 +367,43 @@ static func _quad(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, d: Vector
 		st.set_uv(v[1])
 		st.add_vertex(v[0])
 
+# which wall tile each row of each wall shows on its sides: drawn by hash, but never
+# the tile next to it, two along, or the one below it, so no run of a wall repeats
+static func wall_faces(room: Dictionary, s: int, upper := true) -> Dictionary:
+	var out := {}
+	for ty in Consts.RH:
+		for tx in Consts.RW:
+			if room.grid[ty][tx] != Consts.T.WALL:
+				continue
+			for row in WALL_ROWS:
+				var near := [out.get(Vector3i(tx - 1, ty, row)), out.get(Vector3i(tx - 2, ty, row)), out.get(Vector3i(tx, ty - 1, row)), out.get(Vector3i(tx, ty - 2, row)), out.get(Vector3i(tx, ty, row - 1))]
+				var free: Array = (WALL_UPPER if row > 0 and upper else WALL_FACES).filter(func(f: String) -> bool: return not near.has(f))
+				out[Vector3i(tx, ty, row)] = free[floori(U.hash2(tx, ty, s + 31 + row * 17) * free.size())]
+	return out
+
 static func _is_wall(room: Dictionary, tx: int, ty: int) -> bool:
 	return tx >= 0 and ty >= 0 and tx < Consts.RW and ty < Consts.RH and room.grid[ty][tx] == Consts.T.WALL
 
-func _box(st: SurfaceTool, room: Dictionary, tx: int, ty: int, x: float, z: float, uv: Rect2, cap: Rect2) -> void:
+# rows: the sides' tiles, bottom row first, each WALL_H / WALL_ROWS high
+func _box(st: SurfaceTool, room: Dictionary, tx: int, ty: int, x: float, z: float, rows: Array[Rect2], cap: Rect2) -> void:
 	var w := float(Consts.TS)
-	var h := WALL_H
 	st.set_smooth_group(0xFFFFFFFF)   # flat faces: smoothed edges would catch light like polished metal
-	_quad(st, Vector3(x, h, z), Vector3(x + w, h, z), Vector3(x + w, h, z + w), Vector3(x, h, z + w), cap)
+	_quad(st, Vector3(x, WALL_H, z), Vector3(x + w, WALL_H, z), Vector3(x + w, WALL_H, z + w), Vector3(x, WALL_H, z + w), cap)
+	for i in rows.size():
+		_sides(st, room, tx, ty, x, z, i * WALL_H / rows.size(), (i + 1) * WALL_H / rows.size(), rows[i])
+
+# one row of a wall's side faces, from height lo to h
+func _sides(st: SurfaceTool, room: Dictionary, tx: int, ty: int, x: float, z: float, lo: float, h: float, uv: Rect2) -> void:
+	var w := float(Consts.TS)
 	# side faces only where nothing covers them
 	if not _is_wall(room, tx, ty + 1):
-		_quad(st, Vector3(x, h, z + w), Vector3(x + w, h, z + w), Vector3(x + w, 0, z + w), Vector3(x, 0, z + w), uv)
+		_quad(st, Vector3(x, h, z + w), Vector3(x + w, h, z + w), Vector3(x + w, lo, z + w), Vector3(x, lo, z + w), uv)
 	if not _is_wall(room, tx, ty - 1):
-		_quad(st, Vector3(x + w, h, z), Vector3(x, h, z), Vector3(x, 0, z), Vector3(x + w, 0, z), uv)
+		_quad(st, Vector3(x + w, h, z), Vector3(x, h, z), Vector3(x, lo, z), Vector3(x + w, lo, z), uv)
 	if not _is_wall(room, tx - 1, ty):
-		_quad(st, Vector3(x, h, z), Vector3(x, h, z + w), Vector3(x, 0, z + w), Vector3(x, 0, z), uv)
+		_quad(st, Vector3(x, h, z), Vector3(x, h, z + w), Vector3(x, lo, z + w), Vector3(x, lo, z), uv)
 	if not _is_wall(room, tx + 1, ty):
-		_quad(st, Vector3(x + w, h, z + w), Vector3(x + w, h, z), Vector3(x + w, 0, z), Vector3(x + w, 0, z + w), uv)
+		_quad(st, Vector3(x + w, h, z + w), Vector3(x + w, h, z), Vector3(x + w, lo, z), Vector3(x + w, lo, z + w), uv)
 
 # a boulder: a low dome with the round rock sprite seen from above laid over it
 func _rock(st: SurfaceTool, cx: float, cz: float, uv: Rect2) -> void:
