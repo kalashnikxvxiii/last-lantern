@@ -112,6 +112,24 @@ func test_the_lantern_casts_the_players_shadow_from_where_it_is_held() -> void:
 		near(o.y, p.y + sin(aim) * 7.0, 1e-4)
 		check(o.distance_to(Vector2(p.x, p.y)) > Lighting.PLAYER_R, "outside the body, so the body casts a shadow")
 
+func test_only_the_players_own_light_casts_from_the_lantern() -> void:
+	var saved: Dictionary = Save.data.settings.duplicate()
+	Save.data.settings.shadows = "high"
+	Run.room.grid[3][3] = Consts.T.BRAZIER
+	var p := Run.player
+	var g := Lighting.new()
+	g._ready()
+	var m := g.light.material as ShaderMaterial
+	g.refresh(Vector2.ZERO)
+	check((m.get_shader_parameter("lantern") as Vector2).x > -1e4, "the lantern casts the actors' shadows")
+	p.statuses["blind"] = 5.0
+	p.oil = 0.0
+	check(p.light() < Lighting.SHADOW_MIN_R, "too small to cast shadows: the brazier comes first")
+	g.refresh(Vector2.ZERO)
+	eq(m.get_shader_parameter("lantern"), Vector2(-1e5, -1e5), "the brazier keeps its own shadows")
+	g.free()
+	Save.data.settings = saved
+
 func test_the_players_shadow_starts_at_its_feet() -> void:
 	var h := Spr.size("player").y
 	eq(Lighting.player_feet(), Vector2(0, h / 2.0 - 1.0), "where the sprite stands, as View3D.feet() puts it")

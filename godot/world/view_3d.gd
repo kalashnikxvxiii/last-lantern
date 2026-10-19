@@ -554,7 +554,7 @@ func _sync_lights() -> void:
 	env.adjustment_contrast = de.adjustment_contrast
 	env.adjustment_saturation = de.adjustment_saturation
 	var L := Lights.collect()
-	var pl: Variant = L[0] if not Run.player.dead and not L.is_empty() else null
+	var pl: Variant = Lighting.player_light(L)
 	L.sort_custom(func(p: Dictionary, q: Dictionary) -> bool: return p.r * p.a > q.r * q.a)
 	for i in MAX_LIGHTS:
 		var l := lights[i]

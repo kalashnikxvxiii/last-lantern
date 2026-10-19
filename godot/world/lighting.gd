@@ -50,6 +50,7 @@ func refresh(offset: Vector2) -> void:
 	var amb := ambient(DB.biome_of(Run.depth).dark, Run.depth, room.cleared, room.type == "boss", Run.player.oil <= 0, room.combat)
 	amb = lerpf(1.0, amb, View3D.reveal())   # Godot-only: a room just entered lights up with the camera's move
 	var L := Lights.collect()
+	var pl: Variant = player_light(L)
 	var n := mini(L.size(), MAX_LIGHTS)
 	var pos := PackedVector4Array()
 	var cols := PackedVector4Array()
@@ -83,10 +84,11 @@ func refresh(offset: Vector2) -> void:
 	m.set_shader_parameter("actors", A)
 	m.set_shader_parameter("actor_shadow", ACTOR_SHADOW)
 	m.set_shader_parameter("player_shadow_len", PLAYER_SHADOW_LEN)
-	m.set_shader_parameter("player_n", 1 if not Run.player.dead else 0)   # actor_occluders() lists it first
+	m.set_shader_parameter("player_n", 1 if not Run.player.dead else 0)   # actor_occluders() lists it first, never past MAX_ACTORS
 	m.set_shader_parameter("player_feet", player_feet())
-	# the player's light is the first that casts shadows: the lantern casts the actors' ones
-	var lit: bool = not Run.player.dead and sn > 0 and L[0].r >= SHADOW_MIN_R
+	# the lantern casts the actors' shadows when the player's light casts shadows at all:
+	# then shadow_first() keeps it first, at the shader's i == 0
+	var lit: bool = pl != null and pl.r >= SHADOW_MIN_R
 	m.set_shader_parameter("lantern", lantern_origin(Run.player) + offset if lit else Vector2(-1e5, -1e5))
 	if steps > 0 or ao > 0.0:
 		var key := hash(room.grid)
@@ -119,6 +121,10 @@ static func actor_occluders() -> PackedVector3Array:
 		if not e.dead and not e.spawning and e.alpha > 0.05:
 			A.append(Vector3(e.x, e.y, e.r))
 	return A
+
+# the player's own light in Lights.collect()'s list (its first, while alive), or null
+static func player_light(L: Array) -> Variant:
+	return L[0] if not Run.player.dead and not L.is_empty() else null
 
 # from the body's center to where the sprite stands (View3D.feet())
 static func player_feet() -> Vector2:
