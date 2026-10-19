@@ -248,6 +248,20 @@ func test_the_shadows_come_from_the_big_lights_nearest_the_player() -> void:
 	View3D.sort_lights(L, 0.0, 100.0)
 	eq(L.map(func(l): return l.x), [0.0, 60.0, 300.0, 400.0, 500.0, 10.0], "near first among those that cast shadows; the small ones after")
 
+func test_lights_as_near_or_as_strong_keep_one_order() -> void:
+	var b := func(x: float, y: float, r: float) -> Dictionary: return {"x": x, "y": y, "r": r, "a": 0.95}
+	var L: Array = [b.call(-50.0, 0.0, 72.0), b.call(50.0, 0.0, 72.0), b.call(0.0, -50.0, 72.0), b.call(0.0, 50.0, 72.0), b.call(9.0, 0.0, 20.0), b.call(-9.0, 0.0, 20.0)]
+	var order := []
+	for i in 6:
+		if i % 2 == 0:
+			L.reverse()
+		else:
+			L.push_back(L.pop_front())
+		View3D.sort_lights(L, 0.0, 0.0)
+		order.append(L.map(func(l): return Vector2(l.x, l.y)))
+	for o in order:
+		eq(o, order[0], "the same order however they come: no swapped shadows between frames")
+
 func test_actors_cast_an_upright_shadow_toward_each_light_that_casts_shadows() -> void:
 	var p := Run.player
 	p.aim = 0.0   # the lantern on the right

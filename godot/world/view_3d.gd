@@ -564,9 +564,12 @@ static func sort_lights(L: Array, x: float, y: float) -> void:
 		var ps: bool = p.r >= Lighting.SHADOW_MIN_R
 		if ps != (q.r >= Lighting.SHADOW_MIN_R):
 			return ps
-		if ps:
-			return at.distance_squared_to(Vector2(p.x, p.y)) < at.distance_squared_to(Vector2(q.x, q.y))
-		return p.r * p.a > q.r * q.a)
+		var pk: float = at.distance_squared_to(Vector2(p.x, p.y)) if ps else -p.r * p.a
+		var qk: float = at.distance_squared_to(Vector2(q.x, q.y)) if ps else -q.r * q.a
+		if pk != qk:
+			return pk < qk
+		# sort_custom is not stable: ties would swap the shadow slots from frame to frame
+		return p.x < q.x or (p.x == q.x and p.y < q.y))
 
 func _sync_lights() -> void:
 	var amb := Lighting.ambient(DB.biome_of(Run.depth).dark, Run.depth, Run.room.cleared, Run.room.type == "boss", Run.player.oil <= 0, Run.room.combat)
