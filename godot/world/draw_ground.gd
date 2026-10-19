@@ -113,13 +113,14 @@ func _doors(room: Dictionary) -> void:
 # 3D view: a hole in the floor for each bar of the gate (View3D.build_gates);
 # with the gate down its tips show in them
 func _gate_holes(x: float, y: float, horiz: bool) -> void:
+	var tex := View3D.gate_texture()
 	var m := Consts.TS / 2.0 - 1.0
 	for i in 6:
 		var a := 7.0 + i * 6
 		var hx := x + a if horiz else x + m
 		var hy := y + m if horiz else y + a
 		UiDraw.px_rect(self, hx - 1, hy - 1, 4, 4, "#050308")
-		draw_texture_rect_region(View3D.gate_texture(), Rect2(hx, hy, 2, 2), Rect2(0, 4, 8, 8))
+		draw_texture_rect_region(tex, Rect2(hx, hy, 2, 2), Rect2(0, 4, 8, 8))
 
 static func padlock(ci: CanvasItem, lx: float, ly: float) -> void:
 	UiDraw.px_rect(ci, lx - 4, ly - 2, 8, 7, "#0b0810")
