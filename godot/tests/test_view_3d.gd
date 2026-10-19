@@ -310,6 +310,23 @@ func test_behind_the_rooms_there_is_only_black() -> void:
 	eq(Display.environment().background_canvas_max_layer, 1, "the HUD layers stay in front of the room")
 	v._exit_tree()
 
+func test_the_walls_in_front_of_the_player_let_it_be_seen() -> void:
+	var ty := Consts.RH - 2
+	Run.room.grid[ty][5] = Consts.T.FLOOR
+	Run.room.grid[ty + 1][5] = Consts.T.WALL
+	var c := RoomU.tile_center(5, ty)
+	Run.player.x = c.x
+	Run.player.y = c.y
+	var mid := v.sprite_mid(v.feet(c.x, c.y, 0.0, Spr.size("player").y), Spr.size("player").y)
+	check(v.hidden(mid), "before the view follows the player: behind the wall")
+	v.see_through_player()
+	check(not v.hidden(mid), "the wall in front of the player is seen through")
+	var far := RoomU.tile_center(5 + 6, ty)
+	Run.room.grid[ty + 1][5 + 6] = Consts.T.WALL
+	check(v.hidden(Vector3(far.x, 6.0, far.y + 4.0)), "a wall further along still hides")
+	var m := v.build_solids(Run.room).surface_get_material(0) as ShaderMaterial
+	eq(m.get_shader_parameter("eye"), v.eye, "the walls' material cuts the same hole")
+
 func test_the_walls_rows_never_repeat_a_tile_next_to_itself() -> void:
 	var f := View3D.wall_faces(Run.room, Run.room.seed % 1000)
 	var seen := {}
@@ -323,3 +340,26 @@ func test_the_walls_rows_never_repeat_a_tile_next_to_itself() -> void:
 	for k: Vector3i in f:
 		check((k.z > 0) == View3D.WALL_UPPER.has(f[k]), "%s: the upper row has tiles of its own" % k)
 	check(View3D.wall_faces(Run.room, 0, false).values().all(func(t: String) -> bool: return View3D.WALL_FACES.has(t)), "a biome without them repeats the lower ones")
+
+func test_the_wall_behind_the_player_stays_whole() -> void:
+	Run.room.grid[1][5] = Consts.T.FLOOR
+	var c := RoomU.tile_center(5, 1)
+	Run.player.x = c.x
+	Run.player.y = c.y
+	v.see_through_player()
+	var above := Vector3(c.x, 20.0, Consts.RY + Consts.TS - 0.5)   # the wall's face over the player's head
+	check((above - v.eye).dot((v.cam.position - v.eye).normalized()) > 0.0, "nearer the camera than the player")
+	check(not v.seen_through(above), "but behind the player: it covers nothing of them")
+
+func test_the_wall_opens_with_the_player_pressed_against_it() -> void:
+	var ty := Consts.RH - 2
+	Run.room.grid[ty][5] = Consts.T.FLOOR
+	Run.room.grid[ty + 1][5] = Consts.T.WALL
+	var c := RoomU.tile_center(5, ty)
+	Run.player.x = c.x
+	Run.player.y = c.y + Consts.TS / 2.0 - Run.player.r   # touching the wall
+	v.see_through_player()
+	var in_wall := v.eye + (v.cam.position - v.eye).normalized() * 6.0
+	check(in_wall.z > Consts.RY + (ty + 1) * Consts.TS, "6 px toward the camera: inside the wall")
+	check(v.seen_through(in_wall), "which opens there")
+	check(not v.hidden(v.eye), "and hides nothing of them")

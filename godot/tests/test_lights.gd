@@ -72,7 +72,9 @@ func test_walls_are_matte_in_every_biome() -> void:
 	var v := View3D.new()
 	for d in range(1, 6):   # one floor of each biome
 		Run.floor.depth = d
-		var m := v.build_solids(Run.room).surface_get_material(0) as StandardMaterial3D
+		var w := v.build_solids(Run.room).surface_get_material(0) as ShaderMaterial
+		check(w.shader.code.contains("specular_disabled"), "depth %d: this room's walls, no glare either" % d)
+		var m := v.build_solids(Run.room, true).surface_get_material(0) as StandardMaterial3D
 		eq(m.specular_mode, BaseMaterial3D.SPECULAR_DISABLED, "depth %d: the light rests on the wall, no glare" % d)
 		near(m.roughness, 1.0, 1e-6, "depth %d: fully rough" % d)
 	v.free()

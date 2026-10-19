@@ -31,6 +31,7 @@ const NEIGHBOR_LAYER := 4     # the rooms beyond the doors: only the lights that
 const CASTER_LAYER := 8       # the actors' upright copies: CASTER_LAYER << i casts only light i's shadow
 const AIR_MARGIN := 64        # px: the shots' plane reaches this far past the screen, over the rooms next door
 const PAN_TIME := 0.6         # s: the camera moves into the room the player walks into
+const SEE_R := 20.0           # px: the hole the walls open between the camera and the player
 
 static var on := false       # actors leave their sprite to the view while it is up
 static var current: View3D
@@ -54,6 +55,9 @@ var neighbors: Dictionary = {}   # door dir -> the room beyond it, walls and flo
 var pan_from := Vector2.ZERO   # where the camera starts, from the room the player left
 var pan_t := PAN_TIME
 var pan_dir := ""              # the door back to the room the player left, while its light fades
+var eye := Vector3(0, -10000, 0)   # the middle of the player's sprite, where the walls open (none yet: far below)
+var front := 10000.0           # the player's place (z): only what stands south of it can hide them (not the feet: they reach into a wall the player presses against)
+var wall_mat := ShaderMaterial.new()   # this room's walls and rocks
 
 func _ready() -> void:
 	on = true
@@ -153,6 +157,7 @@ func _process(delta: float) -> void:
 	sync_gates(delta)
 	pan_t += delta
 	place_camera(Fx.cam + pan_offset(), Fx.offset())
+	see_through_player()
 	_sync_lights()   # first: the shadows' copies turn toward the lights
 	_sync_sprites()
 	_sync_items()
@@ -231,6 +236,28 @@ func project(p: Vector3) -> Vector2:
 func feet(x: float, y: float, z: float, h: float) -> Vector3:
 	return Vector3(x, z, y + h / 2.0 - 1)
 
+# the walls open where they stand between the camera and the player
+func see_through_player() -> void:
+	var p := Run.player
+	if p != null and not p.dead:
+		var h: float = Spr.size("player").y
+		var f := feet(p.x, p.y, 0.0, h)
+		eye = sprite_mid(f, h)
+		front = p.y
+	else:
+		eye = Vector3(0, -10000, 0)
+		front = 10000.0
+	wall_mat.set_shader_parameter("eye", eye)
+	wall_mat.set_shader_parameter("front", front)
+	wall_mat.set_shader_parameter("cam", cam.position)
+	wall_mat.set_shader_parameter("radius", SEE_R)
+
+# whether q is in the hole of the walls, in front of the player (wall.gdshader)
+func seen_through(q: Vector3) -> bool:
+	var d := (cam.position - eye).normalized()
+	var t := (q - eye).dot(d)
+	return q.z > front and t > 0.0 and (q - eye - d * t).length() < SEE_R
+
 # the point of the floor under a point of the 480x270 screen
 func screen_to_floor(m: Vector2) -> Vector2:
 	var o := cam.project_ray_origin(m)
@@ -250,9 +277,9 @@ func hidden(p: Vector3) -> bool:
 		var ty := floori((q.z - Consts.RY) / Consts.TS)
 		if tx >= 0 and ty >= 0 and tx < Consts.RW and ty < Consts.RH:
 			var t: int = Run.room.grid[ty][tx]
-			if t == Consts.T.WALL:
+			if t == Consts.T.WALL and not seen_through(q):
 				return true
-		if _in_rock(q):
+		if _in_rock(q) and not seen_through(q):
 			return true
 		q += d * 2.0
 	return false
@@ -344,6 +371,11 @@ func build_solids(room: Dictionary, beyond := false) -> ArrayMesh:
 				_quad(st, Vector3(x, 0, z), Vector3(x + w, 0, z), Vector3(x + w, 0, z + w), Vector3(x, 0, z + w), Rect2(Vector2(r.position) / ts, Vector2(r.size) / ts))
 	st.generate_normals()
 	var mesh := st.commit()
+	if not beyond:
+		wall_mat.shader = preload("res://shaders/wall.gdshader")
+		wall_mat.set_shader_parameter("tex", tex)
+		mesh.surface_set_material(0, wall_mat)
+		return mesh
 	var m := StandardMaterial3D.new()
 	m.albedo_texture = tex
 	m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
@@ -627,7 +659,7 @@ func _sync_lights() -> void:
 			continue
 		var d: Dictionary = L[i]
 		l.position = light_at(d, pl)
-		f.position = light_pos(d.x, d.y + 12.0)
+		f.position = Vector3(d.x, LIGHT_H, d.y + 12.0)   # it lights only the sprites: inside a wall it does no harm, and kept out of it, it would end behind them
 		for k in [l, f]:
 			k.omni_range = d.r * 1.3
 			k.light_energy = d.a * 1.0
