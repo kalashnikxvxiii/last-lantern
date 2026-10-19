@@ -76,15 +76,18 @@ func _doors(room: Dictionary) -> void:
 				var py: float = y + ((1.0 if k > 0.5 else h - 3) if horiz else k * h)
 				draw_rect(Rect2(px, py, 2, 2), UiDraw._a("#3b3546"))
 			continue
-		# frame
-		UiDraw.px_rect(self, x, y, w, h, "#0b0810")
-		UiDraw.px_rect(self, x + 1, y + 1, w - 2, h - 2, st.frame)
-		UiDraw.px_rect(self, x + 4, y + 4, w - 8, h - 8, "#050308" if open else "#120c16")
-		# glowing thread
-		if horiz:
-			UiDraw.px_rect(self, x + 2, y + 2 if d == "n" else y + h - 3, w - 4, 1, st.hi)
+		if View3D.on:   # the room's floor, holed where the bars rise
+			_gate_holes(x, y, horiz)
 		else:
-			UiDraw.px_rect(self, x + 2 if d == "w" else x + w - 3, y + 2, 1, h - 4, st.hi)
+			# frame
+			UiDraw.px_rect(self, x, y, w, h, "#0b0810")
+			UiDraw.px_rect(self, x + 1, y + 1, w - 2, h - 2, st.frame)
+			UiDraw.px_rect(self, x + 4, y + 4, w - 8, h - 8, "#050308" if open else "#120c16")
+			# glowing thread
+			if horiz:
+				UiDraw.px_rect(self, x + 2, y + 2 if d == "n" else y + h - 3, w - 4, 1, st.hi)
+			else:
+				UiDraw.px_rect(self, x + 2 if d == "w" else x + w - 3, y + 2, 1, h - 4, st.hi)
 		if not open and not View3D.on:   # the 3D view raises them (View3D.build_gates)
 			# bars
 			var bc := "#c49a3a" if locked else "#6b6478"
@@ -106,6 +109,18 @@ func _doors(room: Dictionary) -> void:
 			"shop": Spr.draw(self, "i_coin", 0, sx, sy, {"alpha": 0.8})
 			"elite": Spr.draw(self, "i_blade", 0, sx, sy, {"alpha": 0.8})
 			"shrine": Spr.draw(self, "i_star", 0, sx, sy, {"alpha": 0.7})
+
+# 3D view: a hole in the floor for each bar of the gate (View3D.build_gates);
+# with the gate down its tips show in them
+func _gate_holes(x: float, y: float, horiz: bool) -> void:
+	var m := Consts.TS / 2.0 - 1.0
+	for i in 6:
+		var a := 7.0 + i * 6
+		var hx := x + a if horiz else x + m
+		var hy := y + m if horiz else y + a
+		UiDraw.px_rect(self, hx - 1, hy - 1, 4, 4, "#050308")
+		UiDraw.px_rect(self, hx, hy, 2, 2, "#6b6478")
+		UiDraw.px_rect(self, hx, hy, 1, 1, "#a8a2b4")
 
 static func padlock(ci: CanvasItem, lx: float, ly: float) -> void:
 	UiDraw.px_rect(ci, lx - 4, ly - 2, 8, 7, "#0b0810")
