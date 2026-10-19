@@ -119,8 +119,7 @@ func _gate_holes(x: float, y: float, horiz: bool) -> void:
 		var hx := x + a if horiz else x + m
 		var hy := y + m if horiz else y + a
 		UiDraw.px_rect(self, hx - 1, hy - 1, 4, 4, "#050308")
-		UiDraw.px_rect(self, hx, hy, 2, 2, "#6b6478")
-		UiDraw.px_rect(self, hx, hy, 1, 1, "#a8a2b4")
+		draw_texture_rect_region(View3D.gate_texture(), Rect2(hx, hy, 2, 2), Rect2(0, 4, 8, 8))
 
 static func padlock(ci: CanvasItem, lx: float, ly: float) -> void:
 	UiDraw.px_rect(ci, lx - 4, ly - 2, 8, 7, "#0b0810")

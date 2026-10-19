@@ -22,6 +22,8 @@ const MAX_LIGHTS := 12
 const SHADOW_LIGHTS := 3
 const SPRITE_LAYER := 2       # the billboards: lit from their front by face_lights only
 const GATE_SPEED := 60.0     # px/s: a gate sinks into the floor (or rises) in 0.4 s
+const GATE_TIP := 4.0        # px: the top of a bar, its tip, on the first 16 of the texture's 112 rows
+const GATE_TIP_V := 16.0 / 112.0
 const NEIGHBOR_LAYER := 4     # the rooms beyond the doors: only the lights that cast shadows reach them
 const CASTER_LAYER := 8       # the actors' upright copies: CASTER_LAYER << i casts only light i's shadow
 const AIR_MARGIN := 64        # px: the shots' plane reaches this far past the screen, over the rooms next door
@@ -416,17 +418,27 @@ func build_gates(room: Dictionary, entering: bool) -> void:
 		var horiz: bool = d == "n" or d == "s"
 		var st := SurfaceTool.new()
 		st.begin(Mesh.PRIMITIVE_TRIANGLES)
-		# the 2D bars (DrawGround._doors) in the middle of the doorway, and two crossbars
+		# the 2D bars (DrawGround._doors) in the middle of the doorway, each a shaft
+		# under a tip on two crossed quads (the texture: tip on top, then the shaft)
 		var m := Consts.TS / 2.0 - 1.0
 		for i in 6:
 			var a := 7.0 + i * 6
-			_bar(st, Vector3(x + a, 0, z + m) if horiz else Vector3(x + m, 0, z + a), Vector3(2, WALL_H, 2))
-		for y in [8.0, 18.0]:
-			_bar(st, Vector3(x + 4, y, z + m) if horiz else Vector3(x + m, y, z + 4), Vector3(40, 2, 2) if horiz else Vector3(2, 2, 40))
+			var p := Vector3(x + a, 0, z + m) if horiz else Vector3(x + m, 0, z + a)
+			_bar(st, p, Vector3(2, WALL_H - GATE_TIP, 2), Rect2(0, GATE_TIP_V, 1, 1 - GATE_TIP_V))
+			var tip := Rect2(0, 0, 1, GATE_TIP_V)
+			var t := Vector3(0, WALL_H, 0)
+			var b := Vector3(0, WALL_H - GATE_TIP, 0)
+			_quad(st, p + t + Vector3(0, 0, 1), p + t + Vector3(2, 0, 1), p + b + Vector3(2, 0, 1), p + b + Vector3(0, 0, 1), tip)
+			_quad(st, p + t + Vector3(1, 0, 0), p + t + Vector3(1, 0, 2), p + b + Vector3(1, 0, 2), p + b + Vector3(1, 0, 0), tip)
 		st.generate_normals()
 		var g := MeshInstance3D.new()
 		g.mesh = st.commit()
-		g.material_override = StandardMaterial3D.new()
+		var mat := StandardMaterial3D.new()
+		mat.albedo_texture = gate_texture()
+		mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+		mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+		g.material_override = mat
 		g.position.y = -WALL_H if RoomU.door_open(room, d) or d == entry else 0.0
 		gates[d] = g
 		add_child(g)
@@ -438,12 +450,15 @@ func sync_gates(delta: float) -> void:
 		var to := -WALL_H if RoomU.door_open(Run.room, d) else 0.0
 		g.position.y = move_toward(g.position.y, to, GATE_SPEED * delta)
 		g.visible = g.position.y > -WALL_H
-		(g.material_override as StandardMaterial3D).albedo_color = UiDraw.col("#c49a3a" if RoomU.door_locked(Run.room, d) else "#6b6478")
+		(g.material_override as StandardMaterial3D).albedo_color = UiDraw.col("#f6cf57" if RoomU.door_locked(Run.room, d) else "#ffffff")
 
-# a box from p (its lowest corner) of size s
-static func _bar(st: SurfaceTool, p: Vector3, s: Vector3) -> void:
+# the bars of this depth's gates (assets/gates/<biome>.png, 4 texels per px)
+static func gate_texture() -> Texture2D:
+	return load("res://assets/gates/%s.png" % DB.biome_of(Run.floor.depth).id)
+
+# a box from p (its lowest corner) of size s, every face showing uv
+static func _bar(st: SurfaceTool, p: Vector3, s: Vector3, uv := Rect2()) -> void:
 	var q := p + s
-	var uv := Rect2()
 	st.set_smooth_group(0xFFFFFFFF)
 	_quad(st, Vector3(p.x, q.y, p.z), Vector3(q.x, q.y, p.z), Vector3(q.x, q.y, q.z), Vector3(p.x, q.y, q.z), uv)
 	_quad(st, Vector3(p.x, q.y, q.z), Vector3(q.x, q.y, q.z), Vector3(q.x, p.y, q.z), Vector3(p.x, p.y, q.z), uv)
