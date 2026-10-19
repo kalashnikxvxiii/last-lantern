@@ -56,10 +56,11 @@ func _ready() -> void:
 	cam.fov = FOV
 	cam.far = 4000
 	cam.current = true
+	# behind the rooms there is only darkness, as in the rooms beyond the doors
+	env.background_mode = Environment.BG_COLOR
+	env.background_color = Color.BLACK
 	# only the canvas layers up to 1 stay behind the room: the world environment
 	# decides it (Display puts every layer there for the picture adjustments)
-	env.background_mode = Environment.BG_CANVAS
-	env.background_canvas_max_layer = 1
 	Display.environment().background_canvas_max_layer = 1
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	env.adjustment_enabled = true
