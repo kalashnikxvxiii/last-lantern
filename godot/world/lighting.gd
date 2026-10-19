@@ -8,6 +8,10 @@ const OCC_RES := 4                 # occluder mask texels per tile
 const SHADOW_MIN_R := 40.0         # smaller lights (projectiles, pickups) cast no shadow
 const SHADOW_STEPS := {"off": 0, "low": 12, "high": 24, "ultra": 40}
 const AO := 0.35
+const MAX_ACTORS := 32
+const PLAYER_R := 3.5              # the player's body, as an occluder
+const PLAYER_SHADOW_LEN := 56.0    # the player's shadow tapers to nothing this far behind it, like the 3D one
+const ACTOR_SHADOW := 1.0          # how dark the actors' shadows are: 1 like the room's elements
 # how glossy each depth's surfaces are: 0 is dry rock (the colored glow only warms
 # the colors it falls on), 1 is polished (the glow is laid over them, as in the JS)
 const SHEEN := {"crypt": 0.0, "fungus": 0.25, "forge": 0.4, "abyss": 0.3, "heart": 0.45}
@@ -46,6 +50,7 @@ func refresh(offset: Vector2) -> void:
 	var amb := ambient(DB.biome_of(Run.depth).dark, Run.depth, room.cleared, room.type == "boss", Run.player.oil <= 0, room.combat)
 	amb = lerpf(1.0, amb, View3D.reveal())   # Godot-only: a room just entered lights up with the camera's move
 	var L := Lights.collect()
+	var pl: Variant = player_light(L)
 	var n := mini(L.size(), MAX_LIGHTS)
 	var pos := PackedVector4Array()
 	var cols := PackedVector4Array()
@@ -71,6 +76,20 @@ func refresh(offset: Vector2) -> void:
 	m.set_shader_parameter("shadow_n", sn if steps > 0 else 0)
 	m.set_shader_parameter("shadow_steps", steps)
 	m.set_shader_parameter("ao", ao)
+	var A := actor_occluders()
+	m.set_shader_parameter("actor_n", mini(A.size(), MAX_ACTORS))
+	for i in A.size():
+		A[i] += Vector3(offset.x, offset.y, 0)
+	A.resize(MAX_ACTORS)
+	m.set_shader_parameter("actors", A)
+	m.set_shader_parameter("actor_shadow", ACTOR_SHADOW)
+	m.set_shader_parameter("player_shadow_len", PLAYER_SHADOW_LEN)
+	m.set_shader_parameter("player_n", 1 if not Run.player.dead else 0)   # actor_occluders() lists it first, never past MAX_ACTORS
+	m.set_shader_parameter("player_feet", player_feet())
+	# the lantern casts the actors' shadows when the player's light casts shadows at all:
+	# then shadow_first() keeps it first, at the shader's i == 0
+	var lit: bool = pl != null and pl.r >= SHADOW_MIN_R
+	m.set_shader_parameter("lantern", lantern_origin(Run.player) + offset if lit else Vector2(-1e5, -1e5))
 	if steps > 0 or ao > 0.0:
 		var key := hash(room.grid)
 		if occ_tex == null or key != occ_key:
@@ -91,6 +110,29 @@ static func shadow_first(L: Array) -> int:
 	L.append_array(big)
 	L.append_array(small)
 	return big.size()
+
+# the player and the live enemies, as discs (x, y, radius) that block the light
+static func actor_occluders() -> PackedVector3Array:
+	var A := PackedVector3Array()
+	var p := Run.player
+	if not p.dead:
+		A.append(Vector3(p.x, p.y, PLAYER_R))
+	for e in Run.enemies:
+		if not e.dead and not e.spawning and e.alpha > 0.05:
+			A.append(Vector3(e.x, e.y, e.r))
+	return A
+
+# the player's own light in Lights.collect()'s list (its first, while alive), or null
+static func player_light(L: Array) -> Variant:
+	return L[0] if not Run.player.dead and not L.is_empty() else null
+
+# from the body's center to where the sprite stands (View3D.feet())
+static func player_feet() -> Vector2:
+	return Vector2(0, Spr.size("player").y / 2.0 - 1.0)
+
+# where the player holds the lantern: drawLantern's offset, on the floor
+static func lantern_origin(p: Player) -> Vector2:
+	return Vector2(p.x + cos(p.aim) * 7.0, p.y + sin(p.aim) * 7.0)
 
 # what blocks the light, OCC_RES texels per tile: walls fill their tile, rocks are
 # round, barrels and urns are small; floor, doors, spikes and braziers let it through

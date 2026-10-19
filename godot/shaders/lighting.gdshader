@@ -11,6 +11,8 @@ render_mode blend_premul_alpha;
 // Godot-only: the glow depends on the material. On matte rock (sheen 0) it tints
 // the colors under it, so dark cracks stay dark; on glossy ground (sheen 1) it is
 // added over them like in the JS.
+// Godot-only: the player and the enemies (discs in actors) cast shadows from the
+// same lights, as dark as actor_shadow; the player's light casts them from the lantern.
 
 uniform float amb = 0.68;
 uniform int count = 0;
@@ -22,6 +24,13 @@ uniform float ao = 0.0;
 uniform sampler2D occ : filter_linear, repeat_disable;
 uniform vec2 room_pos;      // top-left corner of the room on screen
 uniform float sheen = 1.0;
+uniform vec3 actors[32];    // x, y, radius in screen coordinates
+uniform int actor_n = 0;
+uniform float actor_shadow = 1.0;
+uniform float player_shadow_len = 56.0;
+uniform int player_n;   // 1 when actors[0] is the player, whose shadow starts at its feet and fades
+uniform vec2 player_feet;
+uniform vec2 lantern = vec2(-1e5);
 uniform sampler2D screen_tex : hint_screen_texture, filter_nearest;
 
 const vec3 DARK = vec3(5.0, 3.0, 9.0) / 255.0;
@@ -62,6 +71,34 @@ float visibility(vec2 p, vec2 l, float self_occ, float jitter) {
 	return vis;
 }
 
+// light from o reaching p past the actors' discs; an actor the light is inside of casts none
+float actor_visibility(vec2 p, vec2 o) {
+	float vis = 1.0;
+	for (int j = 0; j < actor_n; j++) {
+		vec3 A = actors[j];
+		bool pl = j < player_n;
+		// the player's shadow lies from its feet: the shadow of its body, moved down to them
+		vec2 d = (pl ? p - player_feet : p) - o;
+		float len2 = max(dot(d, d), 1e-4);
+		vec2 c = A.xy - o;
+		if (dot(c, c) <= A.z * A.z) continue;
+		float t = dot(c, d) / len2;
+		if (t <= 0.0) continue;
+		float dist = length(c - d * min(t, 1.0));
+		if (!pl) {
+			vis *= 1.0 - actor_shadow * smoothstep(A.z + 1.0, A.z - 1.0, dist);
+			continue;
+		}
+		// softer and fainter as it falls away from the feet, gone at player_shadow_len
+		float dl = sqrt(len2);
+		float behind = max(dl - dot(c, d) / dl, 0.0);
+		float fade = 1.0 - smoothstep(0.0, player_shadow_len, behind);
+		float soft = 1.0 + behind * 0.12;
+		vis *= 1.0 - actor_shadow * fade * smoothstep(A.z + soft, A.z - soft, dist);
+	}
+	return vis;
+}
+
 float ambient_occlusion(vec2 p) {
 	float s = 0.0;
 	for (int i = 0; i < 8; i++) {
@@ -83,7 +120,10 @@ void fragment() {
 		float d = distance(p, L.xy);
 		if (d >= L.z) continue;
 		float vis = 1.0;
-		if (i < shadow_n && shadow_steps > 0) vis = visibility(p, L.xy, self_occ, jitter);
+		if (i < shadow_n && shadow_steps > 0) {
+			vis = visibility(p, L.xy, self_occ, jitter);
+			if (vis > 0.0) vis *= actor_visibility(p, i == 0 && lantern.x > -1e4 ? lantern : L.xy);
+		}
 		a *= 1.0 - L.w * falloff(d / L.z) * vis;
 		vec4 C = colors[i];
 		float r = L.z * 0.8;
