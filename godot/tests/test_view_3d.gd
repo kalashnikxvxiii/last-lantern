@@ -242,24 +242,62 @@ func test_the_shots_plane_reaches_over_the_rooms_next_door() -> void:
 		var c := RoomU.door_center(d) + Vector2(RoomU.DIRS[d].dx, RoomU.DIRS[d].dy) * Consts.TS * 3.0
 		check(r.has_point(c), "%s: a shot three tiles past the door still drawn" % d)
 
-func test_actors_cast_their_shadow_standing_up_toward_the_lantern() -> void:
+func test_the_shadows_come_from_the_big_lights_nearest_the_player() -> void:
+	var b := func(x: float, r: float) -> Dictionary: return {"x": x, "y": 100.0, "r": r, "a": 0.95}
+	var L: Array = [b.call(400.0, 72.0), b.call(300.0, 74.0), b.call(10.0, 20.0), b.call(60.0, 69.0), b.call(500.0, 75.0), {"x": 0.0, "y": 98.0, "r": 60.0, "a": 1.0}]
+	View3D.sort_lights(L, 0.0, 100.0)
+	eq(L.map(func(l): return l.x), [0.0, 60.0, 300.0, 400.0, 500.0, 10.0], "near first among those that cast shadows; the small ones after")
+
+func test_lights_as_near_or_as_strong_keep_one_order() -> void:
+	var b := func(x: float, y: float, r: float) -> Dictionary: return {"x": x, "y": y, "r": r, "a": 0.95}
+	var L: Array = [b.call(-50.0, 0.0, 72.0), b.call(50.0, 0.0, 72.0), b.call(0.0, -50.0, 72.0), b.call(0.0, 50.0, 72.0), b.call(9.0, 0.0, 20.0), b.call(-9.0, 0.0, 20.0)]
+	var order := []
+	for i in 6:
+		if i % 2 == 0:
+			L.reverse()
+		else:
+			L.push_back(L.pop_front())
+		View3D.sort_lights(L, 0.0, 0.0)
+		order.append(L.map(func(l): return Vector2(l.x, l.y)))
+	for o in order:
+		eq(o, order[0], "the same order however they come: no swapped shadows between frames")
+
+func test_actors_cast_an_upright_shadow_toward_each_light_that_casts_shadows() -> void:
 	var p := Run.player
 	p.aim = 0.0   # the lantern on the right
+	Run.room.grid[3][3] = Consts.T.BRAZIER   # a second light, from another side
+	v._make_lights()
+	v._sync_lights()
 	v._sync_sprites()
 	var id := p.get_instance_id()
 	var s: Sprite3D = v.sprites[id]
-	var c: Sprite3D = v.casters[id]
 	eq(s.cast_shadow, GeometryInstance3D.SHADOW_CASTING_SETTING_OFF, "the billboard leans back: its shadow would be flat")
-	eq(c.cast_shadow, GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY, "an unseen upright copy casts it")
-	eq(c.billboard, BaseMaterial3D.BILLBOARD_DISABLED)
-	var n := c.basis.z
-	near(n.y, 0.0, 1e-5, "upright")
-	check(n.x > 0.99, "facing the lantern")
-	near(c.scale.x, s.scale.x * View3D.CASTER_SCALE.x, 1e-5, "slimmer than the body")
-	near(c.scale.y, s.scale.y * View3D.CASTER_SCALE.y, 1e-5, "under the lantern: the shadow stays short")
+	var cs: Array = v.casters[id]
+	eq(cs.size(), View3D.SHADOW_LIGHTS, "one copy per light that casts shadows")
+	var lit := 0
+	for i in cs.size():
+		var c: Sprite3D = cs[i]
+		var l: OmniLight3D = v.lights[i]
+		eq(c.cast_shadow, GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY, "an unseen upright copy casts it")
+		eq(c.billboard, BaseMaterial3D.BILLBOARD_DISABLED)
+		eq(c.layers, View3D.CASTER_LAYER << i)
+		for j in cs.size():
+			eq(bool(v.lights[j].shadow_caster_mask & c.layers), i == j, "light %d casts only its own copy's shadow" % j)
+		check(bool(l.shadow_caster_mask & 1), "and the room's")
+		eq(c.visible, l.visible, "no light, no shadow")
+		if not l.visible:
+			continue
+		lit += 1
+		var n := c.basis.z
+		near(n.y, 0.0, 1e-5, "upright")
+		var to := Vector3(l.position.x - c.position.x, 0, l.position.z - c.position.z).normalized()
+		check(n.dot(to) > 0.999, "%d: facing its light" % i)
+		near(c.scale.x, s.scale.x * View3D.CASTER_SCALE.x, 1e-5, "slimmer than the body")
+		near(c.scale.y, s.scale.y * View3D.CASTER_SCALE.y, 1e-5, "under the lantern: the shadow stays short")
+	check(lit >= 2, "the lantern and the brazier")
 	var e := TH.spawn("rat", p.x + 40, p.y)
 	v._sync_sprites()
-	var ec: Sprite3D = v.casters[e.get_instance_id()]
+	var ec: Sprite3D = v.casters[e.get_instance_id()][0]
 	eq(ec.scale, (v.sprites[e.get_instance_id()] as Sprite3D).scale, "an enemy's shadow keeps its full size")
 	p.dead = true
 	v._sync_sprites()
