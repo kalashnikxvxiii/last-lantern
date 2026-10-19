@@ -32,12 +32,21 @@ func test_lights_stay_out_of_the_walls() -> void:
 	Run.room.grid[ty][5] = Consts.T.FLOOR
 	Run.room.grid[ty + 1][5] = Consts.T.WALL
 	var c := RoomU.tile_center(5, ty)
-	var p := v.light_pos(c.x, c.y)
-	check(p.z > c.y, "still a bit toward the camera")
-	check(p.z <= Consts.RY + (ty + 1) * Consts.TS - 4.0, "but 4 px in front of the wall, not inside it")
+	var p := v.light_pos(c.x, c.y + 6.0)
+	check(p.z <= Consts.RY + (ty + 1) * Consts.TS - 4.0, "4 px in front of the wall, not inside it")
 	check(p.y < View3D.WALL_H and p.y > View3D.ROCK_H, "held below the top of the walls, above the rocks")
 	var q := v.light_pos(c.x, c.y - 32.0)
-	near(q.z, c.y - 32.0 + 12.0, 1e-6, "in the open: the full offset")
+	near(q.z, c.y - 32.0, 1e-6, "in the open: right over its source, so shadows fall away from it")
+
+func test_the_players_light_hangs_at_the_lantern() -> void:
+	var L := Lights.collect()
+	var o := Lighting.lantern_origin(Run.player)
+	var p := v.light_at(L[0], L[0])
+	near(p.x, o.x, 1e-6, "the sprites' shadows fall where the floor's do")
+	var f := v.feet(Run.player.x, Run.player.y, 0.0, Spr.size("player").y)
+	near(p.z, f.z + o.y - Run.player.y, 1e-6, "as far from the feet as the lantern is from the body")
+	if L.size() > 1:
+		near(v.light_at(L[1], L[0]).z, L[1].y, 1e-6, "the other lights hang over themselves")
 
 func test_sprites_do_not_move_into_a_rock_in_front() -> void:
 	for ty in range(7, Consts.RH - 1):
@@ -232,3 +241,26 @@ func test_the_shots_plane_reaches_over_the_rooms_next_door() -> void:
 	for d in RoomU.DIRS:
 		var c := RoomU.door_center(d) + Vector2(RoomU.DIRS[d].dx, RoomU.DIRS[d].dy) * Consts.TS * 3.0
 		check(r.has_point(c), "%s: a shot three tiles past the door still drawn" % d)
+
+func test_actors_cast_their_shadow_standing_up_toward_the_lantern() -> void:
+	var p := Run.player
+	p.aim = 0.0   # the lantern on the right
+	v._sync_sprites()
+	var id := p.get_instance_id()
+	var s: Sprite3D = v.sprites[id]
+	var c: Sprite3D = v.casters[id]
+	eq(s.cast_shadow, GeometryInstance3D.SHADOW_CASTING_SETTING_OFF, "the billboard leans back: its shadow would be flat")
+	eq(c.cast_shadow, GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY, "an unseen upright copy casts it")
+	eq(c.billboard, BaseMaterial3D.BILLBOARD_DISABLED)
+	var n := c.basis.z
+	near(n.y, 0.0, 1e-5, "upright")
+	check(n.x > 0.99, "facing the lantern")
+	near(c.scale.x, s.scale.x * View3D.CASTER_SCALE.x, 1e-5, "slimmer than the body")
+	near(c.scale.y, s.scale.y * View3D.CASTER_SCALE.y, 1e-5, "under the lantern: the shadow stays short")
+	var e := TH.spawn("rat", p.x + 40, p.y)
+	v._sync_sprites()
+	var ec: Sprite3D = v.casters[e.get_instance_id()]
+	eq(ec.scale, (v.sprites[e.get_instance_id()] as Sprite3D).scale, "an enemy's shadow keeps its full size")
+	p.dead = true
+	v._sync_sprites()
+	check(not v.casters.has(id), "gone with its actor")

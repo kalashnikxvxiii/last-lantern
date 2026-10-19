@@ -13,12 +13,14 @@ const DIST := 590.0          # from the camera to the point it looks at
 const LOOK_DY := 0.0         # the camera looks at the middle of the room (the top bar it made room for is gone)
 const WALL_H := 24.0           # a tile and a half
 const ROCK_H := 11.0
-const LIGHT_H := 16.0          # a held lantern: under the tops of the walls, which it cannot light, above the rocks
+const CASTER_SCALE := Vector2(0.72, 0.67)   # the player's shadow body: slimmer, and under the lantern so its shadow ends ~56 px on
+const LIGHT_H := 12.0          # a held lantern: under the tops of the walls, which it cannot light, above the rocks
 const ROCK_R := 7.5
 const AIR_H := 8.0           # height of the projectiles' plane
 const SPRITE_BIAS := 8.0     # sprites move this much toward the camera: no clipping into walls
 const MAX_LIGHTS := 12
 const SHADOW_LIGHTS := 3
+const SPRITE_LAYER := 2       # the billboards: lit from their front by face_lights only
 const GATE_SPEED := 60.0     # px/s: a gate sinks into the floor (or rises) in 0.4 s
 const NEIGHBOR_LAYER := 4     # the rooms beyond the doors: only the lights that cast shadows reach them
 const AIR_MARGIN := 64        # px: the shots' plane reaches this far past the screen, over the rooms next door
@@ -36,8 +38,10 @@ var floor_mesh := MeshInstance3D.new()
 var solids := MeshInstance3D.new()
 var air_mesh := MeshInstance3D.new()
 var sprites: Dictionary = {}   # actor instance id -> Sprite3D
+var casters: Dictionary = {}   # actor instance id -> its unseen upright copy, for the shadow
 var item_pool: Array[Sprite3D] = []
 var lights: Array[OmniLight3D] = []
+var face_lights: Array[OmniLight3D] = []   # the same lights, toward the camera, for the billboards' fronts
 var shown: Dictionary = {}
 var gates: Dictionary = {}     # door dir -> its bars, lowered into the floor while the door is open
 var neighbors: Dictionary = {}   # door dir -> the room beyond it, walls and floor, dark but for the lights
@@ -68,8 +72,15 @@ func _ready() -> void:
 		l.omni_attenuation = 0.0   # distances are in px: a power falloff would leave almost nothing a tile away
 		if i >= SHADOW_LIGHTS:
 			l.light_cull_mask &= ~NEIGHBOR_LAYER   # it would shine through the walls
+		l.light_cull_mask &= ~SPRITE_LAYER
 		lights.append(l)
 		add_child(l)
+		# a billboard faces the camera, so a light over its source is often behind it
+		var f := OmniLight3D.new()
+		f.omni_attenuation = 0.0
+		f.light_cull_mask = SPRITE_LAYER
+		face_lights.append(f)
+		add_child(f)
 	if flat != null:
 		# only the room: around it the rooms beyond the doors lie on the same floor
 		_screen_plane(floor_mesh, flat, 0.0, Rect2(Consts.RX, Consts.RY, Consts.RW * Consts.TS, Consts.RH * Consts.TS), Rect2(0, 0, Consts.W, Consts.H))
@@ -255,13 +266,23 @@ func sprite_bias(base: Vector3) -> float:
 func sprite_mid(base: Vector3, h: float) -> Vector3:
 	return base + (cam.position - base).normalized() * sprite_bias(base) + cam.basis.y * (h / 2.0)
 
-# where a light of the 2D lighting hangs: a bit toward the camera, to light the
-# sprites' faces, but never inside a wall, which would light its front from within
+# where a light of the 2D lighting hangs: over its source, so the sprites' shadows
+# fall away from it like the floor's, but never inside a wall, which would light
+# its front from within
 func light_pos(x: float, y: float) -> Vector3:
-	var z := y + 12.0
+	var z := y
 	while z > y - 12.0 and _is_wall(Run.room, floori((x - Consts.RX) / Consts.TS), floori((z + 4.0 - Consts.RY) / Consts.TS)):
 		z -= 1.0   # and 4 px away from it, even behind the source
 	return Vector3(x, LIGHT_H, z)
+
+# the player's light hangs at the lantern, where the floor's shadows come from
+func light_at(d: Dictionary, player_light: Variant) -> Vector3:
+	if is_same(d, player_light):
+		# the actors stand on their feet, below their 2D position: so does the lantern
+		var o := Lighting.lantern_origin(Run.player)
+		var f := feet(o.x, o.y, 0.0, Spr.size("player").y)
+		return light_pos(f.x, f.z)
+	return light_pos(d.x, d.y)
 
 # --- walls and rocks: one mesh, textured from the biome tileset ---
 
@@ -428,6 +449,7 @@ func _new_sprite() -> Sprite3D:
 	s.shaded = true
 	s.region_enabled = true
 	s.pixel_size = 1.0
+	s.layers = SPRITE_LAYER
 	add_child(s)
 	return s
 
@@ -449,11 +471,35 @@ func _sync_sprites() -> void:
 			s = _new_sprite()
 			sprites[id] = s
 		var h: float = Spr.size(stt.name).y
-		_pose(s, stt, feet(stt.x, a.y, a.y - stt.y, h), 0.0)
+		var base := feet(stt.x, a.y, a.y - stt.y, h)
+		_pose(s, stt, base, 0.0)
+		var c: Sprite3D = casters.get(id)
+		if c == null:
+			s.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			c = _new_sprite()
+			c.billboard = BaseMaterial3D.BILLBOARD_DISABLED
+			c.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY
+			c.layers = 1   # seen by the lights that cast shadows
+			casters[id] = c
+		_pose_caster(c, s, base, Vector2(a.x, a.y), is_same(a, Run.player))
 	for id in sprites.keys():
 		if not live.has(id):
 			sprites[id].queue_free()
 			sprites.erase(id)
+			casters[id].queue_free()
+			casters.erase(id)
+
+# the billboards lean back with the camera, so their shadows would lie flat: an
+# unseen copy stands upright on the feet, turned toward the lantern, and casts it
+func _pose_caster(c: Sprite3D, s: Sprite3D, base: Vector3, at: Vector2, player: bool) -> void:
+	for k in ["texture", "region_rect", "pixel_size", "flip_h", "offset"]:
+		c.set(k, s.get(k))
+	c.scale = s.scale * Vector3(CASTER_SCALE.x, CASTER_SCALE.y, 1.0) if player else s.scale
+	c.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
+	c.visible = s.modulate.a > 0.05
+	c.position = base
+	var d := Lighting.lantern_origin(Run.player) - at
+	c.rotation = Vector3(0, atan2(d.x, d.y), 0)
 
 # the objects of the room that stand up: barrels, braziers, chests, pickups...
 # (the sprites DrawGround recorded last frame), on their bottom edge or on o.ground
@@ -508,14 +554,19 @@ func _sync_lights() -> void:
 	env.adjustment_contrast = de.adjustment_contrast
 	env.adjustment_saturation = de.adjustment_saturation
 	var L := Lights.collect()
+	var pl: Variant = L[0] if not Run.player.dead and not L.is_empty() else null
 	L.sort_custom(func(p: Dictionary, q: Dictionary) -> bool: return p.r * p.a > q.r * q.a)
 	for i in MAX_LIGHTS:
 		var l := lights[i]
+		var f := face_lights[i]
 		l.visible = i < L.size()
+		f.visible = l.visible
 		if not l.visible:
 			continue
 		var d: Dictionary = L[i]
-		l.position = light_pos(d.x, d.y)
-		l.omni_range = d.r * 1.3
-		l.light_energy = d.a * 1.0
-		l.light_color = UiDraw.col(d.col) if d.get("col") != null else Color(1, 0.85, 0.6)
+		l.position = light_at(d, pl)
+		f.position = light_pos(d.x, d.y + 12.0)
+		for k in [l, f]:
+			k.omni_range = d.r * 1.3
+			k.light_energy = d.a * 1.0
+			k.light_color = UiDraw.col(d.col) if d.get("col") != null else Color(1, 0.85, 0.6)
