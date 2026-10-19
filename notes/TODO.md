@@ -6,22 +6,27 @@ under each item instead of rewriting the list.
 ## Balancing
 
 - [ ] Big balancing pass.
-  - [ ] Items: many are too strong, some have empty effects (they do nothing).
-  - [ ] Enemies: they need a rebalance too.
+- [ ] Items: many are too strong, some have empty effects (they do nothing).
+- [ ] Enemies: they need a rebalance too.
 
 ## Player
 
-- [ ] Lower the player speed (currently too fast).
+- [X] Lower the player speed (currently too fast).
+- [ ] Add roll mechanics
 
 ## Rooms
 
 - [ ] Challenge rooms: raise the number of waves from 2 to at least 5.
+- [ ] Add multiple rooms layout (as "L" shaped, wider/taller rooms, small size, etc.).
 
 ## Flow
 
-- [ ] Restart on a new seed: holding R for 3 seconds fades to black and restarts
+- [ ] Restart on a new seed: holding R for 3 seconds fades to white and restarts 
       the run on a different seed.
 
 ## UI
 
 - [ ] Make the experience bar thicker.
+- [ ] Replace health and oil bar with a lantern widget
+
+## BUGS
