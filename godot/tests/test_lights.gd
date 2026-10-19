@@ -88,3 +88,30 @@ func test_lifted_details_follow_the_picture_settings() -> void:
 	eq((d.material as ShaderMaterial).get_shader_parameter("bcs"), Vector3(1.2, 0.8, 0.5))
 	d.free()
 	Save.data.settings = saved
+
+# --- Godot-only: the player and the enemies cast shadows like the room's elements ---
+
+func test_the_player_and_live_enemies_block_the_light() -> void:
+	var p := Run.player
+	var e := TH.spawn("rat", p.x + 40, p.y)
+	var gone := TH.spawn("rat", p.x - 40, p.y)
+	gone.dead = true
+	var born := TH.spawn("rat", p.x, p.y + 40)
+	born.spawning = true
+	var A := Lighting.actor_occluders()
+	eq(A.size(), 2, "the player and the live enemy")
+	eq(A[0], Vector3(p.x, p.y, Lighting.PLAYER_R))
+	eq(A[1], Vector3(e.x, e.y, e.r))
+
+func test_the_lantern_casts_the_players_shadow_from_where_it_is_held() -> void:
+	var p := Run.player
+	for aim in [0.0, PI / 2, PI, -PI / 2]:
+		p.aim = aim
+		var o := Lighting.lantern_origin(p)
+		near(o.x, p.x + cos(aim) * 7.0, 1e-4, "held on the aiming side")
+		near(o.y, p.y + sin(aim) * 7.0, 1e-4)
+		check(o.distance_to(Vector2(p.x, p.y)) > Lighting.PLAYER_R, "outside the body, so the body casts a shadow")
+
+func test_the_players_shadow_starts_at_its_feet() -> void:
+	var h := Spr.size("player").y
+	eq(Lighting.player_feet(), Vector2(0, h / 2.0 - 1.0), "where the sprite stands, as View3D.feet() puts it")
