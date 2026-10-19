@@ -59,8 +59,9 @@ func _ready() -> void:
 	# behind the rooms there is only darkness, as in the rooms beyond the doors
 	env.background_mode = Environment.BG_COLOR
 	env.background_color = Color.BLACK
-	# only the canvas layers up to 1 stay behind the room: the world environment
-	# decides it (Display puts every layer there for the picture adjustments)
+	# which canvas layers go behind the 3D is the world environment's call, not
+	# the camera's: only up to 1 (Display puts every layer there for the picture
+	# adjustments), so the HUD and overlays (layer 2 and up) stay in front
 	Display.environment().background_canvas_max_layer = 1
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	env.adjustment_enabled = true

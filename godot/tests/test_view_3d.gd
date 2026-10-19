@@ -302,3 +302,10 @@ func test_actors_cast_an_upright_shadow_toward_each_light_that_casts_shadows() -
 	p.dead = true
 	v._sync_sprites()
 	check(not v.casters.has(id), "gone with its actor")
+
+func test_behind_the_rooms_there_is_only_black() -> void:
+	v._ready()
+	eq(v.env.background_mode, Environment.BG_COLOR)
+	eq(v.env.background_color, Color.BLACK)
+	eq(Display.environment().background_canvas_max_layer, 1, "the HUD layers stay in front of the room")
+	v._exit_tree()
