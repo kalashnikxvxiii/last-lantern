@@ -168,6 +168,19 @@ func test_the_gate_behind_the_player_closes_after_them() -> void:
 	v.build_gates(room, false)
 	eq(v.gates["s"].position.y, 0.0, "a rebuild inside the room: no entry")
 
+func test_every_depth_has_its_own_gates() -> void:
+	Run.room.doors = {"n": {"type": "normal"}}
+	var seen := {}
+	for d in range(1, 6):   # one floor of each biome
+		Run.floor.depth = d
+		var t := View3D.gate_texture()
+		check(t != null, "depth %d: a texture for its gates" % d)
+		eq(t.get_size(), Vector2(8, 112), "depth %d: one bar, its tip on top (GATE_TIP_V)" % d)
+		seen[t.resource_path] = true
+		v.build_gates(Run.room, false)
+		check(is_same((v.gates["n"].material_override as StandardMaterial3D).albedo_texture, t), "depth %d: the bars wear it" % d)
+	eq(seen.size(), 5, "a different one in each")
+
 func test_the_rooms_beyond_the_doors_stand_unlit_next_to_this_one() -> void:
 	var room := Run.room
 	var offered: Dictionary = Run.offered_relics.duplicate()
