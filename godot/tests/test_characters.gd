@@ -37,3 +37,11 @@ func test_kills_unlock_the_goblin() -> void:
 
 func test_unknown_character_falls_back_to_the_wanderer() -> void:
 	eq(DB.character("nobody").id, "wanderer")
+
+# the selection screen hints at the sealed character closest to its unlock
+func test_progress_toward_the_unlock() -> void:
+	near(DB.character("wizard").progress({"bossKills": 4}), 0.8)
+	near(DB.character("owlfox").progress({"runs": 1}), 0.1)
+	near(DB.character("goblin").progress({}), 0.0)
+	near(DB.character("goblin").progress({"kills": 250}), 1.0)
+	near(DB.character("wanderer").progress({}), 1.0)

@@ -59,7 +59,11 @@ func paint() -> void:
 		Spr.draw(self, C.sprite, 0, 341, 92, {"scale": 3.0})
 		UiDraw.text(self, C.name, 341, 140, {"align": "center", "color": "#f6cf57"})
 		UiDraw.text_wrapped(self, C.desc, 232, 160, 218, {"color": "#d8d0c0"})
+		var st: Dictionary = Save.data.stats
 		var sealed: Array = DB.characters().filter(func(c): return not Save.data.unlocks.characters.has(c.id))
+		# the closest first, DB order on ties (sort_custom is not stable)
+		sealed.sort_custom(func(a, b): return a.progress(st) > b.progress(st) or (a.progress(st) == b.progress(st)
+			and DB.CHARACTER_IDS.find(a.id) < DB.CHARACTER_IDS.find(b.id)))
 		if not sealed.is_empty():
 			UiDraw.text_wrapped(self, Loc.t("^dNext: ^w") + Loc.t(sealed[0].unlock_text), 232, 222, 218, {})
 	elif it.label is String and it.label == "Ardor":
