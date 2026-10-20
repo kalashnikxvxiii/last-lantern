@@ -43,6 +43,7 @@ var echo_t := 0.0
 var anim := 0.0
 var moving := false
 var lantern := "warden"
+var character := "wanderer"   # Godot-only
 var stats: Dictionary = Stats.base()
 var dead := false
 var last_hit := ""
@@ -434,7 +435,7 @@ func sprite_state() -> Dictionary:
 	frame += 2 * int(U.jround((PI / 2 - atan2(sin(aim), absf(cos(aim)))) / (PI / 4)))
 	var o := {"flip": facing < 0, "flash": dash_t > 0 and Fx.vis.next() < 0.3,
 		"alpha": sprite_alpha()}
-	return {"name": "player", "frame": frame, "x": x, "y": y + bob, "o": o}
+	return {"name": DB.character(character).sprite, "frame": frame, "x": x, "y": y + bob, "o": o}
 
 # without the dash flash's random draw: DrawLifted asks for it again in the same frame
 func sprite_alpha() -> float:
@@ -456,7 +457,7 @@ func _draw() -> void:
 		st.o.erase("alpha")
 		if behind:
 			draw_lantern(self)
-		Spr.draw(self, "player", st.frame, x, st.y, st.o)
+		Spr.draw(self, st.name, st.frame, x, st.y, st.o)
 		if not behind:
 			draw_lantern(self)
 		UiDraw.alpha = ga

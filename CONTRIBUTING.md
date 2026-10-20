@@ -64,7 +64,7 @@ godot --path godot -- --seed=7 --lv=2 --coins=50     # perk choice right away
 godot --path godot -- --scene=title --screenshot=/tmp/title.png --shot-after=40
 ```
 
-`--test` values: `fight`, `boss`, `shop`, `treasure`, `elite`, `shrine`, `secret`. Other arguments: `--depth=N` (start from that depth), `--lantern=`, `--ardor=`, `--sim=N` (simulated ticks), `--fire` (shoot the first enemy during `--sim`), `--pause`, `--map`. These runs write to the local save, like a real game.
+`--test` values: `fight`, `boss`, `shop`, `treasure`, `elite`, `shrine`, `secret`. Other arguments: `--depth=N` (start from that depth), `--lantern=`, `--character=`, `--ardor=`, `--sim=N` (simulated ticks), `--fire` (shoot the first enemy during `--sim`), `--pause`, `--map`. These runs write to the local save, like a real game.
 
 ### Cheat panel
 
@@ -73,7 +73,7 @@ During play press **F1** (or **`**) to open the cheat panel; the game stays paus
 | Page | What it does |
 |---|---|
 | Player | god mode, infinite oil, noclip, one-hit kills, heal and refill, coins, keys, level up, die |
-| Build | add or remove perks, relics (with their curse) and curses, give consumables, switch lantern, clear the build |
+| Build | add or remove perks, relics (with their curse) and curses, give consumables, switch lantern or character, clear the build |
 | World | kill all, clear the room, freeze enemies, spawn any enemy (optionally elite) or warden, go to a room type or depth, reveal the map, game speed (x0.25 to x4), debug readout |
 
 The panel works in debug builds (editor and `godot --path godot`) and in the `Last Lantern Dev` executables (see [Executables](#executables)). In any other exported build start it with `-- --cheats`. `--cheat-panel=World` opens a page right away (useful with `--screenshot`). Active cheats are shown in red in the bottom right corner, so screenshots taken with cheats on are recognizable. Once a cheat is used, the descent records no stats (kills, wins, best depth, wardens, Ardor), so the save's unlocks stay earned; the toggles reset with every new descent. The code is in `autoload/cheats.gd` (state and actions) and `ui/cheat_menu.gd` (pages).
@@ -84,7 +84,7 @@ The panel works in debug builds (editor and `godot --path godot`) and in the `La
 |---|---|
 | `autoload/` | always-on services: `Save`, `Sfx`, `Music`, `Fx`, `Controls`, `Run` (game state), `Game` (scenes, arguments, errors) |
 | `core/` | constants, numeric utilities, random generator, sprites and font |
-| `data/` | perks, relics, curses, consumables (scripts) and enemies, bosses, biomes, lanterns (`.tres` Resources, editable in the Inspector) |
+| `data/` | perks, relics, curses, consumables (scripts) and enemies, bosses, biomes, lanterns, characters (`.tres` Resources, editable in the Inspector) |
 | `world/` | floor and room generation, run flow, interactions, light, world drawing |
 | `actors/` | player, enemies, AI, bosses and attack patterns |
 | `combat/` | collisions, projectiles, damage, status effects, effects, pickups |

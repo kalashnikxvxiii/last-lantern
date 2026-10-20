@@ -19,7 +19,7 @@ static func defaults() -> Dictionary:
 			"language": "auto",   # Godot-only (Loc)
 			"binds": {}},   # Godot-only: rebound keys and buttons (Controls)
 		"stats": {"runs": 0, "wins": 0, "bestDepth": 0, "kills": 0, "bossKills": 0, "bestTime": 0, "maxArdorWon": -1},
-		"unlocks": {"lanterns": ["warden"], "ardor": 0},
+		"unlocks": {"lanterns": ["warden"], "ardor": 0, "characters": ["wanderer"]},   # characters: Godot-only
 		"seen": {},
 	}
 
@@ -39,6 +39,8 @@ func load_save() -> void:
 	d.unlocks = _ints(_merge(def.unlocks, d.get("unlocks")))
 	if not (d.unlocks.lanterns is Array):
 		d.unlocks.lanterns = ["warden"]
+	if not (d.unlocks.characters is Array):
+		d.unlocks.characters = ["wanderer"]
 	if not (d.get("seen") is Dictionary):
 		d.seen = {}
 	data = d
@@ -74,6 +76,14 @@ static func write_file(dest: String, bytes: PackedByteArray) -> bool:
 		DirAccess.remove_absolute(tmp)
 		return false
 	return true
+
+# Godot-only
+func unlock_character(id: String) -> bool:
+	if not data.unlocks.characters.has(id):
+		data.unlocks.characters.append(id)
+		write()
+		return true
+	return false
 
 func unlock_lantern(id: String) -> bool:
 	if not data.unlocks.lanterns.has(id):

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="CharacterDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/character_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "stranger"
+name = "Stranger"
+sprite = "player_stranger"
+desc = "^yPhase Jump^w: teleports you toward your aim, through projectiles, and leaves a pulse that chills nearby enemies. Costs ^y30^w oil."
+unlock_stat = "bestDepth"
+unlock_min = 2
+unlock_text = "Reach the second depth."

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="CharacterDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/character_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "cogling"
+name = "Cogling"
+sprite = "player_cogling"
+desc = "^yOverclock^w: +^y50%^w damage and fire rate and +^y2^w armor for ^y5^w seconds. Costs ^y45^w oil."
+unlock_stat = "bossKills"
+unlock_min = 2
+unlock_text = "Defeat two depth wardens."

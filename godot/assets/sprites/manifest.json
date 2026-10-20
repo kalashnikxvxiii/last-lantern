@@ -4,6 +4,31 @@
   "h": 16,
   "frames": 10
  },
+ "player_goblin": {
+  "w": 14,
+  "h": 16,
+  "frames": 10
+ },
+ "player_stranger": {
+  "w": 14,
+  "h": 16,
+  "frames": 10
+ },
+ "player_cogling": {
+  "w": 14,
+  "h": 16,
+  "frames": 10
+ },
+ "player_owlfox": {
+  "w": 14,
+  "h": 16,
+  "frames": 10
+ },
+ "player_wizard": {
+  "w": 14,
+  "h": 16,
+  "frames": 10
+ },
  "rat": {
   "w": 14,
   "h": 7,

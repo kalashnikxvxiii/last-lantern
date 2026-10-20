@@ -29,6 +29,7 @@ func test_missing_fields_use_defaults() -> void:
 	eq(Save.data.stats.runs, 4)
 	check(typeof(Save.data.stats.runs) == TYPE_INT, "runs must stay an integer")
 	eq(Save.data.unlocks.lanterns, ["warden"])
+	eq(Save.data.unlocks.characters, ["wanderer"])
 	eq(Save.data.seen, {})
 
 # Godot-only: a save from before the quality presets keeps the player's graphics settings
@@ -57,6 +58,13 @@ func test_write_and_reread() -> void:
 	Save.load_save()
 	eq(Save.data.stats.kills, 12)
 	eq(Save.data.unlocks.lanterns, ["warden", "pilgrim"])
+
+func test_unlock_character_once() -> void:
+	Save.load_save()
+	check(Save.unlock_character("goblin"), "first time: unlocked")
+	check(not Save.unlock_character("goblin"), "second time: already unlocked")
+	Save.load_save()
+	eq(Save.data.unlocks.characters, ["wanderer", "goblin"])
 
 func test_write_failure_is_silent() -> void:
 	allow_errors()
