@@ -2,18 +2,22 @@ extends Screen
 # Lantern selection (Scenes.select in js/game.js).
 
 static var ard := 0
+static var character := "wanderer"   # Godot-only: chosen with the lantern
 
 func enter() -> void:
 	var un: Dictionary = Save.data.unlocks
 	var slot: int = Game.scene_arg if Game.scene_arg is int else -1   # chosen in the slots screen
 	ard = mini(un.ardor, ard)
-	var items: Array = []
+	if not un.characters.has(character):
+		character = "wanderer"
+	var items: Array = [{"label": "Character", "C": true, "value": func(): return DB.character(character).name,
+		"adjust": func(d): _cycle_character(d), "action": func(): _cycle_character(1)}]
 	for L in DB.lanterns():
 		var open: bool = un.lanterns.has(L.id)
 		var id: String = L.id
 		items.append({"label": L.name if open else "Sealed lantern", "L": L, "disabled": not open,
 			"action": func():
-				Flow.start_run(id, ard)
+				Flow.start_run(id, ard, -1, character)
 				Run.slot = slot if RunSave.save(slot) else -1   # not saved: no "Save and leave"
 				Game.set_scene("play")})
 	if un.ardor > 0:
@@ -22,6 +26,11 @@ func enter() -> void:
 			"action": func(): ard = (ard + 1) % (un.ardor + 1)})
 	items.append({"label": "Back", "action": func(): Game.set_scene("slots")})
 	menu = Menu.new(items, {"allowDisabled": true})
+
+# the next unlocked character, in DB order
+func _cycle_character(d: int) -> void:
+	var open: Array = DB.CHARACTER_IDS.filter(func(id): return Save.data.unlocks.characters.has(id))
+	character = open[posmod(open.find(character) + d, open.size())]
 
 func update(_dt: float) -> void:
 	if Controls.back():
@@ -45,6 +54,14 @@ func paint() -> void:
 			UiDraw.text_wrapped(self, Loc.t("^dTo unlock: ^w") + Loc.t(L.unlock_text), 232, 160, 218, {})
 		else:
 			UiDraw.text_wrapped(self, L.desc, 232, 160, 218, {"color": "#d8d0c0"})
+	elif it.has("C"):
+		var C := DB.character(character)
+		Spr.draw(self, C.sprite, 0, 341, 92, {"scale": 3.0})
+		UiDraw.text(self, C.name, 341, 140, {"align": "center", "color": "#f6cf57"})
+		UiDraw.text_wrapped(self, C.desc, 232, 160, 218, {"color": "#d8d0c0"})
+		var sealed: Array = DB.characters().filter(func(c): return not Save.data.unlocks.characters.has(c.id))
+		if not sealed.is_empty():
+			UiDraw.text_wrapped(self, Loc.t("^dNext: ^w") + Loc.t(sealed[0].unlock_text), 232, 222, 218, {})
 	elif it.label is String and it.label == "Ardor":
 		UiDraw.text(self, Loc.f("Ardor {0}", [ard]), 341, 70, {"align": "center", "color": "#e0574a", "scale": 2})
 		UiDraw.text_wrapped(self, "Each level of Ardor makes the descent crueler. Unlocked by rekindling the First Flame.", 232, 100, 218, {"color": "#a8a0b0"})

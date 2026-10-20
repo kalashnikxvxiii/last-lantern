@@ -2,7 +2,8 @@ class_name Flow
 extends RefCounted
 # Run flow (js/game.js): start, floors, rooms, doors, transitions, update.
 
-static func start_run(lantern_id: String, ardor: int, seed: int = -1) -> void:
+# character_id: Godot-only
+static func start_run(lantern_id: String, ardor: int, seed: int = -1, character_id := "wanderer") -> void:
 	Run.reset()
 	Cheats.reset()   # Godot-only: the developer toggles do not carry into a new run
 	if seed < 0:
@@ -13,6 +14,7 @@ static func start_run(lantern_id: String, ardor: int, seed: int = -1) -> void:
 	Run.ardor = ardor
 	var p := Player.new()
 	p.lantern = lantern_id
+	p.character = character_id
 	Run.player = p
 	p.recalc_stats()
 	DB.lantern(lantern_id).on_start(p)
@@ -56,6 +58,14 @@ static func check_unlocks() -> void:
 			if Run.active:
 				Run.new_unlocks.append(L.name)
 				Run.toast("New lantern unlocked", "#f6cf57", L.name)
+	# Godot-only
+	for C in DB.characters():
+		if Save.data.unlocks.characters.has(C.id) or not C.unlocked(Save.data.stats):
+			continue
+		Save.unlock_character(C.id)
+		if Run.active:
+			Run.new_unlocks.append(C.name)
+			Run.toast("New character unlocked", "#f6cf57", C.name)
 
 # through: Godot-only, walked in through the doorway: the room starts once the
 # player is past its gate (Flow.check_doors)

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="CharacterDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/character_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "goblin"
+name = "Goblin"
+sprite = "player_goblin"
+desc = "^ySmoke Bomb^w: blinds nearby enemies for ^y3^w seconds and makes you invisible for ^y2^w. Costs ^y35^w oil."
+unlock_stat = "kills"
+unlock_min = 100
+unlock_text = "Defeat 100 creatures."

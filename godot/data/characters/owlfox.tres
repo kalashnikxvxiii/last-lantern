@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="CharacterDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/character_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "owlfox"
+name = "Owlfox"
+sprite = "player_owlfox"
+desc = "^yTalon Dash^w: dashes toward your aim, striking everything in the way. Costs ^y30^w oil."
+unlock_stat = "runs"
+unlock_min = 10
+unlock_text = "Attempt ten descents."

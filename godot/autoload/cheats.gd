@@ -161,6 +161,10 @@ func set_lantern(id: String) -> void:
 	p.lantern = id
 	p.recalc_stats()
 
+# Godot-only
+func set_character(id: String) -> void:
+	Run.player.character = id
+
 func clear_build() -> void:
 	var p := Run.player
 	p.perks = {}

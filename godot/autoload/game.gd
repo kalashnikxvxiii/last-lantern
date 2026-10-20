@@ -147,7 +147,7 @@ func dev_start() -> void:
 	var seed := int(dev.get("seed", -1))
 	if seed >= 0:
 		U.seed_random(seed)
-	Flow.start_run(str(dev.get("lantern", "warden")), int(dev.get("ardor", 0)), seed)
+	Flow.start_run(str(dev.get("lantern", "warden")), int(dev.get("ardor", 0)), seed, str(dev.get("character", "wanderer")))
 	if dev.has("depth"):
 		Run.depth = int(dev.depth)
 		Flow.new_floor()

@@ -57,6 +57,9 @@ static func _build() -> Array:
 		_cycle("Lantern", "lantern", func(): return DB.LANTERN_IDS,
 			func(id): return ("+ " if p.lantern == id else "") + DB.lantern(id).name,
 			func(id): Cheats.set_lantern(id)),
+		_cycle("Character", "character", func(): return DB.CHARACTER_IDS,
+			func(id): return ("+ " if p.character == id else "") + DB.character(id).name,
+			func(id): Cheats.set_character(id)),
 		_act("Clear perks, relics, curses", func(): Cheats.clear_build()),
 	]
 

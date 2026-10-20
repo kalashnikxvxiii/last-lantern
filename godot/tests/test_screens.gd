@@ -23,10 +23,25 @@ func test_lantern_choice_respects_the_unlocks() -> void:
 	Save.data.unlocks.lanterns = ["warden"]
 	var sc: Node = load(Game.SCENES.select).instantiate()
 	(Engine.get_main_loop() as SceneTree).root.add_child(sc)
-	eq(sc.menu.items.size(), 6, "5 lanterns + Back (Ardor not unlocked yet)")
-	check(not sc.menu.items[0].get("disabled", false))
-	check(sc.menu.items[1].disabled)
-	eq(sc.menu.items[1].label, "Sealed lantern")
+	eq(sc.menu.items.size(), 7, "Character + 5 lanterns + Back (Ardor not unlocked yet)")
+	check(not sc.menu.items[1].get("disabled", false))
+	check(sc.menu.items[2].disabled)
+	eq(sc.menu.items[2].label, "Sealed lantern")
+	sc.queue_free()
+	await (Engine.get_main_loop() as SceneTree).process_frame
+
+# Godot-only: the character row cycles through the unlocked characters only
+func test_character_choice_respects_the_unlocks() -> void:
+	Save.data.unlocks.characters = ["wanderer", "owlfox"]
+	var sc: Node = load(Game.SCENES.select).instantiate()
+	(Engine.get_main_loop() as SceneTree).root.add_child(sc)
+	sc.character = "wanderer"
+	sc.menu.items[0].adjust.call(1)
+	eq(sc.character, "owlfox")
+	sc.menu.items[0].adjust.call(1)
+	eq(sc.character, "wanderer")
+	sc.menu.items[0].adjust.call(-1)
+	eq(sc.character, "owlfox")
 	sc.queue_free()
 	await (Engine.get_main_loop() as SceneTree).process_frame
 

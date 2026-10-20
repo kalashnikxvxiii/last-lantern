@@ -3,6 +3,7 @@ extends RefCounted
 # Access to the game data Resources.
 
 const LANTERN_IDS := ["warden", "pilgrim", "broken", "hollow", "black"]
+const CHARACTER_IDS := ["wanderer", "goblin", "stranger", "cogling", "owlfox", "wizard"]   # Godot-only
 const BIOME_IDS := ["crypt", "fungus", "forge", "abyss", "heart"]
 static var _cache: Dictionary = {}
 
@@ -23,6 +24,13 @@ static func lantern(id: String) -> LanternDef:
 
 static func lanterns() -> Array:
 	return LANTERN_IDS.map(func(id): return lantern(id))
+
+static func character(id: String) -> CharacterDef:
+	var c := _res("res://data/characters/%s.tres" % id) as CharacterDef
+	return c if c != null else _res("res://data/characters/wanderer.tres")
+
+static func characters() -> Array:
+	return CHARACTER_IDS.map(func(id): return character(id))
 
 static func biome_of(depth: int) -> BiomeDef:
 	return _res("res://data/biomes/%s.tres" % BIOME_IDS[(depth - 1) % BIOME_IDS.size()])

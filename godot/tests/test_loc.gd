@@ -51,6 +51,10 @@ func test_game_data_is_translated() -> void:
 		texts.append_array([L.name, L.desc])
 		if L.unlock_text != "":
 			texts.append(L.unlock_text)
+	for C in DB.characters():
+		texts.append_array([C.name, C.desc])
+		if C.unlock_text != "":
+			texts.append(C.unlock_text)
 	for d in range(1, 6):
 		texts.append_array([DB.biome_of(d).name, DB.biome_of(d).lore])
 	for f in DirAccess.get_files_at("res://data/enemies"):
