@@ -7,6 +7,7 @@ script = ExtResource("1")
 id = "stranger"
 name = "Stranger"
 sprite = "player_stranger"
+cost = 30.0
 desc = "^yPhase Jump^w: teleports you toward your aim, through projectiles, and leaves a pulse that chills nearby enemies. Costs ^y30^w oil."
 unlock_stat = "bestDepth"
 unlock_min = 2

@@ -17,7 +17,7 @@ const WIDGET_W := 112.0
 const ACTION_NAMES := {
 	"move_up": "Move up", "move_down": "Move down", "move_left": "Move left", "move_right": "Move right",
 	"aim_up": "Aim up", "aim_down": "Aim down", "aim_left": "Aim left", "aim_right": "Aim right",
-	"dash": "Dash", "flare": "Flare", "interact": "Interact", "map": "Map", "pause": "Pause",
+	"dash": "Dash", "flare": "Ability", "interact": "Interact", "map": "Map", "pause": "Pause",
 }
 
 var tab := 0
