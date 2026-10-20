@@ -57,3 +57,14 @@ func test_sprite_alpha_leaves_the_flash_alone() -> void:
 	p.statuses["invis"] = 1.0
 	eq(p.sprite_alpha(), 0.35)
 	eq(p.sprite_state().o.alpha, 0.35)
+
+# Godot-only: the sprite turns with the aim, 5 views (down to up) of 2 frames,
+# mirrored for the left side
+func test_sprite_view_follows_the_aim() -> void:
+	for c in [[PI / 2, 0, false], [PI / 4, 2, false], [0.0, 4, false], [-PI / 4, 6, false],
+			[-PI / 2, 8, false], [PI, 4, true], [3 * PI / 4, 2, true], [-3 * PI / 4, 6, true]]:
+		p.aim = c[0]
+		p.facing = 1 if cos(p.aim) >= 0 else -1
+		var st := p.sprite_state()
+		eq(st.frame, c[1], "aim %s" % c[0])
+		eq(st.o.flip, c[2], "aim %s" % c[0])

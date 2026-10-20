@@ -430,6 +430,8 @@ func sprite_state() -> Dictionary:
 		return {}
 	var frame := int(floor(anim * 8)) % 2 if moving else 0
 	var bob := -1 if moving and frame != 0 else 0
+	# Godot-only: one view per 45 degrees of aim, down (0) to up (4), the left side mirrored
+	frame += 2 * int(U.jround((PI / 2 - atan2(sin(aim), absf(cos(aim)))) / (PI / 4)))
 	var o := {"flip": facing < 0, "flash": dash_t > 0 and Fx.vis.next() < 0.3,
 		"alpha": sprite_alpha()}
 	return {"name": "player", "frame": frame, "x": x, "y": y + bob, "o": o}
