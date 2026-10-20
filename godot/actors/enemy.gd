@@ -120,9 +120,10 @@ func dying_update(_dt: float) -> void:
 	pass
 
 # enemyTarget: with the player invisible, wander between reachable cells
+# (Godot-only: also when this enemy is blinded, by the Goblin's Smoke Bomb)
 func target():
 	var p := Run.player
-	if p.statuses.has("invis"):
+	if p.statuses.has("invis") or statuses.has("blind"):
 		if wander == null or wander_t <= 0:
 			var tiles := RoomU.reach_tiles(Run.room)
 			var tt: Vector2i = U.pick(tiles)

@@ -1319,16 +1319,16 @@
     "ja": "虚ろなランタン",
     "ko": "빈 랜턴"
   },
-  "+^y50^w oil, Flare ^y-40%^w cost, +^y25%^w light, +^y1^w dash. ^r-10%^w damage.": {
-    "it": "+^y50^w olio, Vampata ^y-40%^w costo, +^y25%^w luce, +^y1^w scatto. ^r-10%^w danno.",
-    "es": "+^y50^w de aceite, Llamarada ^y-40%^w de coste, +^y25%^w de luz, +^y1^w impulso. ^r-10%^w de daño.",
-    "fr": "+^y50^w huile, Embrasement ^y-40%^w coût, +^y25%^w lumière, +^y1^w ruée. ^r-10%^w dégâts.",
-    "de": "+^y50^w Öl, Flammenstoß ^y-40%^w Kosten, +^y25%^w Licht, +^y1^w Sprint. ^r-10%^w Schaden.",
-    "pt": "+^y50^w de óleo, Labareda ^y-40%^w de custo, +^y25%^w de luz, +^y1^w investida. ^r-10%^w de dano.",
-    "ru": "+^y50^w масла, Вспышка ^y-40%^w цены, +^y25%^w света, +^y1^w рывок. ^r-10%^w урона.",
-    "zh": "灯油 +^y50^w，烈焰消耗 ^y-40%^w，光照 +^y25%^w，冲刺 +^y1^w。伤害 ^r-10%^w。",
-    "ja": "油 +^y50^w、フレアのコスト ^y-40%^w、光 +^y25%^w、ダッシュ +^y1^w。ダメージ ^r-10%^w。",
-    "ko": "기름 +^y50^w, 플레어 비용 ^y-40%^w, 빛 +^y25%^w, 대시 +^y1^w. 피해 ^r-10%^w."
+  "+^y50^w oil, ability ^y-40%^w cost, +^y25%^w light, +^y1^w dash. ^r-10%^w damage.": {
+    "it": "+^y50^w olio, abilità ^y-40%^w costo, +^y25%^w luce, +^y1^w scatto. ^r-10%^w danno.",
+    "es": "+^y50^w de aceite, habilidad ^y-40%^w de coste, +^y25%^w de luz, +^y1^w impulso. ^r-10%^w de daño.",
+    "fr": "+^y50^w huile, capacité ^y-40%^w coût, +^y25%^w lumière, +^y1^w ruée. ^r-10%^w dégâts.",
+    "de": "+^y50^w Öl, Fähigkeit ^y-40%^w Kosten, +^y25%^w Licht, +^y1^w Sprint. ^r-10%^w Schaden.",
+    "pt": "+^y50^w de óleo, habilidade ^y-40%^w de custo, +^y25%^w de luz, +^y1^w investida. ^r-10%^w de dano.",
+    "ru": "+^y50^w масла, способность ^y-40%^w цены, +^y25%^w света, +^y1^w рывок. ^r-10%^w урона.",
+    "zh": "灯油 +^y50^w，技能消耗 ^y-40%^w，光照 +^y25%^w，冲刺 +^y1^w。伤害 ^r-10%^w。",
+    "ja": "油 +^y50^w、アビリティのコスト ^y-40%^w、光 +^y25%^w、ダッシュ +^y1^w。ダメージ ^r-10%^w。",
+    "ko": "기름 +^y50^w, 능력 비용 ^y-40%^w, 빛 +^y25%^w, 대시 +^y1^w. 피해 ^r-10%^w."
   },
   "Reach the fourth depth.": {
     "it": "Raggiungi la quarta profondità.",
@@ -2056,16 +2056,16 @@
     "ja": "猛きフレア",
     "ko": "사나운 플레어"
   },
-  "The Flare costs ^y25%^w less and deals +^y50%^w damage.": {
-    "it": "La Vampata costa il ^y25%^w in meno e fa +^y50%^w danno.",
-    "es": "La Llamarada cuesta un ^y25%^w menos y hace +^y50%^w de daño.",
-    "fr": "L'Embrasement coûte ^y25%^w de moins et inflige +^y50%^w dégâts.",
-    "de": "Der Flammenstoß kostet ^y25%^w weniger und macht +^y50%^w Schaden.",
-    "pt": "A Labareda custa ^y25%^w a menos e causa +^y50%^w de dano.",
-    "ru": "Вспышка стоит на ^y25%^w меньше и наносит +^y50%^w урона.",
-    "zh": "烈焰消耗减少 ^y25%^w，伤害 +^y50%^w。",
-    "ja": "フレアのコストが ^y25%^w 下がり、ダメージ +^y50%^w。",
-    "ko": "플레어 비용이 ^y25%^w 줄고 피해 +^y50%^w."
+  "Your ability costs ^y25%^w less and deals +^y50%^w damage.": {
+    "it": "La tua abilità costa il ^y25%^w in meno e fa +^y50%^w danno.",
+    "es": "Tu habilidad cuesta un ^y25%^w menos y hace +^y50%^w de daño.",
+    "fr": "Votre capacité coûte ^y25%^w de moins et inflige +^y50%^w dégâts.",
+    "de": "Deine Fähigkeit kostet ^y25%^w weniger und macht +^y50%^w Schaden.",
+    "pt": "Sua habilidade custa ^y25%^w a menos e causa +^y50%^w de dano.",
+    "ru": "Ваша способность стоит на ^y25%^w меньше и наносит +^y50%^w урона.",
+    "zh": "你的技能消耗减少 ^y25%^w，伤害 +^y50%^w。",
+    "ja": "アビリティのコストが ^y25%^w 下がり、ダメージ +^y50%^w。",
+    "ko": "능력 비용이 ^y25%^w 줄고 피해 +^y50%^w."
   },
   "Thirst": {
     "it": "Sete",
@@ -2727,16 +2727,16 @@
     "ja": "始まりの火の熾火",
     "ko": "최초의 불의 잉걸"
   },
-  "+^y1^w orbiting firefly. The Flare costs half.": {
-    "it": "+^y1^w lucciola orbitante. La Vampata costa la metà.",
-    "es": "+^y1^w luciérnaga orbital. La Llamarada cuesta la mitad.",
-    "fr": "+^y1^w luciole en orbite. L'Embrasement coûte moitié moins.",
-    "de": "+^y1^w kreisendes Glühwürmchen. Der Flammenstoß kostet die Hälfte.",
-    "pt": "+^y1^w vaga-lume orbitante. A Labareda custa metade.",
-    "ru": "+^y1^w светлячок на орбите. Вспышка стоит вдвое меньше.",
-    "zh": "+^y1^w 只环绕萤火虫。烈焰消耗减半。",
-    "ja": "周回する蛍 +^y1^w。フレアのコストが半分。",
-    "ko": "궤도 반딧불이 +^y1^w. 플레어 비용이 절반."
+  "+^y1^w orbiting firefly. Your ability costs half.": {
+    "it": "+^y1^w lucciola orbitante. La tua abilità costa la metà.",
+    "es": "+^y1^w luciérnaga orbital. Tu habilidad cuesta la mitad.",
+    "fr": "+^y1^w luciole en orbite. Votre capacité coûte moitié moins.",
+    "de": "+^y1^w kreisendes Glühwürmchen. Deine Fähigkeit kostet die Hälfte.",
+    "pt": "+^y1^w vaga-lume orbitante. Sua habilidade custa metade.",
+    "ru": "+^y1^w светлячок на орбите. Способность стоит вдвое меньше.",
+    "zh": "+^y1^w 只环绕萤火虫。技能消耗减半。",
+    "ja": "周回する蛍 +^y1^w。アビリティのコストが半分。",
+    "ko": "궤도 반딧불이 +^y1^w. 능력 비용이 절반."
   },
   "Skeleton Key": {
     "it": "Chiave dello Scheletro",
@@ -3981,16 +3981,16 @@
     "ja": "油",
     "ko": "기름"
   },
-  "Flare cost": {
-    "it": "Costo Vampata",
-    "es": "Coste Llamarada",
-    "fr": "Coût Embras.",
-    "de": "Stoßkosten",
-    "pt": "Custo Labareda",
-    "ru": "Цена Вспышки",
-    "zh": "烈焰消耗",
-    "ja": "フレアコスト",
-    "ko": "플레어 비용"
+  "Ability cost": {
+    "it": "Costo abilità",
+    "es": "Coste habilidad",
+    "fr": "Coût capacité",
+    "de": "Fähigkeitskosten",
+    "pt": "Custo habilidade",
+    "ru": "Цена способности",
+    "zh": "技能消耗",
+    "ja": "アビリティコスト",
+    "ko": "능력 비용"
   },
   "Light": {
     "it": "Luce",
@@ -6466,5 +6466,16 @@
     "zh": "^y奥术齐射^w：向四面八方射出 ^y12^w 支穿透魔矢。消耗 ^y40^w 灯油。",
     "ja": "^yアーケインボレー^w：全方向に ^y12^w 本の貫通する魔弾を放つ。油を ^y40^w 消費。",
     "ko": "^y비전 일제사격^w: 모든 방향으로 관통하는 화살 ^y12^w발을 고리 모양으로 쏜다. 기름 ^y40^w 소모."
+  },
+  "Ability": {
+    "it": "Abilità",
+    "es": "Habilidad",
+    "fr": "Capacité",
+    "de": "Fähigkeit",
+    "pt": "Habilidade",
+    "ru": "Способность",
+    "zh": "技能",
+    "ja": "アビリティ",
+    "ko": "능력"
   }
 }

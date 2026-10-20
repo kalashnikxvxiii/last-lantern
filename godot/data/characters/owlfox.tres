@@ -7,6 +7,7 @@ script = ExtResource("1")
 id = "owlfox"
 name = "Owlfox"
 sprite = "player_owlfox"
+cost = 30.0
 desc = "^yTalon Dash^w: dashes toward your aim, striking everything in the way. Costs ^y30^w oil."
 unlock_stat = "runs"
 unlock_min = 10

@@ -1,11 +1,13 @@
 class_name CharacterDef
 extends Resource
 # Godot-only: the character chosen with the lantern before a run. It gives
-# the look; the stats come from the lantern.
+# the look and the ability on the right button (Player.use_ability, matched
+# by id); the stats come from the lantern.
 
 @export var id := ""
 @export var name := ""
 @export var sprite := "player"
+@export var cost := 40.0   # oil, scaled by the stat flareCost (40 at the start)
 @export_multiline var desc := ""
 @export var unlock_stat := ""    # key of Save.data.stats; "" = always available
 @export var unlock_min := 0

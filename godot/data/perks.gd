@@ -27,7 +27,7 @@ static var ALL := {
 	"dashfire": {"name": "Burning Trail", "rar": 1, "max": 1, "icon": "i_flame", "desc": "Dashing leaves a ^ofire trail^w that burns enemies."},
 	"fury": {"name": "Frenzy", "rar": 1, "max": 2, "icon": "i_rate", "desc": "Each kill: +^y35%^w fire rate for ^y2.5^w seconds."},
 	"dodge": {"name": "Reflexes", "rar": 1, "max": 3, "icon": "i_wing", "desc": "^y10%^w chance to dodge a hit."},
-	"flare": {"name": "Fierce Flare", "rar": 1, "max": 2, "icon": "i_sun", "desc": "The Flare costs ^y25%^w less and deals +^y50%^w damage."},
+	"flare": {"name": "Fierce Flare", "rar": 1, "max": 2, "icon": "i_sun", "desc": "Your ability costs ^y25%^w less and deals +^y50%^w damage."},
 	"leech": {"name": "Thirst", "rar": 1, "max": 3, "icon": "i_blood", "desc": "Each kill heals ^y1^w health."},
 	"critdmg": {"name": "Killing Blow", "rar": 1, "max": 3, "icon": "i_skull", "desc": "+^y50%^w critical hit damage."},
 	"oileff": {"name": "Clean Wick", "rar": 1, "max": 2, "icon": "i_lantern", "desc": "Oil burns ^y35%^w slower."},

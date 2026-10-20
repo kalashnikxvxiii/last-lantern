@@ -99,7 +99,7 @@ static func stats_panel(ci: CanvasItem, x: float, y: float, w: float, h: float) 
 		["Damage", "%.1f" % p.damage()], ["Fire rate", "%.2f/s" % p.fire_rate()], ["Projectiles", U.num(s.proj)],
 		["Crit", str(int(U.jround(s.crit * 100))) + "%  x" + ("%.1f" % s.critMult)], ["Speed", str(int(U.jround(p.speed())))], ["Armor", U.num(s.armor)],
 		["Dodge", str(int(U.jround(s.dodge * 100))) + "%"], ["Dashes", U.num(s.dashCharges)], ["Oil", str(int(U.jround(p.oil))) + "/" + U.num(s.maxOil)],
-		["Flare cost", str(int(U.jround(s.flareCost)))], ["Light", str(int(U.jround(p.light())))],
+		["Ability cost", str(int(U.jround(p.ability_cost())))], ["Light", str(int(U.jround(p.light())))],
 	]
 	for i in rows.size():
 		UiDraw.text(ci, rows[i][0], x + 8, y + 20 + i * 10, {"color": "#8a8294"})

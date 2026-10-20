@@ -7,6 +7,7 @@ script = ExtResource("1")
 id = "goblin"
 name = "Goblin"
 sprite = "player_goblin"
+cost = 35.0
 desc = "^ySmoke Bomb^w: blinds nearby enemies for ^y3^w seconds and makes you invisible for ^y2^w. Costs ^y35^w oil."
 unlock_stat = "kills"
 unlock_min = 100

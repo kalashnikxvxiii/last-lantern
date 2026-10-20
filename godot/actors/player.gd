@@ -44,6 +44,9 @@ var anim := 0.0
 var moving := false
 var lantern := "warden"
 var character := "wanderer"   # Godot-only
+var overclock_t := 0.0   # Godot-only: the Cogling's Overclock armor
+var talon := false   # Godot-only: the dash is the Owlfox's Talon Dash
+var talon_hit: Dictionary = {}   # instance ids struck by this Talon Dash
 var stats: Dictionary = Stats.base()
 var dead := false
 var last_hit := ""
@@ -119,7 +122,8 @@ func light() -> float:
 
 # pure part of hurtPlayer: effective damage after armor, frailty and darkness
 func damage_taken(amount: float) -> int:
-	var d: float = amount * stats.dmgTaken * (1 - minf(0.6, stats.armor * 0.07))
+	var armor: float = stats.armor + (2.0 if overclock_t > 0 else 0.0)   # Godot-only: Overclock
+	var d: float = amount * stats.dmgTaken * (1 - minf(0.6, armor * 0.07))
 	if statuses.has("fragile"):
 		d *= 1.3
 	if oil <= 0:
@@ -179,6 +183,7 @@ func tick(dt: float) -> void:
 		return
 	inv = maxf(0.0, inv - dt)
 	flare_cd = maxf(0.0, flare_cd - dt)
+	overclock_t = maxf(0.0, overclock_t - dt)
 	# aim
 	aim = Controls.aim_angle(x, y, aim)
 	facing = 1 if cos(aim) >= 0 else -1
@@ -221,7 +226,10 @@ func tick(dt: float) -> void:
 				Effects.add({"type": "fire", "x": x, "y": y + 3, "r": 8.0, "life": 2.2, "owner": "player"})
 		if s.dashReflect:
 			reflect_bullets(x, y, 26)
+		if talon:
+			talon_strike()
 	else:
+		talon = false
 		var sp := speed()
 		mvx = mv.x * sp
 		mvy = mv.y * sp
@@ -249,7 +257,7 @@ func tick(dt: float) -> void:
 		fire_cd = 1 / fire_rate()
 	# flare
 	if Controls.flare():
-		try_flare()
+		use_ability()
 	# consumables
 	var sl := Controls.slot()
 	if sl >= 0:
@@ -327,9 +335,14 @@ func fire_volley(aim_: float, is_echo: bool = false) -> void:
 	Particles.burst(lx, ly, 3, ["#f6cf57", "#f29c38"], 50, 0.2, {"angle": aim_, "spread": 0.5})
 	Sfx.play("shoot")
 
-func try_flare() -> void:
-	var s := stats
-	var cost: float = s.flareCost
+# Godot-only: the character's ability costs its share of the Flare's cost,
+# so what lowers the Flare's cost lowers every ability's
+func ability_cost() -> float:
+	return stats.flareCost * (DB.character(character).cost / 40.0)
+
+# the oil and cooldown part of tryFlare; Godot-only: the character picks the ability
+func use_ability() -> void:
+	var cost := ability_cost()
 	if flare_cd > 0:
 		return
 	if oil < cost:
@@ -339,6 +352,17 @@ func try_flare() -> void:
 		return
 	oil -= cost
 	flare_cd = 0.9
+	match character:
+		"goblin": smoke_bomb()
+		"stranger": phase_jump()
+		"cogling": overclock()
+		"owlfox": talon_dash()
+		"wizard": arcane_volley()
+		_: flare()
+
+# the effect part of tryFlare
+func flare() -> void:
+	var s := stats
 	var R := 64.0
 	var dmg: float = damage() * 3 * s.flareMult
 	for e in Run.enemies.duplicate():
@@ -358,6 +382,75 @@ func try_flare() -> void:
 	Fx.shake(5)
 	Sfx.play("flare")
 	inv = maxf(inv, 0.25)
+
+# Godot-only: the Goblin blinds the enemies around and slips out of sight
+func smoke_bomb() -> void:
+	var R := 56.0
+	for e in Run.enemies:
+		if not e.dead and not e.spawning and U.dist(e.x, e.y, x, y) < R + e.r:
+			Status.add(e, "blind", 3)
+	Status.add(self, "invis", 2)
+	Particles.burst(x, y, 36, ["#55505e", "#8a8294", "#b8b2c2"], 90, 0.9)
+	Sfx.play("flare", 0.5)
+
+# Godot-only: the Stranger leaves a chilling pulse and reappears up to 80 px
+# along the aim, on the farthest free spot (over rocks, through projectiles)
+func phase_jump() -> void:
+	var R := 48.0
+	for e in Run.enemies:
+		if not e.dead and not e.spawning and U.dist(e.x, e.y, x, y) < R + e.r:
+			Status.add(e, "chill", 2.5)
+	Effects.add({"type": "flare", "x": x, "y": y, "r": R, "life": 0.35})
+	Particles.burst(x, y, 20, ["#c8f2f5", "#7fd8e6", "#7866a0"], 80, 0.5)
+	var d := 80.0
+	while d > 0:
+		var nx := clampf(x + cos(aim) * d, Consts.RX + r, Consts.RX + Consts.RW * Consts.TS - r)
+		var ny := clampf(y + sin(aim) * d, Consts.RY + r, Consts.RY + Consts.RH * Consts.TS - r)
+		if not Coll.collides(Run.room, nx, ny, r, false, true):
+			x = nx
+			y = ny
+			break
+		d -= 4
+	Particles.burst(x, y, 20, ["#c8f2f5", "#7fd8e6", "#7866a0"], 80, 0.5)
+	inv = maxf(inv, 0.3)
+	Sfx.play("dash")
+
+# Godot-only: the Cogling runs hot: Rage and +2 armor for 5 seconds
+func overclock() -> void:
+	Status.add(self, "rage", 5)
+	overclock_t = 5.0
+	Particles.burst(x, y, 24, ["#ffb040", "#b0763c", "#fff2a8"], 70, 0.5)
+	Sfx.play("shield")
+
+# Godot-only: the Owlfox dashes along the aim, without spending a dash;
+# talon_strike hits each enemy on the way once
+func talon_dash() -> void:
+	dash_dx = cos(aim)
+	dash_dy = sin(aim)
+	dash_t = 0.16 * stats.dashDist
+	talon = true
+	talon_hit = {}
+	Particles.burst(x, y + 4, 10, ["#c06a30", "#ffc040"], 50, 0.4)
+	Sfx.play("dash")
+
+func talon_strike() -> void:
+	for e in Run.enemies.duplicate():
+		if e.dead or e.spawning or e.intangible or talon_hit.has(e.get_instance_id()):
+			continue
+		if U.dist(e.x, e.y, x, y) < e.r + r + 4:
+			talon_hit[e.get_instance_id()] = true
+			Combat.hit_enemy(e, damage() * 2.5 * stats.flareMult, {"kx": dash_dx, "ky": dash_dy, "kb": 220})
+
+# Godot-only: the Wizard fires a ring of 12 piercing bolts
+func arcane_volley() -> void:
+	var s := stats
+	var dmg: float = damage() * 1.5 * s.flareMult
+	for i in 12:
+		var a := aim + TAU * i / 12.0
+		Run.bullets.append({"x": x, "y": y - 3, "vx": cos(a) * s.shotSpeed, "vy": sin(a) * s.shotSpeed, "r": s.shotSize + 1,
+			"dmg": dmg, "crit": false, "life": (s["range"] * 1.2) / s.shotSpeed, "pierce": 99, "bounce": 0, "hit": {}, "kind": "comet", "t": 0.0})
+	Particles.burst(x, y - 3, 24, ["#e8e8ff", "#5272c4", "#7fd8e6"], 90, 0.5)
+	Sfx.play("flare", 0.6)
 
 func reflect_bullets(px: float, py: float, R: float) -> void:
 	for b in Run.ebullets:

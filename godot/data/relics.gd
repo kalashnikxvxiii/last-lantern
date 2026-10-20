@@ -17,7 +17,7 @@ static var ALL := {
 	"r_anvil": {"name": "Anvil", "icon": "i_anvil", "desc": "+^y50%^w damage, bigger projectiles. ^r-20%^w fire rate."},
 	"r_feather": {"name": "Raven Feather", "icon": "i_wing", "desc": "+^y1^w dash charge, longer dash that recharges faster."},
 	"r_moth": {"name": "Moth Wings", "icon": "i_wing", "desc": "Immune to ^gpoison^w and ^sslow^w. +^y10%^w speed."},
-	"r_ember": {"name": "Ember of the First Fire", "icon": "i_flame", "desc": "+^y1^w orbiting firefly. The Flare costs half."},
+	"r_ember": {"name": "Ember of the First Fire", "icon": "i_flame", "desc": "+^y1^w orbiting firefly. Your ability costs half."},
 	"r_key": {"name": "Skeleton Key", "icon": "i_key", "desc": "+^y3^w keys. Golden chests are more generous.", "onTake": true},
 	"r_blood": {"name": "Blood Pact", "icon": "i_cup", "desc": "+^y60%^w damage below 40% health. ^pCurse:^w Bitter Blood.", "curse": "c_blood"},
 	"r_ice": {"name": "Heart of Frost", "icon": "i_ice", "desc": "All hits ^cchill^w. Immune to frost."},

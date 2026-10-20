@@ -65,8 +65,8 @@ func _hud() -> void:
 	Spr.draw(self, "oil", 0, 8, 17)
 	var oil_f: float = p.oil / s.maxOil
 	UiDraw.bar(self, 16, 15, 92, 4, oil_f, "#3b3546" if p.oil <= 0 else "#d88a28", "#1e140a", "#f6cf57")
-	var cx := 16 + U.jround(92 * minf(1, float(s.flareCost) / s.maxOil))
-	var ready: bool = p.oil >= s.flareCost
+	var cx := 16 + U.jround(92 * minf(1, p.ability_cost() / s.maxOil))   # Godot-only: the character's ability
+	var ready: bool = p.oil >= p.ability_cost()
 	UiDraw.px_rect(self, cx, 13, 1, 8, "#fff2a8" if ready else "#5a4428")
 	if p.oil <= 0:
 		UiDraw.text(self, "DARK", 62, 13, {"align": "center", "color": "#e0574a" if sin(t * 6) > 0 else "#8a8294"})

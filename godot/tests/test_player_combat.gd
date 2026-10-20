@@ -50,7 +50,7 @@ func test_flare() -> void:
 	Run.ebullets.append({"x": p.x + 20, "y": p.y, "vx": 0.0, "vy": 0.0, "r": 3.0, "dmg": 5.0, "life": 5.0, "kind": "orb",
 		"col": "red", "status": null, "src": "x", "accel": 0.0, "curve": 0.0, "t": 0.0, "big": false})
 	p.oil = 100.0
-	p.try_flare()
+	p.use_ability()
 	near(p.oil, 100.0 - p.stats.flareCost)
 	check(e.hp < e.max_hp)
 	check(e.statuses.has("burn"))
@@ -59,7 +59,7 @@ func test_flare() -> void:
 
 func test_flare_without_oil() -> void:
 	p.oil = 5.0
-	p.try_flare()
+	p.use_ability()
 	eq(p.oil, 5.0)
 	near(p.flare_cd, 0.4)
 
