@@ -70,6 +70,26 @@ func test_flyers_show_over_a_rock_under_them() -> void:
 	check((mid - v.cam.basis.y * 8.0).y >= View3D.ROCK_H, "flying: the bottom edge above the rock")
 	check(not v.hidden(mid), "flying: its details are seen")
 
+func test_a_flyer_over_a_rock_stands_above_it() -> void:
+	v._make_lights()
+	Run.room.grid[8][14] = Consts.T.ROCK
+	var c := RoomU.tile_center(14, 8)
+	var e := TH.spawn("bat", c.x, c.y)
+	v._sync_sprites()
+	var s: Sprite3D = v.sprites[e.get_instance_id()]
+	check(s.position.y >= View3D.ROCK_H, "the sprite is lifted out of the rock: %s" % s.position.y)
+
+func test_a_flyer_by_the_bottom_wall_stays_behind_it() -> void:
+	var ty := Consts.RH - 2
+	Run.room.grid[ty][5] = Consts.T.FLOOR
+	Run.room.grid[ty + 1][5] = Consts.T.WALL
+	var c := RoomU.tile_center(5, ty)
+	var base := Vector3(c.x, 0.0, c.y + Consts.TS / 2.0 - 1.0)   # 1 px from the wall's face
+	var p := base + (v.cam.position - base).normalized() * v.sprite_bias(base, true)
+	# still inside the block: its top and front are between it and the camera
+	check(p.y < View3D.WALL_H and p.z < c.y + Consts.TS * 1.5, "inside the wall: %s" % p)
+	check(v.hidden(p), "the wall covers it")
+
 func test_walls_and_rocks_become_a_mesh() -> void:
 	Run.room.grid[7][14] = Consts.T.ROCK
 	var m := v.build_solids(Run.room)
