@@ -61,6 +61,15 @@ func test_sprites_do_not_move_into_a_rock_in_front() -> void:
 	var b := v.sprite_bias(Vector3(c.x + away.x, 0.0, c.y + away.y))
 	check(b > 0.0 and b < View3D.SPRITE_BIAS, "stops at the rock: %s" % b)
 
+func test_flyers_show_over_a_rock_under_them() -> void:
+	var c := RoomU.tile_center(14, 8)
+	Run.room.grid[8][14] = Consts.T.ROCK
+	var base := Vector3(c.x, 0.0, c.y)
+	eq(v.sprite_bias(base), 0.0, "walking, inside the rock: no bias")
+	var mid := v.sprite_mid(base, 16.0, true)
+	check((mid - v.cam.basis.y * 8.0).y >= View3D.ROCK_H, "flying: the bottom edge above the rock")
+	check(not v.hidden(mid), "flying: its details are seen")
+
 func test_walls_and_rocks_become_a_mesh() -> void:
 	Run.room.grid[7][14] = Consts.T.ROCK
 	var m := v.build_solids(Run.room)

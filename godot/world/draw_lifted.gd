@@ -54,7 +54,7 @@ func _draw() -> void:
 			continue
 		var h := Spr.size(e._spr_name()).y / 2.0
 		var base := v.feet(e.x, e.y, e.z, h * 2)
-		if v.hidden(v.sprite_mid(base, h * 2)):   # behind a wall or a rock
+		if v.hidden(v.sprite_mid(base, h * 2, e.fly)):   # behind a wall or a rock
 			continue
 		_at(v, Vector2(e.x, e.y - e.z + h), base)
 		e.draw_extras(self)
