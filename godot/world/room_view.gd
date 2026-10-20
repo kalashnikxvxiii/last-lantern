@@ -15,12 +15,15 @@ var shadow := DrawCall.new()
 var rocks := TileMapLayer.new()
 var shown: Dictionary = {}
 
+func _init() -> void:
+	# children from the start, so freeing a view that never entered the tree frees them too
+	for n in [floor_layer, rubble, decals, walls, shadow, rocks]:
+		add_child(n)
+
 func _ready() -> void:
 	position = Vector2(Consts.RX, Consts.RY)
 	decals.fn = _draw_decals
 	shadow.fn = _draw_wall_shadow
-	for n in [floor_layer, rubble, decals, walls, shadow, rocks]:
-		add_child(n)
 
 func _process(_delta: float) -> void:
 	if not Run.active or Run.room.is_empty():
