@@ -17,7 +17,7 @@ under each item instead of rewriting the list.
 ## Rooms
 
 - [ ] Challenge rooms: raise the number of waves from 2 to at least 5.
-- [ ] Add multiple rooms layout (as "L" shaped, wider/taller rooms, small size, etc.).
+- [ ] Add multiple rooms layout (as "L" shaped, wider/taller rooms, small size, with scroll screen if a rooms is larger than the normal etc.).
 
 ## Flow
 
