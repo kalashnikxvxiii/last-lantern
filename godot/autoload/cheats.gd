@@ -207,7 +207,7 @@ func spawn_enemy(type: String, mod: Variant = null) -> void:
 	Sfx.play("spawn")
 
 func spawn_boss(id: String) -> void:
-	var c := RoomU.tile_center(14, 7)
+	var c := RoomU.mid(Run.room)
 	var y := c.y + 30 if Run.player.y < c.y else c.y - 30
 	Effects.add({"type": "spawn", "x": c.x, "y": y, "life": 1.0, "spec": {"type": "BOSS", "boss": id}})
 	Run.boss_intro = {"t": 0.0, "B": DB.boss(id)}

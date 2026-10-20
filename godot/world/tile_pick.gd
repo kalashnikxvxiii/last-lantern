@@ -18,7 +18,10 @@ static func floor_key(tx: int, ty: int, s: int) -> String:
 	var g := int(floor(U.hash2(tx, ty, s + 5) * 6))
 	return "floor_c%d_%s_g%d" % [int(floor(h * 3)), kind, g]
 
-static func wall_key(tx: int, ty: int, s: int) -> String:
+# Godot-only: in a shaped room (RoomShapes) the floor next to the wall picks the side
+static func wall_key(tx: int, ty: int, s: int, room := {}) -> String:
+	if room.has("shape"):
+		return _wall_by_floor(room, tx, ty, s)
 	var xe := tx == 0 or tx == Consts.RW - 1
 	var ye := ty == 0 or ty == Consts.RH - 1
 	var edge: String
@@ -31,6 +34,21 @@ static func wall_key(tx: int, ty: int, s: int) -> String:
 	elif tx == 0:
 		edge = "left%d" % (ty % 2)
 	else:
+		edge = "right%d" % (ty % 2)
+	return "wall_%s_%d" % [edge, 1 if U.hash2(tx, ty, s + 77) < 0.1 else 0]
+
+static func _wall_by_floor(room: Dictionary, tx: int, ty: int, s: int) -> String:
+	var open := func(x: int, y: int) -> bool:
+		var t := RoomU.tile_at(room, x, y)
+		return t != Consts.T.WALL and t != Consts.T.DOOR
+	var edge := "corner"
+	if open.call(tx, ty + 1):
+		edge = "top"
+	elif open.call(tx, ty - 1):
+		edge = "bottom"
+	elif open.call(tx + 1, ty):
+		edge = "left%d" % (ty % 2)
+	elif open.call(tx - 1, ty):
 		edge = "right%d" % (ty % 2)
 	return "wall_%s_%d" % [edge, 1 if U.hash2(tx, ty, s + 77) < 0.1 else 0]
 

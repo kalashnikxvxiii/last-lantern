@@ -190,7 +190,7 @@ func test_the_rooms_beyond_the_doors_stand_unlit_next_to_this_one() -> void:
 			check(not v.neighbors.has(d), "%s: a hidden door shows nothing" % d)
 			continue
 		var n: MeshInstance3D = v.neighbors[d]
-		var off := RoomU.room_offset(d)
+		var off := RoomU.room_offset(room, room.doors[d])
 		eq(Vector2(n.position.x, n.position.z), off, "%s: right beyond the wall" % d)
 		eq(n.layers, View3D.NEIGHBOR_LAYER)
 		check((n.mesh.surface_get_material(0) as StandardMaterial3D).disable_ambient_light, "dark until a light reaches it")
@@ -210,7 +210,7 @@ func test_the_camera_eases_into_the_next_room() -> void:
 	var target := Fx.cam_target(Run.player.x, Run.player.y)
 	v.start_pan(room, room.doors[d])
 	# the follow's own jump (the player is now at the other side of the room) is part of the move
-	var from := RoomU.room_offset(RoomU.DIRS[d].opp) + Vector2(0, -10) - target
+	var from := RoomU.room_offset(room.doors[d], room) + Vector2(0, -10) - target
 	eq(Fx.cam, target, "the follow is where it wants to be")
 	eq(v.pan_offset(), from, "the camera starts where it was, over the room left behind")
 	v.pan_t = View3D.PAN_TIME * 0.1
@@ -235,7 +235,7 @@ func test_the_lights_change_rooms_with_the_camera() -> void:
 	v.start_pan(room, next)
 	v.build_neighbors(next)
 	eq(View3D.reveal(), 0.0, "entering: the new room's ambient light is still off")
-	var back: MeshInstance3D = v.neighbors[RoomU.DIRS[d].opp]
+	var back: MeshInstance3D = v.neighbors[RoomU.back_door(room, d)]
 	var m := back.mesh.surface_get_material(0) as StandardMaterial3D
 	v.fade_left_room(1.0)
 	near(m.emission_energy_multiplier, 1.0, 1e-6, "the room left behind keeps its light")

@@ -24,8 +24,8 @@ func _draw() -> void:
 	var ga := UiDraw.alpha
 	# flames of braziers and altars, the merchant's lantern
 	var bh := Spr.size("brazier").y / 2.0
-	for ty in range(1, Consts.RH - 1):
-		for tx in range(1, Consts.RW - 1):
+	for ty in range(1, RoomU.rh(room) - 1):
+		for tx in range(1, RoomU.rw(room) - 1):
 			if room.grid[ty][tx] == Consts.T.BRAZIER:
 				var cx: float = Consts.RX + tx * Consts.TS + 8
 				var cy: float = Consts.RY + ty * Consts.TS + 8

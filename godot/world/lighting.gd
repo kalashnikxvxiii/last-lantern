@@ -47,6 +47,8 @@ func refresh(offset: Vector2) -> void:
 	if not visible:
 		return
 	var room := Run.room
+	for r in [light, vignette]:   # Godot-only: over the whole room, however big
+		r.size = RoomU.view_size(room)
 	var amb := ambient(DB.biome_of(Run.depth).dark, Run.depth, room.cleared, room.type == "boss", Run.player.oil <= 0, room.combat)
 	amb = lerpf(1.0, amb, View3D.reveal())   # Godot-only: a room just entered lights up with the camera's move
 	var L := Lights.collect()
@@ -66,6 +68,8 @@ func refresh(offset: Vector2) -> void:
 			cols[i] = Vector4(c.r, c.g, c.b, l.get("ga", 0.1))
 	var m := light.material as ShaderMaterial
 	m.set_shader_parameter("amb", amb)
+	m.set_shader_parameter("view", RoomU.view_size(room))
+	m.set_shader_parameter("room_size", Vector2(RoomU.rw(room), RoomU.rh(room)) * Consts.TS)
 	m.set_shader_parameter("count", n)
 	m.set_shader_parameter("lights", pos)
 	m.set_shader_parameter("colors", cols)
@@ -137,9 +141,9 @@ static func lantern_origin(p: Player) -> Vector2:
 # what blocks the light, OCC_RES texels per tile: walls fill their tile, rocks are
 # round, barrels and urns are small; floor, doors, spikes and braziers let it through
 static func occluder_mask(room: Dictionary) -> Image:
-	var img := Image.create(Consts.RW * OCC_RES, Consts.RH * OCC_RES, false, Image.FORMAT_R8)
-	for ty in Consts.RH:
-		for tx in Consts.RW:
+	var img := Image.create(RoomU.rw(room) * OCC_RES, RoomU.rh(room) * OCC_RES, false, Image.FORMAT_R8)
+	for ty in RoomU.rh(room):
+		for tx in RoomU.rw(room):
 			var t: int = room.grid[ty][tx]
 			for y in OCC_RES:
 				for x in OCC_RES:

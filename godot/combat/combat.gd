@@ -241,7 +241,7 @@ static func chain_lightning(from, dmg: float) -> void:
 static func damage_tile(tx: int, ty: int, dmg: float) -> void:
 	var room := Run.room
 	var t := RoomU.tile_at(room, tx, ty)
-	var k := ty * Consts.RW + tx
+	var k := ty * RoomU.rw(room) + tx
 	if t == Consts.T.BARREL:
 		room.tileHp[k] = room.tileHp.get(k, 18) - dmg
 		if room.tileHp[k] <= 0:
@@ -254,14 +254,14 @@ static func explode_barrel(tx: int, ty: int) -> void:
 	if room.grid[ty][tx] != Consts.T.BARREL:
 		return
 	room.grid[ty][tx] = Consts.T.FLOOR
-	room.tileHp.erase(ty * Consts.RW + tx)
+	room.tileHp.erase(ty * RoomU.rw(room) + tx)
 	var c := RoomU.tile_center(tx, ty)
 	Effects.add({"type": "explosion", "x": c.x, "y": c.y, "r": 36.0, "dmg": 40 + 12 * Run.depth, "owner": "neutral", "life": 0.4, "delay": 0.08})
 
 static func break_urn(tx: int, ty: int) -> void:
 	var room := Run.room
 	room.grid[ty][tx] = Consts.T.FLOOR
-	room.tileHp.erase(ty * Consts.RW + tx)
+	room.tileHp.erase(ty * RoomU.rw(room) + tx)
 	var c := RoomU.tile_center(tx, ty)
 	Particles.burst(c.x, c.y, 14, ["#9a8250", "#6a5a3a", "#c49a6a"], 70, 0.5, {"grav": 120})
 	Sfx.play("thud", 0.6)

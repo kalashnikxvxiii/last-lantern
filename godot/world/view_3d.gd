@@ -51,6 +51,8 @@ var neighbors: Dictionary = {}   # door dir -> the room beyond it, walls and flo
 var pan_from := Vector2.ZERO   # where the camera starts, from the room the player left
 var pan_t := PAN_TIME
 var pan_dir := ""              # the door back to the room the player left, while its light fades
+var px_scale := 3.0            # texels per point of the flat world
+var fitted := Vector2.ZERO     # the size of the flat world, set for the room shown
 
 func _ready() -> void:
 	on = true
@@ -73,23 +75,38 @@ func _ready() -> void:
 		add_child(n)
 	_make_lights()
 	if flat != null:
+		px_scale = float(flat.size.x) / Consts.W
+	fit_room(Run.room)
+	Controls.to_world = screen_to_floor
+	place_camera(Vector2.ZERO, Vector2.ZERO)
+
+# the flat world as big as the room and its margins (the screen for a room of one
+# cell, more for a bigger one, Godot-only), and the shots' plane around it
+func fit_room(room: Dictionary) -> void:
+	var vs := RoomU.view_size(room)
+	if vs == fitted:
+		return
+	fitted = vs
+	if flat != null:
+		flat.size_2d_override = Vector2i(vs)
+		flat.size = Vector2i(vs * px_scale)
 		# only the room: around it the rooms beyond the doors lie on the same floor
-		_screen_plane(floor_mesh, flat, 0.0, Rect2(Consts.RX, Consts.RY, Consts.RW * Consts.TS, Consts.RH * Consts.TS), Rect2(0, 0, Consts.W, Consts.H))
+		var r := Rect2(Consts.RX, Consts.RY, RoomU.rw(room) * Consts.TS, RoomU.rh(room) * Consts.TS)
+		_screen_plane(floor_mesh, flat, 0.0, r, Rect2(Vector2.ZERO, vs))
 		floor_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	if air != null:
-		# wider than the screen, the same pixels per point as the floor
+		# wider than the flat world, the same pixels per point as the floor
 		var v := air_view()
-		air.size = Vector2i(v.size * float(flat.size.x if flat != null else Consts.W) / Consts.W)
+		air.size = Vector2i(v.size * px_scale)
 		air.size_2d_override = Vector2i(v.size)
 		air.canvas_transform = Transform2D(0.0, -v.position)
 		_screen_plane(air_mesh, air, AIR_H, v, v)
 		(air_mesh.material_override as StandardMaterial3D).transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	Controls.to_world = screen_to_floor
-	place_camera(Vector2.ZERO, Vector2.ZERO)
 
-# what the shots' viewport shows of the room: the screen and a margin around it
+# what the shots' viewport shows of the room: the flat world and a margin around it
 static func air_view() -> Rect2:
-	return Rect2(-AIR_MARGIN, -AIR_MARGIN, Consts.W + 2 * AIR_MARGIN, Consts.H + 2 * AIR_MARGIN)
+	var vs := RoomU.view_size(Run.room)
+	return Rect2(-AIR_MARGIN, -AIR_MARGIN, vs.x + 2 * AIR_MARGIN, vs.y + 2 * AIR_MARGIN)
 
 # the lights of the 2D lighting, and for each one the light on the billboards' fronts
 func _make_lights() -> void:
@@ -142,6 +159,7 @@ func _process(delta: float) -> void:
 		return
 	if not is_same(Run.room, shown) or Run.room.get("bgDirty", false):
 		if not is_same(Run.room, shown):
+			fit_room(Run.room)
 			start_pan(shown, Run.room)
 		solids.mesh = build_solids(Run.room)
 		build_gates(Run.room, not is_same(Run.room, shown))
@@ -174,7 +192,7 @@ func start_pan(from: Dictionary, to: Dictionary) -> void:
 		if is_same(to.doors[d], from):
 			# the follow wants the other side of the new room now: its jump is part of the move too
 			var target := Fx.cam_target(Run.player.x, Run.player.y)
-			pan_from = RoomU.room_offset(d) + Fx.cam - target
+			pan_from = RoomU.room_offset(to, from) + Fx.cam - target
 			Fx.cam = target
 			pan_t = 0.0
 			pan_dir = d
@@ -206,19 +224,27 @@ func fade_left_room(energy: float) -> void:
 
 # the rooms behind the visible doors, unlit: a light that passes a doorway shows them
 func build_neighbors(room: Dictionary) -> void:
+	var old := {}
 	for n in neighbors.values():
+		old[n] = true
+	for n in old:
 		n.free()
 	neighbors = {}
-	for d in room.doors:
+	var built := {}   # several doors may lead to the same room: built once
+	for d in RoomU.door_keys(room):
 		if not RoomU.door_visible(room, d):
 			continue
-		var n := MeshInstance3D.new()
-		n.mesh = build_solids(RoomBuilder.layout_of(room.doors[d]), true)
-		var off := RoomU.room_offset(d)
-		n.position = Vector3(off.x, 0, off.y)
-		n.layers = NEIGHBOR_LAYER
-		neighbors[d] = n
-		add_child(n)
+		var nr: Dictionary = room.doors[d]
+		var k := RoomU.key(nr)
+		if not built.has(k):
+			var n := MeshInstance3D.new()
+			n.mesh = build_solids(RoomBuilder.layout_of(nr), true)
+			var off := RoomU.room_offset(room, nr)
+			n.position = Vector3(off.x, 0, off.y)
+			n.layers = NEIGHBOR_LAYER
+			built[k] = n
+			add_child(n)
+		neighbors[d] = built[k]
 
 # where a point of the room shows on the 480x270 screen
 func project(p: Vector3) -> Vector2:
@@ -245,7 +271,7 @@ func hidden(p: Vector3) -> bool:
 	while q.y < WALL_H:
 		var tx := floori((q.x - Consts.RX) / Consts.TS)
 		var ty := floori((q.z - Consts.RY) / Consts.TS)
-		if tx >= 0 and ty >= 0 and tx < Consts.RW and ty < Consts.RH:
+		if RoomU.in_grid(Run.room, tx, ty):
 			var t: int = Run.room.grid[ty][tx]
 			if t == Consts.T.WALL:
 				return true
@@ -308,13 +334,15 @@ func build_solids(room: Dictionary, beyond := false) -> ArrayMesh:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var s: int = room.seed % 1000
-	for ty in Consts.RH:
-		for tx in Consts.RW:
+	for ty in RoomU.rh(room):
+		for tx in RoomU.rw(room):
 			var t: int = room.grid[ty][tx]
 			var x := float(Consts.RX + tx * Consts.TS)
 			var z := float(Consts.RY + ty * Consts.TS)
+			if t == Consts.T.PIT or (t == Consts.T.WALL and RoomU.deep_wall(room, tx, ty)):
+				continue   # the dark in and around a shaped room
 			if t == Consts.T.WALL:
-				var r := src.get_tile_texture_region(TilePick.coords(biome.id, TilePick.wall_key(tx, ty, s)))
+				var r := src.get_tile_texture_region(TilePick.coords(biome.id, TilePick.wall_key(tx, ty, s, room)))
 				var face := Rect2(Vector2(r.position) / ts, Vector2(r.size) / ts)
 				# the top gets its own tiles where the biome has them, else the face again
 				var cap := face
@@ -357,7 +385,7 @@ static func _quad(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, d: Vector
 		st.add_vertex(v[0])
 
 static func _is_wall(room: Dictionary, tx: int, ty: int) -> bool:
-	return tx >= 0 and ty >= 0 and tx < Consts.RW and ty < Consts.RH and room.grid[ty][tx] == Consts.T.WALL
+	return RoomU.in_grid(room, tx, ty) and room.grid[ty][tx] == Consts.T.WALL
 
 func _box(st: SurfaceTool, room: Dictionary, tx: int, ty: int, x: float, z: float, uv: Rect2, cap: Rect2) -> void:
 	var w := float(Consts.TS)
@@ -412,10 +440,10 @@ func build_gates(room: Dictionary, entering: bool) -> void:
 	for d in room.doors:
 		if not RoomU.door_visible(room, d) or DrawGround._door_style(room, d).kind == "secret":
 			continue
-		var t0: Array = RoomU.DIRS[d].tiles[0]
+		var t0: Array = RoomU.door_tiles(d)[0]
 		var x := float(Consts.RX + t0[0] * Consts.TS)
 		var z := float(Consts.RY + t0[1] * Consts.TS)
-		var horiz: bool = d == "n" or d == "s"
+		var horiz: bool = d[0] == "n" or d[0] == "s"
 		var st := SurfaceTool.new()
 		st.begin(Mesh.PRIMITIVE_TRIANGLES)
 		# the 2D bars (DrawGround._doors) in the middle of the doorway, each a shaft

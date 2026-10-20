@@ -43,13 +43,16 @@ static func build_room(room: Dictionary, fl: Dictionary) -> void:
 	var rng := RNG.new(room.seed)
 	var biome := DB.biome_of(fl.depth)
 	lay_out(room, fl, rng)
-	var rw := Consts.RW
-	var rh := Consts.RH
+	var rw := RoomU.rw(room)
+	var rh := RoomU.rh(room)
 	# decorations
-	var n_dec := rng.rint(10, 22)
+	var n_dec := rng.rint(10, 22) * RoomU.cells(room).size()
 	for k in n_dec:
-		room.decals.append({"x": rng.rint(Consts.RX + 18, Consts.RX + rw * Consts.TS - 18), "y": rng.rint(Consts.RY + 18, Consts.RY + rh * Consts.TS - 18),
-			"k": rng.rint(0, 5), "s": rng.next()})
+		var dc := {"x": rng.rint(Consts.RX + 18, Consts.RX + rw * Consts.TS - 18), "y": rng.rint(Consts.RY + 18, Consts.RY + rh * Consts.TS - 18),
+			"k": rng.rint(0, 5), "s": rng.next()}
+		var dt := RoomU.world_to_tile(dc.x, dc.y)
+		if room.grid[dt.y][dt.x] != Consts.T.WALL and room.grid[dt.y][dt.x] != Consts.T.PIT:   # Godot-only: not out of a shaped room
+			room.decals.append(dc)
 
 	# contents
 	var c := RoomU.tile_center(14, 7)
@@ -95,8 +98,8 @@ static func build_room(room: Dictionary, fl: Dictionary) -> void:
 # building them early would draw their relics now.
 static func lay_out(room: Dictionary, fl: Dictionary, rng: RNG) -> void:
 	var biome := DB.biome_of(fl.depth)
-	var rw := Consts.RW
-	var rh := Consts.RH
+	var rw := RoomU.rw(room)
+	var rh := RoomU.rh(room)
 	room.built = true
 	room.grid = []
 	for y in rh:
@@ -113,6 +116,9 @@ static func lay_out(room: Dictionary, fl: Dictionary, rng: RNG) -> void:
 	room.waves = []
 	room.combat = false
 	room.bgDirty = true
+	if room.has("shape"):   # Godot-only: rooms of other sizes and shapes
+		RoomShapes.lay_out(room, rng, biome)
+		return
 
 	var quad: Array
 	if room.type == "boss":
@@ -151,20 +157,21 @@ static func lay_out(room: Dictionary, fl: Dictionary, rng: RNG) -> void:
 				room.grid[y][x] = t
 				room.tileHp[y * rw + x] = 1 if t == Consts.T.URN else 18
 			k += 1
-	# doors and free space in front
-	for d in RoomU.DIRS:
-		if not room.doors.has(d):
-			continue
-		for tt in RoomU.DIRS[d].tiles:
-			room.doorDir[tt[1] * rw + tt[0]] = d
-			room.grid[tt[1]][tt[0]] = Consts.T.DOOR if RoomU.door_visible(room, d) else Consts.T.WALL
-		clear_door_zone(room, d)
+	place_doors(room)
 	# reachability
 	if not RoomU.check_reachable(room):
 		for y in range(1, rh - 1):
 			for x in range(1, rw - 1):
 				room.grid[y][x] = Consts.T.FLOOR
 		room.tileHp = {}
+
+# doors and free space in front
+static func place_doors(room: Dictionary) -> void:
+	for d in RoomU.door_keys(room):
+		for tt in RoomU.door_tiles(d):
+			room.doorDir[tt[1] * RoomU.rw(room) + tt[0]] = d
+			room.grid[tt[1]][tt[0]] = Consts.T.DOOR if RoomU.door_visible(room, d) else Consts.T.WALL
+		clear_door_zone(room, d)
 
 # Godot-only: a room as it will be built, for the view and the shots beyond the doors.
 # One not built yet is laid out on a copy (building it would draw its contents now),
@@ -182,12 +189,18 @@ static func layout_of(r: Dictionary) -> Dictionary:
 		_laid[RoomU.key(r)] = c
 	return c
 
+# Godot-only: around the door's middle tile, and never into the walls of a shaped room
 static func clear_door_zone(room: Dictionary, d: String) -> void:
-	var z: Array = {"n": [11, 1, 17, 2], "s": [11, 12, 17, 13], "w": [1, 5, 2, 9], "e": [26, 5, 27, 9]}[d]
+	var m: Array = RoomU.door_tiles(d)[1]
+	var z: Array = {"n": [-3, 1, 3, 2], "s": [-3, -2, 3, -1], "w": [1, -2, 2, 2], "e": [-2, -2, -1, 2]}[d[0]]
 	for y in range(z[1], z[3] + 1):
 		for x in range(z[0], z[2] + 1):
-			room.grid[y][x] = Consts.T.FLOOR
-			room.tileHp.erase(y * Consts.RW + x)
+			var tx: int = m[0] + x
+			var ty: int = m[1] + y
+			if room.grid[ty][tx] == Consts.T.WALL:
+				continue
+			room.grid[ty][tx] = Consts.T.FLOOR
+			room.tileHp.erase(ty * RoomU.rw(room) + tx)
 
 static func plan_waves(room: Dictionary, fl: Dictionary, rng: RNG, biome: BiomeDef) -> void:
 	var d: int = fl.depth
@@ -215,9 +228,11 @@ static func plan_waves(room: Dictionary, fl: Dictionary, rng: RNG, biome: BiomeD
 			budget *= 0.8
 		if elite:
 			budget *= 0.75
+		budget *= room.get("budget", 1.0)   # Godot-only: bigger and smaller rooms (RoomShapes)
+		var cap := 11 + 5 * (RoomU.cells(room).size() - 1)
 		var wave: Array = []
 		var guard := 0
-		while budget > 0.9 and wave.size() < 11 and guard < 50:
+		while budget > 0.9 and wave.size() < cap and guard < 50:
 			guard += 1
 			var opts: Array = biome.pool.filter(func(o): return o[1] <= budget + 0.4)
 			if opts.is_empty():

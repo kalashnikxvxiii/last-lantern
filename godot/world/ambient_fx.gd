@@ -78,11 +78,15 @@ func _ready() -> void:
 		var m := CanvasItemMaterial.new()
 		m.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
 		material = m
-	# the inner area of the room
-	var w := (Consts.RW - 2) * Consts.TS
-	var h := (Consts.RH - 2) * Consts.TS
+	_fit({})
+
+# the inner area of the room (Godot-only: rooms bigger than one cell too)
+func _fit(room: Dictionary) -> Vector2:
+	var w := (RoomU.rw(room) - 2) * Consts.TS
+	var h := (RoomU.rh(room) - 2) * Consts.TS
 	position = Vector2(Consts.RX + Consts.TS + w / 2.0, Consts.RY + Consts.TS + h / 2.0)
 	visibility_rect = Rect2(-w / 2.0 - 16, -h / 2.0 - 16, w + 32, h + 32)
+	return Vector2(w, h)
 
 func _process(_delta: float) -> void:
 	if not Run.active or Run.room.is_empty():
@@ -91,8 +95,8 @@ func _process(_delta: float) -> void:
 		return
 	var biome: String = DB.biome_of(Run.depth).id
 	var c: Variant = config(biome, glow)
-	var n := scaled(int(c.amount)) if c != null else 0
-	var key := biome + ":" + str(n)
+	var n := scaled(int(c.amount)) * RoomU.cells(Run.room).size() if c != null else 0
+	var key := biome + ":" + str(n) + ":" + str(RoomU.view_size(Run.room))
 	if key != _key:
 		_key = key
 		_room = null
@@ -110,8 +114,9 @@ func _configure(c: Dictionary, n: int) -> void:
 	lifetime = c.life
 	preprocess = c.life
 	randomness = 1.0
-	var w := (Consts.RW - 2) * Consts.TS
-	var h := (Consts.RH - 2) * Consts.TS
+	var size := _fit(Run.room)
+	var w := size.x
+	var h := size.y
 	var m := ParticleProcessMaterial.new()
 	m.particle_flag_disable_z = true
 	m.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX

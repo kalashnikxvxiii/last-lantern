@@ -230,8 +230,8 @@ func tick(dt: float) -> void:
 		mvx += Run.pull.x
 		mvy += Run.pull.y
 	if Cheats.noclip:
-		x = clampf(x + mvx * dt, Consts.RX + r, Consts.RX + Consts.RW * Consts.TS - r)
-		y = clampf(y + mvy * dt, Consts.RY + r, Consts.RY + Consts.RH * Consts.TS - r)
+		x = clampf(x + mvx * dt, Consts.RX + r, Consts.RX + RoomU.rw(Run.room) * Consts.TS - r)
+		y = clampf(y + mvy * dt, Consts.RY + r, Consts.RY + RoomU.rh(Run.room) * Consts.TS - r)
 	else:
 		var bx := Coll.move_axis(self, mvx * dt, 0, false)
 		var by := Coll.move_axis(self, mvy * dt, 1, false)

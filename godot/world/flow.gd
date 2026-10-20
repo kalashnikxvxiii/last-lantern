@@ -31,6 +31,7 @@ static func start_run(lantern_id: String, ardor: int, seed: int = -1) -> void:
 static func new_floor() -> void:
 	var p := Run.player
 	Run.floor = FloorGen.gen_floor(Run.depth, Run.rng)
+	RoomShapes.apply(Run.floor)   # Godot-only
 	p.secondwind_used = false
 	if p.stats.mapReveal:
 		for r in Run.floor.rooms:
@@ -57,9 +58,10 @@ static func check_unlocks() -> void:
 				Run.new_unlocks.append(L.name)
 				Run.toast("New lantern unlocked", "#f6cf57", L.name)
 
-# through: Godot-only, walked in through the doorway: the room starts once the
-# player is past its gate (Flow.check_doors)
-static func enter_room(room: Dictionary, from_dir: Variant, through := false) -> void:
+# entry: Godot-only, the door of this room the player comes in by (in the JS the
+# side of the room left). through: Godot-only, walked in through the doorway:
+# the room starts once the player is past its gate (Flow.check_doors)
+static func enter_room(room: Dictionary, entry: Variant, through := false) -> void:
 	var p := Run.player
 	Run.room = room
 	if not room.built:
@@ -69,12 +71,12 @@ static func enter_room(room: Dictionary, from_dir: Variant, through := false) ->
 	for d in room.doors:
 		if RoomU.door_visible(room, d):
 			room.doors[d].seen = true
-	if from_dir != null:
-		var pos := RoomU.door_entry(RoomU.DIRS[from_dir].opp)
+	if entry != null:
+		var pos := RoomU.door_entry(entry)
 		p.x = pos.x
 		p.y = pos.y
 	else:
-		var c := RoomU.tile_center(14, 7)
+		var c := RoomU.mid(room)
 		p.x = c.x
 		p.y = c.y + 20
 	p.dash_t = 0.0
@@ -156,19 +158,21 @@ static func check_doors(dt: float) -> void:
 		# edge between them, with no fade and no pause, and goes on from the same spot:
 		# moving, dashing, the shots in flight. The camera follows (View3D.start_pan).
 		var go := false
-		match d:
-			"n": go = p.y < ry and absf(p.x - dc.x) < 26
-			"s": go = p.y > ry + Consts.RH * ts and absf(p.x - dc.x) < 26
-			"w": go = p.x < rx and absf(p.y - dc.y) < 26
-			"e": go = p.x > rx + Consts.RW * ts and absf(p.y - dc.y) < 26
+		var t: Array = RoomU.door_tiles(d)[1]
+		match d[0]:
+			"n": go = p.y < ry + t[1] * ts and absf(p.x - dc.x) < 26
+			"s": go = p.y > ry + (t[1] + 1) * ts and absf(p.x - dc.x) < 26
+			"w": go = p.x < rx + t[0] * ts and absf(p.y - dc.y) < 26
+			"e": go = p.x > rx + (t[0] + 1) * ts and absf(p.y - dc.y) < 26
 		if go:
-			var off := RoomU.room_offset(d)
+			var off := RoomU.room_offset(room, room.doors[d])
+			var back := RoomU.back_door(room, d)
 			var at := Vector2(p.x - off.x, p.y - off.y)
 			var dash := p.dash_t
 			var shots: Array = Run.bullets
 			var parts: Array = Particles.list.duplicate()
 			room.erase("entering")
-			enter_room(room.doors[d], d, true)
+			enter_room(room.doors[d], back, true)
 			p.x = at.x
 			p.y = at.y
 			p.dash_t = dash
@@ -177,7 +181,7 @@ static func check_doors(dt: float) -> void:
 				o.y -= off.y
 			Run.bullets = shots
 			Particles.list.append_array(parts)
-			Run.room.entering = RoomU.DIRS[d].opp
+			Run.room.entering = back
 			return
 
 static func update_trans(dt: float) -> void:
@@ -283,10 +287,11 @@ static func room_cleared(room: Dictionary) -> void:
 	Run.rooms_cleared += 1
 	Sfx.play("door")
 	Music.set_intensity(0)
-	var c := RoomU.tile_center(14, 7)
+	var c := RoomU.mid(room)
 	var rx := c.x
 	var ry := c.y
-	if room.grid[7][14] != Consts.T.FLOOR:
+	var m := RoomU.mid_tile(room)
+	if room.grid[m.y][m.x] != Consts.T.FLOOR:
 		rx = Run.player.x
 		ry = Run.player.y - 20
 	if room.type == "elite":

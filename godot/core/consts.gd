@@ -12,4 +12,4 @@ const RX := 8    # room offset on screen
 const RY := 28
 const DT := 1.0 / 60.0
 
-enum T { FLOOR, WALL, ROCK, CRACK, SPIKE, BARREL, BRAZIER, DOOR, URN }
+enum T { FLOOR, WALL, ROCK, CRACK, SPIKE, BARREL, BRAZIER, DOOR, URN, PIT }   # PIT: Godot-only (RoomShapes)

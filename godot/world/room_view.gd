@@ -38,15 +38,17 @@ func show_room(room: Dictionary) -> void:
 		layer.scale = Vector2.ONE * Consts.TS / ts.tile_size.x   # Godot-only: HD tiles on the 16 px grid
 		layer.clear()
 	var s: int = room.seed % 1000
-	for ty in Consts.RH:
-		for tx in Consts.RW:
+	for ty in RoomU.rh(room):
+		for tx in RoomU.rw(room):
 			var cell := Vector2i(tx, ty)
 			var t: int = room.grid[ty][tx]
+			if t == Consts.T.PIT or (t == Consts.T.WALL and RoomU.deep_wall(room, tx, ty)):
+				continue   # Godot-only: the dark around and inside a shaped room
 			if t == Consts.T.WALL or t == Consts.T.DOOR:
-				walls.set_cell(cell, 0, TilePick.coords(biome.id, TilePick.wall_key(tx, ty, s)))
+				walls.set_cell(cell, 0, TilePick.coords(biome.id, TilePick.wall_key(tx, ty, s, room)))
 			else:
 				floor_layer.set_cell(cell, 0, TilePick.coords(biome.id, TilePick.floor_key(tx, ty, s)))
-			if t == Consts.T.FLOOR and room.get("rubble", {}).has(ty * Consts.RW + tx):
+			if t == Consts.T.FLOOR and room.get("rubble", {}).has(ty * RoomU.rw(room) + tx):
 				rubble.set_cell(cell, 0, TilePick.coords(biome.id, TilePick.rubble_key(tx, ty, s)))
 			if t == Consts.T.ROCK or t == Consts.T.CRACK:
 				rocks.set_cell(cell, 0, TilePick.coords(biome.id, TilePick.rock_key(tx, ty, s, t == Consts.T.CRACK)))
@@ -107,12 +109,34 @@ func _draw_decals(ci: CanvasItem) -> void:
 		var ga := UiDraw.alpha
 		UiDraw.alpha = 0.55
 		for i in lines.size():
-			UiDraw.text(ci, lines[i], Consts.RW * Consts.TS / 2.0, 150 + i * 12, {"align": "center", "shadow": false})
+			UiDraw.text(ci, lines[i], Consts.RW * Consts.TS / 2.0, 150 + i * 12, {"align": "center", "shadow": false})   # the start room has one cell
 		UiDraw.alpha = ga
 
 # wall shadow on the floor (renderRoomBg)
 func _draw_wall_shadow(ci: CanvasItem) -> void:
 	var ts := Consts.TS
+	if shown.has("shape"):
+		_draw_shaped_shadow(ci)
+		return
 	UiDraw.px_rect(ci, ts, ts, (Consts.RW - 2) * ts, 4, U.rgba(0, 0, 0, 0.35))
 	UiDraw.px_rect(ci, ts, ts + 4, (Consts.RW - 2) * ts, 3, U.rgba(0, 0, 0, 0.18))
 	UiDraw.px_rect(ci, ts, ts, 3, (Consts.RH - 2) * ts, U.rgba(0, 0, 0, 0.18))
+
+# Godot-only: the same shadow under every wall of a shaped room, from above and from
+# the left, and a darker lip where the floor drops into a pit
+func _draw_shaped_shadow(ci: CanvasItem) -> void:
+	var ts := Consts.TS
+	for ty in range(1, RoomU.rh(shown) - 1):
+		for tx in range(1, RoomU.rw(shown) - 1):
+			var t: int = shown.grid[ty][tx]
+			if t == Consts.T.WALL or t == Consts.T.PIT:
+				continue
+			var x := tx * ts
+			var y := ty * ts
+			if shown.grid[ty - 1][tx] == Consts.T.WALL:
+				UiDraw.px_rect(ci, x, y, ts, 4, U.rgba(0, 0, 0, 0.35))
+				UiDraw.px_rect(ci, x, y + 4, ts, 3, U.rgba(0, 0, 0, 0.18))
+			if shown.grid[ty][tx - 1] == Consts.T.WALL:
+				UiDraw.px_rect(ci, x, y, 3, ts, U.rgba(0, 0, 0, 0.18))
+			if shown.grid[ty + 1][tx] == Consts.T.PIT:
+				UiDraw.px_rect(ci, x, y + ts - 2, ts, 2, U.rgba(0, 0, 0, 0.45))

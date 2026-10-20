@@ -29,7 +29,7 @@ static func save(slot: int) -> bool:
 		var c: Dictionary = r.duplicate()
 		c.doors = {}
 		for d in r.doors:
-			c.doors[d] = FloorGen._key(r.doors[d].gx, r.doors[d].gy)
+			c.doors[d] = RoomU.key(r.doors[d])
 		rooms.append(c)
 	var perks := 0
 	for id in p.perks:
@@ -39,7 +39,7 @@ static func save(slot: int) -> bool:
 		"perks": perks, "relics": p.relics.duplicate(), "endless": Run.endless,
 		"date": Time.get_datetime_string_from_system(false, true)}
 	var d := {"v": 1, "summary": summary, "run": run, "player": player, "rooms": rooms,
-		"room": FloorGen._key(Run.room.gx, Run.room.gy)}
+		"room": RoomU.key(Run.room)}
 	return Save.write_file(path(slot), var_to_bytes(d))
 
 # {} when the slot is empty or unreadable
@@ -76,12 +76,15 @@ static func resume(slot: int) -> bool:
 		p.set(k, d.player[k])
 	Run.player = p
 	var map := {}
+	var by_key := {}   # Godot-only: a room may cover several cells
 	for r in d.rooms:
-		map[FloorGen._key(r.gx, r.gy)] = r
+		by_key[RoomU.key(r)] = r
+		for c in RoomU.cells(r):
+			map[FloorGen._key(r.gx + c.x, r.gy + c.y)] = r
 	var start: Dictionary = {}
 	for r in d.rooms:
 		for dir in r.doors:
-			r.doors[dir] = map[r.doors[dir]]
+			r.doors[dir] = by_key[r.doors[dir]]
 		r.bgDirty = true
 		if r.type == "start":
 			start = r
@@ -90,7 +93,7 @@ static func resume(slot: int) -> bool:
 	Floaters.clear()
 	var x := p.x
 	var y := p.y
-	Flow.enter_room(map[d.room], null)
+	Flow.enter_room(by_key[d.room], null)
 	p.x = x
 	p.y = y
 	Music.play(DB.biome_of(Run.depth).music)

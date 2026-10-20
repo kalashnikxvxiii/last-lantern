@@ -26,6 +26,18 @@ static func fight_until(max_ticks: int, done: Callable) -> bool:
 		Controls.sim = {"device": "mouse", "fire": e != null}
 		if e != null:
 			Controls.sim.mouse = Vector2(e.x, e.y)
+			# a room bigger than one cell: the bot hops within range (it does not walk)
+			var p := Run.player
+			var d := U.dist(e.x, e.y, p.x, p.y)
+			if d > 160:
+				var to := Vector2(e.x + (p.x - e.x) * 120 / d, e.y + (p.y - e.y) * 120 / d)
+				var best := Vector2(p.x, p.y)
+				for t in RoomU.reach_tiles(Run.room):
+					var c := RoomU.tile_center(t.x, t.y)
+					if Run.room.grid[t.y][t.x] == Consts.T.FLOOR and c.distance_to(to) < best.distance_to(to):
+						best = c
+				p.x = best.x
+				p.y = best.y
 		Flow.update_common(Consts.DT)
 		if Run.trans != null:
 			Flow.update_trans(Consts.DT)
@@ -48,9 +60,11 @@ func _clear_rooms(types: Array) -> void:
 		if not types.has(r.type):
 			continue
 		RoomBuilder.build_room(r, Run.floor)
-		for ty in range(1, Consts.RH - 1):
-			for tx in range(1, Consts.RW - 1):
-				r.grid[ty][tx] = Consts.T.FLOOR   # the bot does not walk: no cover
+		for ty in range(1, RoomU.rh(r) - 1):
+			for tx in range(1, RoomU.rw(r) - 1):
+				var c := RoomU.tile_center(tx, ty)
+				if RoomU.beyond(r, c.x, c.y) == null:   # out of a room of several cells stays out
+					r.grid[ty][tx] = Consts.T.FLOOR   # the bot does not walk: no cover, nor walls in a shaped room
 		Flow.enter_room(r, null)
 		var arena := Run.room
 		check(fight_until(9000, func(): return arena.cleared or Run.player.dead or Run.won), "%s room %s cleared on depth %d (%s left)" % [r.type, RoomU.key(r), Run.depth, Run.enemies.map(func(e): return e.type)])

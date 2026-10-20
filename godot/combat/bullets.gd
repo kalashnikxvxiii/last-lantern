@@ -21,15 +21,14 @@ static func shot_opts(e) -> Dictionary:
 		o.status = "poison"
 	return o
 
-# Godot-only: a shot over the room beyond door d flies straight on, harmless there:
-# that room's walls, rocks and objects only stop it
-static func _fly_beyond(b: Dictionary, d: String, dt: float) -> void:
-	var n: Variant = Run.room.doors.get(d)
+# Godot-only: a shot over room n, beyond a door, flies straight on, harmless there:
+# that room's walls, rocks and objects only stop it ({}: no room there)
+static func _fly_beyond(b: Dictionary, n: Dictionary, dt: float) -> void:
 	var nx: float = b.x + b.vx * dt
 	var ny: float = b.y + b.vy * dt
-	var off := RoomU.room_offset(d)
+	var off := RoomU.room_offset(Run.room, n) if not n.is_empty() else Vector2.ZERO
 	var t := RoomU.world_to_tile(nx - off.x, ny - off.y)
-	if n == null or not RoomU.walkable(RoomU.tile_at(RoomBuilder.layout_of(n), t.x, t.y)):
+	if n.is_empty() or not RoomU.walkable(RoomU.tile_at(RoomBuilder.layout_of(n), t.x, t.y)):
 		b.dead = true
 		Particles.burst(b.x, b.y, 4, ["#f29c38", "#f6cf57"], 40, 0.25)
 		return
@@ -50,8 +49,8 @@ static func update_player(dt: float) -> void:
 		if b.life <= 0:
 			b.dead = true
 			continue
-		var out := RoomU.beyond_dir(b.x, b.y)
-		if out != "":
+		var out: Variant = RoomU.beyond(room, b.x, b.y)
+		if out != null:
 			_fly_beyond(b, out, dt)
 			continue
 		if s.homing and b.kind != "shard":
@@ -190,7 +189,7 @@ static func update_enemy(dt: float) -> void:
 			b.dead = true
 			Particles.burst(b.x, b.y, 3, color_of(b), 30, 0.2)
 			continue
-		if ghost and (t.x <= 0 or t.y <= 0 or t.x >= Consts.RW - 1 or t.y >= Consts.RH - 1):
+		if ghost and (t.x <= 0 or t.y <= 0 or t.x >= RoomU.rw(room) - 1 or t.y >= RoomU.rh(room) - 1):
 			b.dead = true
 			continue
 		if not p.dead and U.dist2(b.x, b.y, p.x, p.y - 1) < (b.r + 2.5) * (b.r + 2.5):

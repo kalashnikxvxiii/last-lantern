@@ -26,18 +26,17 @@ func test_bomb_reveals_the_secret_passage() -> void:
 			continue
 		var host: Dictionary = {}
 		var dir := ""
-		for d in RoomU.DIRS:
-			var n = RoomU.room_at(Run.floor, secret.gx - RoomU.DIRS[d].dx, secret.gy - RoomU.DIRS[d].dy)
-			if n != null and n.type != "secret":
-				host = n
-				dir = d
-				break
+		for d in secret.doors:
+			host = secret.doors[d]
+			dir = RoomU.back_door(secret, d)
+			break
 		Flow.enter_room(host, null)
 		var dc := RoomU.door_center(dir)
 		Effects.place_bomb(dc.x, dc.y, "player")
 		_run_fx(1.6)
 		check(secret.found, "secret found")
-		eq(Run.room.grid[RoomU.DIRS[dir].tiles[1][1]][RoomU.DIRS[dir].tiles[1][0]], Consts.T.DOOR)
+		var t: Array = RoomU.door_tiles(dir)[1]
+		eq(Run.room.grid[t[1]][t[0]], Consts.T.DOOR)
 		return
 	fail("no floor with a secret room in seeds 1-39")
 

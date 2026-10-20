@@ -26,35 +26,60 @@ static func minimap(ci: CanvasItem, x0: float, y0: float, full: bool) -> void:
 	var nx := 9
 	var ny := 8
 	if not full:
-		gx0 = cur.gx - 2
-		gy0 = cur.gy - 1
+		# Godot-only: around the cell the player is in, in a room of several
+		gx0 = cur.gx + clampi(floori((Run.player.x - Consts.RX) / (Consts.RW * Consts.TS)), 0, int(cur.get("cw", 1)) - 1) - 2
+		gy0 = cur.gy + clampi(floori((Run.player.y - Consts.RY) / (Consts.RH * Consts.TS)), 0, int(cur.get("ch", 1)) - 1) - 1
 		nx = 5
 		ny = 3
 		UiDraw.px_rect(ci, x0 - 1, y0 - 1, 82, 25, "#0b0810")
-	for r in Run.floor.rooms:
-		var gx: int = r.gx - gx0
-		var gy: int = r.gy - gy0
+	# Godot-only: a room of several cells (RoomShapes) shows as one, its doors on the cells they are in
+	var at := func(r: Dictionary, c: Vector2i) -> Variant:
+		var gx: int = r.gx + c.x - gx0
+		var gy: int = r.gy + c.y - gy0
 		if gx < 0 or gy < 0 or gx >= nx or gy >= ny:
-			continue
+			return null
+		return Vector2(x0 + gx * (cw + gap), y0 + gy * (ch + gap))
+	for r in Run.floor.rooms:
 		if not room_known(r):
 			continue
-		var x := x0 + gx * (cw + gap)
-		var y := y0 + gy * (ch + gap)
+		var cs := RoomU.cells(r)
+		if cs.all(func(c): return at.call(r, c) == null):
+			continue
 		var is_cur := is_same(r, cur)
 		var fill := "#4a4256" if r.visited else "#1f1a26"
 		if is_cur:
 			fill = "#d8b46a"
-		UiDraw.px_rect(ci, x, y, cw, ch, "#6b6478")
-		UiDraw.px_rect(ci, x + 1, y + 1, cw - 2, ch - 2, fill)
+		for c in cs:
+			var p: Variant = at.call(r, c)
+			if p != null:
+				UiDraw.px_rect(ci, p.x, p.y, cw, ch, "#6b6478")
+		for c in cs:
+			var p: Variant = at.call(r, c)
+			if p == null:
+				continue
+			UiDraw.px_rect(ci, p.x + 1, p.y + 1, cw - 2, ch - 2, fill)
+			if cs.has(c + Vector2i(1, 0)):
+				UiDraw.px_rect(ci, p.x + cw - 1, p.y + 1, gap + 2, ch - 2, fill)
+			if cs.has(c + Vector2i(0, 1)):
+				UiDraw.px_rect(ci, p.x + 1, p.y + ch - 1, cw - 2, gap + 2, fill)
 		# corridors
 		for d in r.doors:
 			var n: Dictionary = r.doors[d]
 			if not RoomU.door_visible(r, d) or not room_known(n):
 				continue
-			if d == "e":
-				UiDraw.px_rect(ci, x + cw, y + ch / 2.0 - 1, gap, 2, "#6b6478")
-			if d == "s":
-				UiDraw.px_rect(ci, x + cw / 2.0 - 1, y + ch, 2, gap, "#6b6478")
+			var p: Variant = at.call(r, RoomU.door_cell(d))
+			if p == null:
+				continue
+			var k: float = {"": 0.0, "a": -1.0, "b": 1.0}[RoomU.door_slot(d)]
+			if d[0] == "e":
+				UiDraw.px_rect(ci, p.x + cw, p.y + ch / 2.0 - 1 + k * ch / 4.0, gap, 2, "#6b6478")
+			if d[0] == "s":
+				UiDraw.px_rect(ci, p.x + cw / 2.0 - 1 + k * cw / 4.0, p.y + ch, 2, gap, "#6b6478")
+		var p0: Variant = at.call(r, cs[0])   # the room's mark, on its first cell
+		if p0 == null:
+			continue
+		var x: float = p0.x
+		var y: float = p0.y
 		var mk: Variant = ROOM_MARK.get(r.type)
 		if mk != null and r.type != "start":
 			var s := 5 if full else 2

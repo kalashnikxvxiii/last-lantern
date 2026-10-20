@@ -59,8 +59,8 @@ func _doors(room: Dictionary) -> void:
 		if not RoomU.door_visible(room, d):
 			continue
 		var st := _door_style(room, d)
-		var t0: Array = RoomU.DIRS[d].tiles[0]
-		var horiz: bool = d == "n" or d == "s"
+		var t0: Array = RoomU.door_tiles(d)[0]
+		var horiz: bool = d[0] == "n" or d[0] == "s"
 		var x: float = Consts.RX + t0[0] * ts
 		var y: float = Consts.RY + t0[1] * ts
 		var w: float = ts * 3 if horiz else ts
@@ -133,8 +133,8 @@ static func padlock(ci: CanvasItem, lx: float, ly: float) -> void:
 func _dynamic_tiles(room: Dictionary) -> void:
 	var up := RoomU.spikes_up(room)
 	var warn := RoomU.spikes_warn(room)
-	for ty in range(1, Consts.RH - 1):
-		for tx in range(1, Consts.RW - 1):
+	for ty in range(1, RoomU.rh(room) - 1):
+		for tx in range(1, RoomU.rw(room) - 1):
 			var t: int = room.grid[ty][tx]
 			if t == Consts.T.FLOOR or t == Consts.T.ROCK or t == Consts.T.CRACK:
 				continue
@@ -154,7 +154,7 @@ func _dynamic_tiles(room: Dictionary) -> void:
 						UiDraw.px_rect(self, x + o[0], y + o[1] - 1, 1, 1, "#a59fb0")
 			elif t == Consts.T.BARREL:
 				UiDraw.shadow(self, cx, cy + 6, 6)
-				var hp: float = room.tileHp.get(ty * Consts.RW + tx, 18)
+				var hp: float = room.tileHp.get(ty * RoomU.rw(room) + tx, 18)
 				Spr.draw(self, "barrel", 0, cx, cy, {"flash": hp < 18 and sin(Fx.time * 20) > 0.6})
 			elif t == Consts.T.URN:
 				UiDraw.shadow(self, cx, cy + 5, 5)

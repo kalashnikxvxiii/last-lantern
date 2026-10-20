@@ -85,18 +85,22 @@ func test_a_shot_flies_on_through_an_open_door() -> void:
 
 func test_a_shot_stops_on_the_next_room_without_harming_it() -> void:
 	var next := _next_room_north()
-	var k := 12 * Consts.RW + 14
-	next.grid[12][14] = Consts.T.BARREL
+	# two tiles in from the door back, whatever the size of the room
+	var t: Array = RoomU.door_tiles(RoomU.back_door(Run.room, "n"))[1]
+	var bx: int = t[0]
+	var by: int = t[1] - 2
+	var k := by * RoomU.rw(next) + bx
+	next.grid[by][bx] = Consts.T.BARREL
 	next.tileHp[k] = 18
 	var c := RoomU.door_center("n")
 	var b := _shot(c.x, c.y + 20, 0, -200)
 	for i in 60:
 		Bullets.update_player(Consts.DT)
 	check(b.get("dead", false), "stopped by the barrel")
-	var barrel_bottom := Consts.RY + 13 * Consts.TS - Consts.RH * Consts.TS   # in this room's coordinates
+	var barrel_bottom := Consts.RY + (by + 1) * Consts.TS + RoomU.room_offset(Run.room, next).y   # in this room's coordinates
 	check(b.y < Consts.RY - Consts.TS and b.y >= barrel_bottom - 4.0, "at the barrel, not before nor through it: %s" % b.y)
 	eq(next.tileHp[k], 18, "the barrel takes no damage")
-	eq(next.grid[12][14], Consts.T.BARREL)
+	eq(next.grid[by][bx], Consts.T.BARREL)
 
 func test_a_closed_door_still_stops_a_shot() -> void:
 	_next_room_north()

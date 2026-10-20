@@ -44,11 +44,19 @@ func offset() -> Vector2:
 	return Vector2.ZERO
 
 # where the camera goes with the player at px, py, from the middle of the room:
-# the floor edge gives the full CAM_MAX
+# the floor edge gives the full CAM_MAX. A room bigger than one cell scrolls: the
+# camera follows the player until the cell's worth of room left on that side
 static func cam_target(px: float, py: float) -> Vector2:
 	var hx := (Consts.RW - 2) * Consts.TS / 2.0
 	var hy := (Consts.RH - 2) * Consts.TS / 2.0
-	return Vector2(clampf((px - VIEW_C.x) / hx, -1, 1), clampf((py - VIEW_C.y) / hy, -1, 1)) * CAM_MAX
+	var c := VIEW_C
+	var e := Vector2.ZERO
+	if Run.active and not Run.room.is_empty():
+		var size := Vector2(RoomU.rw(Run.room), RoomU.rh(Run.room)) * Consts.TS
+		c = Vector2(Consts.RX, Consts.RY) + size / 2.0
+		e = (size - Vector2(Consts.RW, Consts.RH) * Consts.TS) / 2.0
+	var f := Vector2(clampf(px, c.x - e.x, c.x + e.x), clampf(py, c.y - e.y, c.y + e.y))
+	return f - VIEW_C + Vector2(clampf((px - f.x) / hx, -1, 1), clampf((py - f.y) / hy, -1, 1)) * CAM_MAX
 
 func follow(px: float, py: float, delta: float) -> void:
 	cam = cam.lerp(cam_target(px, py), 1.0 - exp(-delta * CAM_SPEED))

@@ -16,13 +16,15 @@ render_mode blend_premul_alpha;
 
 uniform float amb = 0.68;
 uniform int count = 0;
-uniform vec4 lights[128];   // x, y, radius, alpha in 480x270 screen coordinates
+uniform vec4 lights[128];   // x, y, radius, alpha in the flat world's coordinates
 uniform vec4 colors[128];   // r, g, b, intensity (0 = no glow)
 uniform int shadow_n = 0;
 uniform int shadow_steps = 0;
 uniform float ao = 0.0;
 uniform sampler2D occ : filter_linear, repeat_disable;
 uniform vec2 room_pos;      // top-left corner of the room on screen
+uniform vec2 room_size = vec2(464.0, 240.0);   // Godot-only: rooms of several cells are bigger
+uniform vec2 view = vec2(480.0, 270.0);   // the flat world: the room and its margins
 uniform float sheen = 1.0;
 uniform vec3 actors[32];    // x, y, radius in screen coordinates
 uniform int actor_n = 0;
@@ -36,7 +38,6 @@ uniform sampler2D screen_tex : hint_screen_texture, filter_nearest;
 const vec3 DARK = vec3(5.0, 3.0, 9.0) / 255.0;
 const float R0 = 0.12;
 const float R1 = 0.12 + 0.55 * 0.88;   // second gradient stop
-const vec2 ROOM = vec2(29.0 * 16.0, 15.0 * 16.0);
 const float DIFFUSE = 4.0;   // matte glow on a typical floor (albedo ~0.25) as bright as the added one
 
 float falloff(float k) {
@@ -47,7 +48,7 @@ float falloff(float k) {
 }
 
 float occ_at(vec2 p) {
-	vec2 uv = (p - room_pos) / ROOM;
+	vec2 uv = (p - room_pos) / room_size;
 	if (uv.x < 0.0 || uv.y < 0.0 || uv.x > 1.0 || uv.y > 1.0) return 0.0;
 	return texture(occ, uv).r;
 }
@@ -110,7 +111,7 @@ float ambient_occlusion(vec2 p) {
 }
 
 void fragment() {
-	vec2 p = UV * vec2(480.0, 270.0);
+	vec2 p = UV * view;
 	float self_occ = shadow_steps > 0 || ao > 0.0 ? occ_at(p) : 0.0;
 	float jitter = fract(sin(dot(floor(FRAGCOORD.xy), vec2(12.9898, 78.233))) * 43758.5453);
 	float a = amb;

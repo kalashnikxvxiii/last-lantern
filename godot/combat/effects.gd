@@ -164,7 +164,7 @@ static func explosion_hit(f: Dictionary) -> void:
 		var R := int(ceilf(f.r / Consts.TS))
 		for ty in range(ct.y - R, ct.y + R + 1):
 			for tx in range(ct.x - R, ct.x + R + 1):
-				if tx < 1 or ty < 1 or tx >= Consts.RW - 1 or ty >= Consts.RH - 1:
+				if tx < 1 or ty < 1 or tx >= RoomU.rw(room) - 1 or ty >= RoomU.rh(room) - 1:
 					continue
 				var c := RoomU.tile_center(tx, ty)
 				if U.dist(c.x, c.y, f.x, f.y) > f.r + 6:
@@ -176,7 +176,7 @@ static func explosion_hit(f: Dictionary) -> void:
 					Combat.break_urn(tx, ty)
 				elif (t == Consts.T.CRACK or t == Consts.T.ROCK) and f.owner == "neutral":
 					room.grid[ty][tx] = Consts.T.FLOOR
-					room.get_or_add("rubble", {})[ty * Consts.RW + tx] = true   # Godot-only: drawn on the floor by room_view
+					room.get_or_add("rubble", {})[ty * RoomU.rw(room) + tx] = true   # Godot-only: drawn on the floor by room_view
 					room.bgDirty = true
 					Particles.burst(c.x, c.y, 12, ["#55505e", "#3b3546", "#8a8294"], 80, 0.6, {"grav": 100})
 					if t == Consts.T.CRACK and U.random() < 0.6:
@@ -190,7 +190,7 @@ static func explosion_hit(f: Dictionary) -> void:
 			var dc := RoomU.door_center(d)
 			if U.dist(dc.x, dc.y, f.x, f.y) < f.r + 22:
 				n.found = true
-				for tt in RoomU.DIRS[d].tiles:
+				for tt in RoomU.door_tiles(d):
 					room.grid[tt[1]][tt[0]] = Consts.T.DOOR
 				room.bgDirty = true
 				Run.toast("A secret passage!", "#f6cf57")

@@ -13,8 +13,8 @@ static func collect() -> Array:
 	for i in mini(Run.bullets.size(), 40):
 		var b: Dictionary = Run.bullets[i]
 		L.append({"x": b.x, "y": b.y, "r": 30.0 if b.kind == "comet" else 16.0, "a": 0.7, "col": null})
-	for ty in range(1, Consts.RH - 1):
-		for tx in range(1, Consts.RW - 1):
+	for ty in range(1, RoomU.rh(room) - 1):
+		for tx in range(1, RoomU.rw(room) - 1):
 			if room.grid[ty][tx] == Consts.T.BRAZIER:
 				var c := RoomU.tile_center(tx, ty)
 				L.append({"x": c.x, "y": c.y - 4, "r": 72 * (1 + sin(t * 9 + tx) * 0.04), "a": 0.95, "col": "#f29c38", "ga": 0.12})

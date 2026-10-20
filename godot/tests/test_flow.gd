@@ -27,9 +27,9 @@ func test_entering_through_a_door() -> void:
 	var start := Run.room
 	var d: String = start.doors.keys()[0]
 	var n: Dictionary = start.doors[d]
-	Flow.enter_room(n, d)
+	Flow.enter_room(n, RoomU.back_door(start, d))
 	check(is_same(Run.room, n))
-	var e := RoomU.door_entry(RoomU.DIRS[d].opp)
+	var e := RoomU.door_entry(RoomU.back_door(start, d))
 	eq([Run.player.x, Run.player.y], [e.x, e.y])
 	if n.type == "normal":
 		check(n.combat, "normal room: combat")
@@ -38,7 +38,7 @@ func test_open_door_and_transition() -> void:
 	var start := Run.room
 	var d: String = start.doors.keys()[0]
 	var next: Dictionary = start.doors[d]
-	var dir := Vector2(RoomU.DIRS[d].dx, RoomU.DIRS[d].dy)
+	var dir := Vector2(RoomU.side(d).dx, RoomU.side(d).dy)
 	var p := Run.player
 	# 1 px past this room's edge, in the doorway: still the room's floor
 	var at := RoomU.door_center(d) + dir * (Consts.TS / 2.0 + 1.0)
@@ -49,12 +49,12 @@ func test_open_door_and_transition() -> void:
 	Flow.check_doors(Consts.DT)
 	check(is_same(Run.room, next), "the room changes at the edge")
 	check(Run.trans == null, "no fade, no pause")
-	var off := RoomU.room_offset(d)
+	var off := RoomU.room_offset(start, next)
 	eq(Vector2(p.x, p.y), at - off, "no jump: the same spot, seen from the next room")
 	near(p.dash_t, 0.1, 1e-9, "a dash goes on")
 	eq(Run.bullets.size(), 1, "the shots go on")
 	eq(Vector2(Run.bullets[0].x, Run.bullets[0].y), at - dir * 20 - off)
-	var back: String = RoomU.DIRS[d].opp
+	var back := RoomU.back_door(start, d)
 	check(RoomU.door_open(next, back), "the way in stays open while the player is in it")
 	check(not Coll.collides(next, p.x, p.y, p.r, false, true), "and lets them through")
 	var e := RoomU.door_entry(back)
@@ -72,7 +72,7 @@ func test_the_fight_waits_until_the_player_is_past_the_gate() -> void:
 	RoomBuilder.build_room(next, Run.floor)
 	next.cleared = false
 	next.waves = [[{"type": "rat", "mod": null}]]
-	var dir := Vector2(RoomU.DIRS[d].dx, RoomU.DIRS[d].dy)
+	var dir := Vector2(RoomU.side(d).dx, RoomU.side(d).dy)
 	var p := Run.player
 	var at := RoomU.door_center(d) + dir * (Consts.TS / 2.0 + 1.0)
 	p.x = at.x
@@ -84,7 +84,7 @@ func test_the_fight_waits_until_the_player_is_past_the_gate() -> void:
 		Flow.update_game(Consts.DT)
 	check(Run.enemies.is_empty() and Run.fx.is_empty(), "and no enemies")
 	# back out, through the gate still open
-	var back := RoomU.door_center(RoomU.DIRS[d].opp) - dir * (Consts.TS / 2.0 + 1.0)
+	var back := RoomU.door_center(RoomU.back_door(start, d)) - dir * (Consts.TS / 2.0 + 1.0)
 	p.x = back.x
 	p.y = back.y
 	Flow.check_doors(Consts.DT)
@@ -94,12 +94,12 @@ func test_the_fight_waits_until_the_player_is_past_the_gate() -> void:
 	p.x = at.x
 	p.y = at.y
 	Flow.check_doors(Consts.DT)
-	var e := RoomU.door_entry(RoomU.DIRS[d].opp)
+	var e := RoomU.door_entry(RoomU.back_door(start, d))
 	p.x = e.x
 	p.y = e.y
 	Flow.check_doors(Consts.DT)
 	check(next.combat, "past the gate: the fight starts")
-	check(not RoomU.door_open(next, RoomU.DIRS[d].opp), "and the gate closes")
+	check(not RoomU.door_open(next, RoomU.back_door(start, d)), "and the gate closes")
 
 func test_movement_and_dash() -> void:
 	var p := Run.player

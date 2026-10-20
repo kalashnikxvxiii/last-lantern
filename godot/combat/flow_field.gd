@@ -3,8 +3,8 @@ extends RefCounted
 # Flow field toward the player (pathing around obstacles).
 
 static func update() -> void:
-	var rw := Consts.RW
-	var rh := Consts.RH
+	var rw := RoomU.rw(Run.room)
+	var rh := RoomU.rh(Run.room)
 	if Run.flow.size() != rw * rh:
 		Run.flow.resize(rw * rh)
 	Run.flow.fill(-1)
@@ -40,7 +40,7 @@ static func _at(i: int) -> Variant:
 	return Run.flow[i]
 
 static func angle(e, tx: float, ty: float) -> float:
-	var rw := Consts.RW
+	var rw := RoomU.rw(Run.room)
 	var p = Run.player
 	if Run.flow.is_empty() or U.dist(e.x, e.y, tx, ty) < 26 or tx != p.x:
 		return U.ang_to(e.x, e.y, tx, ty)

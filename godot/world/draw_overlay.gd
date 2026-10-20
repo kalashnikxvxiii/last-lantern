@@ -205,7 +205,7 @@ static func prompt(ci: CanvasItem) -> void:
 	var w := 168.0
 	var lines := Txt.wrap(desc, w - 12)
 	var h := 22 + lines.size() * 10 + (10 if extra != "" else 0) + (12 if verb != "" else 0)
-	var x := clampf(o.x - w / 2, 4, Consts.W - w - 4)
+	var x := clampf(o.x - w / 2, 4, RoomU.view_size(Run.room).x - w - 4)
 	var y: float = o.y - 26 - h
 	if y < Consts.RY + 2:
 		y = o.y + 22
