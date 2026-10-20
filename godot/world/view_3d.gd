@@ -266,9 +266,12 @@ func _in_rock(q: Vector3) -> bool:
 	return Vector2(q.x - c.x, q.z - c.y).length() < ROCK_R
 
 # how far a sprite standing at base moves toward the camera: SPRITE_BIAS, but not
-# out of a rock in front of it, or it would show over the rock as if standing in it
-func sprite_bias(base: Vector3) -> float:
+# out of a rock in front of it, or it would show over the rock as if standing in it;
+# a flyer moves on until it is above the rocks, which it flies over
+func sprite_bias(base: Vector3, fly := false) -> float:
 	var d := (cam.position - base).normalized()
+	if fly:
+		return maxf(SPRITE_BIAS, (ROCK_H - base.y) / d.y)
 	var k := 0.0
 	while k < SPRITE_BIAS and not _in_rock(base + d * k):
 		k += 1.0
@@ -276,8 +279,8 @@ func sprite_bias(base: Vector3) -> float:
 
 # the middle of a standing sprite whose feet are at base, where _pose puts it: the
 # billboard stands along the camera's up, which leans back toward the far wall
-func sprite_mid(base: Vector3, h: float) -> Vector3:
-	return base + (cam.position - base).normalized() * sprite_bias(base) + cam.basis.y * (h / 2.0)
+func sprite_mid(base: Vector3, h: float, fly := false) -> Vector3:
+	return base + (cam.position - base).normalized() * sprite_bias(base, fly) + cam.basis.y * (h / 2.0)
 
 # where a light of the 2D lighting hangs: over its source, so the sprites' shadows
 # fall away from it like the floor's, but never inside a wall, which would light
@@ -498,7 +501,7 @@ func _sync_sprites() -> void:
 			sprites[id] = s
 		var h: float = Spr.size(stt.name).y
 		var base := feet(stt.x, a.y, a.y - stt.y, h)
-		_pose(s, stt, base, 0.0)
+		_pose(s, stt, base, 0.0, a is Enemy and a.fly)
 		if not casters.has(id):
 			s.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			var cs: Array[Sprite3D] = []
@@ -550,7 +553,7 @@ func _sync_items() -> void:
 		var lift := cam.basis.y * maxf(0.0, ground - bottom)
 		_pose(s, it, Vector3(it.x, 0.0, ground) + lift, i * 0.02)
 
-func _pose(s: Sprite3D, stt: Dictionary, base: Vector3, bias: float) -> void:
+func _pose(s: Sprite3D, stt: Dictionary, base: Vector3, bias: float, fly := false) -> void:
 	Spr.ensure()
 	var d: Dictionary = Spr.db[stt.name]
 	var o: Dictionary = stt.o
@@ -569,7 +572,7 @@ func _pose(s: Sprite3D, stt: Dictionary, base: Vector3, bias: float) -> void:
 	s.modulate = c
 	s.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD if c.a >= 1.0 else SpriteBase3D.ALPHA_CUT_DISABLED
 	# moved along the line of sight: the same place on the screen, nearer in depth
-	s.position = base + (cam.position - base).normalized() * (sprite_bias(base) + bias)
+	s.position = base + (cam.position - base).normalized() * (sprite_bias(base, fly) + bias)
 
 # --- the lights of the 2D lighting that reach the walls and the sprites ---
 
