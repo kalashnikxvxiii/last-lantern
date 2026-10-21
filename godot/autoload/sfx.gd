@@ -4,8 +4,9 @@ extends Node
 
 const NAMES := ["shoot", "hit", "crit", "kill", "hurt", "coin", "xp", "pickup", "heal", "oil", "levelup", "dash", "flare",
 	"explosion", "door", "lock", "enemyShoot", "spawn", "roar", "select", "confirm", "deny", "chest", "buy", "curse", "shield",
-	"freeze", "thud", "bolt", "tick", "descend", "warn", "block"]
-const GAP := {"shoot": 0.045, "hit": 0.035, "xp": 0.03, "coin": 0.04, "enemyShoot": 0.05, "kill": 0.04, "tick": 0.05}
+	"freeze", "thud", "bolt", "tick", "descend", "warn", "block", "ash"]
+const GAP := {"shoot": 0.045, "hit": 0.035, "xp": 0.03, "coin": 0.04, "enemyShoot": 0.05, "kill": 0.04, "tick": 0.05,
+	"ash": 0.06}   # "ash" is Godot-only: the restart light turns enemies to ash
 const VOICES := 24
 
 var streams: Dictionary = {}   # name -> Array of AudioStream

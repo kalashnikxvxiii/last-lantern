@@ -6,7 +6,7 @@ func before() -> void:
 	Save.data.settings.sfx = 0.7
 
 func test_every_sound_has_three_variants() -> void:
-	eq(Sfx.NAMES.size(), 33)
+	eq(Sfx.NAMES.size(), 34)   # 33 from the JS + the Godot-only "ash"
 	for n in Sfx.NAMES:
 		eq(Sfx.streams[n].size(), 3, n)
 

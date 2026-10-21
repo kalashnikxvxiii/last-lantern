@@ -21,8 +21,8 @@ under each item instead of rewriting the list.
 
 ## Flow
 
-- [ ] Restart on a new seed: holding R for 3 seconds fades to white and restarts 
-      the run on a different seed.
+- [x] Restart on a new seed: holding R for 2 seconds turns the enemies and
+      their bullets to ash and restarts the run on a different seed.
 
 ## UI
 
@@ -30,3 +30,5 @@ under each item instead of rewriting the list.
 - [ ] Replace health and oil bar with a lantern widget
 
 ## BUGS
+
+- [ ] Text in languages other than english goes out the layout

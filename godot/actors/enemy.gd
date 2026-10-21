@@ -42,6 +42,8 @@ var no_split := false
 var summoned := false
 var summoner: Variant = null
 var spawning := false
+var dusted := false   # Godot-only: inside the restart light (Flow)
+var dust_t := 0.0     # Godot-only: 0..1 burn-to-ash progress, reassembles back
 var dead := false
 var boss := false
 var hit_wall := false
@@ -163,6 +165,9 @@ func tick(dt: float) -> void:
 	elif Cheats.freeze:   # Godot-only: stands still without the frozen status; like it, the AI timers wait
 		vx = 0.0
 		vy = 0.0
+	elif dust_t > 0.0:   # Godot-only: while it is ash, the pile of the restart light stands still
+		vx = 0.0
+		vy = 0.0
 	else:
 		var m := 0.55 if statuses.has("chill") else 1.0
 		think(dt, target(), m)
@@ -176,7 +181,7 @@ func tick(dt: float) -> void:
 	if not boss and absf(vx) > 1 and ai != "shielder":
 		facing = atan2(vy, vx)
 	# contact
-	if not intangible and z < 6 and not spawning and not p.dead and frozen <= 0 and not Cheats.freeze:
+	if not intangible and z < 6 and not spawning and not p.dead and frozen <= 0 and not Cheats.freeze and dust_t <= 0.0:
 		var rr := r + p.r
 		if U.dist2(x, y, p.x, p.y) < rr * rr:
 			if Combat.hurt_player(dmg, display_name):
@@ -243,7 +248,7 @@ func sprite_state() -> Dictionary:
 		flip = cos(U.ang_to(x, y, Run.player.x, Run.player.y)) < 0 and ai != "turret"
 	var t := Fx.time
 	var wind_blink := wind > 0 and sin(t * 40) > 0
-	var o := {"flip": flip, "flash": flash > 0 or (wind_blink and not boss), "alpha": alpha}
+	var o := {"flip": flip, "flash": flash > 0 or (wind_blink and not boss), "alpha": alpha * _body_a()}
 	if boss and wind > 0:
 		o.tint = "#e0574a"
 		o.tintA = 0.25 + 0.2 * sin(t * 30)
@@ -261,7 +266,21 @@ func sprite_state() -> Dictionary:
 	elif statuses.has("chill"):
 		o.tint = "#7fd8e6"
 		o.tintA = 0.3
+	if dust_t > 0.0:
+		# Godot-only: while the body is ash it is not drawn (the pile in _draw
+		# takes its place); on release it dissolves back in, ash-grey, as the
+		# pile reassembles (Flow.restart_dust_tick)
+		if not dusted:
+			o.tint = "#8a8294"
+			o.tintA = 0.7 * (1.0 - dust_t)
 	return {"name": spr, "frame": fr, "x": x, "y": y - z, "o": o}
+
+# how much of the body is drawn: nothing while it is ash (the pile in _draw
+# stands in for it), fading back in while the ash reassembles
+func _body_a() -> float:
+	if dusted:
+		return 0.0
+	return 1.0 - dust_t if dust_t > 0.0 else 1.0
 
 # drawEnemy (js/render.js), in world coordinates
 func _draw() -> void:
@@ -273,8 +292,23 @@ func _draw() -> void:
 	UiDraw.set_origin(self, -position)
 	var S := Spr.size(spr)
 	var yy := y - z
-	if alpha > 0.05:
+	var body_a := _body_a()
+	if alpha > 0.05 and body_a > 0.003:
+		var gs := UiDraw.alpha
+		UiDraw.alpha = gs * body_a
 		UiDraw.shadow(self, x, y + S.y / 2.0 - 1, maxf(4, r * (0.8 if z > 0 else 1.0)))
+		UiDraw.alpha = gs
+	if dust_t > 0.0:
+		# Godot-only: the ash pile that stands in for the body: the hit flash
+		# lights it up, then it fades in over the first ~0.1 s of the burn, is
+		# opaque once the body is gone and fades away with the reassembly
+		# (Flow.restart_dust_tick)
+		var pile := _ash_pile()
+		if pile != null:
+			var fl := clampf(flash / 0.12, 0.0, 1.0)
+			var pa := maxf(minf(1.0, dust_t * 3.5), fl)
+			draw_texture_rect(pile, Rect2(U.jround(x) - 8, U.jround(y + S.y / 2.0 - 5), 16, 16),
+				false, Color(1.0 + 1.8 * fl, 1.0 + 1.7 * fl, 1.0 + 0.6 * fl, pa))
 	if spawning:
 		UiDraw.set_origin(self, Vector2.ZERO)
 		return
@@ -282,22 +316,53 @@ func _draw() -> void:
 	var st := sprite_state()
 	var fr: int = st.frame
 	var flip: bool = st.o.flip
-	if elite and alpha > 0.3 and not View3D.on:
+	if elite and alpha > 0.3 and body_a > 0.003 and not View3D.on:
 		var col: String = EliteMods.ALL[mod].col
 		var ga := UiDraw.alpha
-		UiDraw.alpha = 0.45 + 0.25 * sin(t * 6)
+		UiDraw.alpha = (0.45 + 0.25 * sin(t * 6)) * body_a
 		var dx := U.jround(x - S.x / 2.0)
 		var dy := U.jround(yy - S.y / 2.0)
 		for off in [[1, 0], [-1, 0], [0, 1], [0, -1]]:
 			Spr.draw_sil(self, spr, fr, dx + off[0], dy + off[1], col, flip)
 		UiDraw.alpha = ga
 	if not View3D.on:   # the 3D view stands them up
-		Spr.draw(self, spr, fr, x, yy, st.o)
-		draw_extras(self)
+		if body_a > 0.003:
+			Spr.draw(self, spr, fr, x, yy, st.o)
+			var ge := UiDraw.alpha
+			UiDraw.alpha = ge * body_a
+			draw_extras(self)
+			UiDraw.alpha = ge
+		if dust_t > 0.05 and dust_t < 1.0:
+			# Godot-only: ash motes while the pile burns or reassembles; the
+			# finished pile is still (draw code: Fx.time only)
+			var ga := UiDraw.alpha
+			var n := int(lerpf(12.0, 5.0, dust_t))
+			for k in n:
+				var u := fmod(t * 0.7 + float(k) * 0.21, 1.0)
+				UiDraw.alpha = ga * 0.7 * (1.0 - u) * minf(1.0, dust_t * 2.0)
+				UiDraw.px_rect(self, U.jround(x + (float(k) - 2.0) * 0.12 * S.x),
+					U.jround(yy - 2.0 - u * 9.0), 2, 2, "#e8e4dc" if k % 2 == 0 else "#a59fb0")
+			UiDraw.alpha = ga
 	UiDraw.set_origin(self, Vector2.ZERO)
+
+static var _ash_piles: Array[Texture2D] = []
+
+# one decal variant per enemy type, stable across re-dustings (no RNG)
+func _ash_pile() -> Texture2D:
+	if _ash_piles.is_empty():
+		for i in 3:
+			var p := "res://assets/sprites/ash_pile_%d.png" % (i + 1)
+			if ResourceLoader.exists(p):
+				var t: Texture2D = load(p)
+				_ash_piles.append(t)
+	if _ash_piles.is_empty():
+		return null
+	return _ash_piles[absi(type.hash()) % _ash_piles.size()]
 
 # front shield and health bar (drawEnemy)
 func draw_extras(ci: CanvasItem) -> void:
+	if _body_a() <= 0.003:   # Godot-only: ash wears no bar and no shield
+		return
 	var yy := y - z
 	if def != null and def.shield:
 		var a := facing + 1.3 if shield_down else facing

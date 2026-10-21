@@ -15,6 +15,7 @@ func _draw() -> void:
 	Notices.draw(self)
 	_intro()
 	_crosshair()
+	_restart_hold()
 	_fade_and_death()
 
 var _low_hp_tex: GradientTexture2D
@@ -195,6 +196,20 @@ func _crosshair() -> void:
 		UiDraw.px_rect(self, mx + r[0] + 1, my + r[1] + 1, r[2], r[3], "#0b0810")
 		UiDraw.px_rect(self, mx + r[0], my + r[1], r[2], r[3], c)
 	UiDraw.px_rect(self, mx, my, 1, 1, "#f29c38")
+
+# hold R to restart on a new seed (Godot-only): the hint while the key is down,
+# then the lantern floods the screen and the new run lifts the light
+func _restart_hold() -> void:
+	var ga := UiDraw.alpha
+	if Run.restart_t > 0.0 and Run.restart_flare < 0.0:
+		UiDraw.text(self, Loc.f("{0}: restart", [Controls.bind_name("reroll")]), Consts.W / 2.0, 240, {"align": "center", "color": "#e8dcc0"})
+	if Run.restart_flare >= 0.0:
+		UiDraw.alpha = minf(1.0, Run.restart_flare / Consts.RESTART_FADE)
+		UiDraw.px_rect(self, 0, 0, Consts.W, Consts.H, "#fff2a8")
+	if Run.restart_in > 0.0:
+		UiDraw.alpha = Run.restart_in
+		UiDraw.px_rect(self, 0, 0, Consts.W, Consts.H, "#fff2a8")
+	UiDraw.alpha = ga
 
 func _fade_and_death() -> void:
 	var ga := UiDraw.alpha

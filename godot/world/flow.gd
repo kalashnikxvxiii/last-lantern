@@ -30,6 +30,80 @@ static func start_run(lantern_id: String, ardor: int, seed: int = -1, character_
 	new_floor()
 	Run.toast("Find the warden and descend deeper.", "#e8dcc0", "Press TAB for the map, ESC to pause.")
 
+# Godot-only: holding R in the play scene (Play.update_play). The kills of the
+# abandoned descent count like a surrender, then the same lantern and Ardor
+# start over on a new seed, in the same save slot.
+static func restart_run() -> void:
+	var p := Run.player
+	if not Run.cheated:
+		Save.data.stats.kills += Run.kills
+		Save.write()
+	var slot := Run.slot
+	RunSave.erase(slot)
+	start_run(p.lantern, Run.ardor, -1, p.character)
+	Run.slot = slot if RunSave.save(slot) else -1
+
+# Godot-only: the lantern glow of the restart hold. Shared by the light it
+# casts (Lights.collect) and by the dust it turns enemies into; empty while
+# the restart is off or the player is dead (Play.update_play)
+static func restart_glow() -> Dictionary:
+	var p := Run.player
+	if p == null or p.dead:
+		return {}
+	if Run.restart_flare >= 0.0:
+		return {"x": p.x + cos(p.aim) * 7, "y": p.y - 1 + sin(p.aim) * 4,
+			"r": Consts.RESTART_R, "f": 1.0}
+	if Run.restart_t <= 0.0:
+		return {}
+	var f := clampf(Run.restart_t / Consts.RESTART_HOLD, 0, 1)
+	f = f * f   # a slow start, then the light rushes out
+	return {"x": p.x + cos(p.aim) * 7, "y": p.y - 1 + sin(p.aim) * 4,
+		"r": lerpf(20.0, Consts.RESTART_R, f), "f": f}
+
+# Godot-only: the enemies the restart light turns into ash piles. While
+# dust_t > 0 they stand still and deal no contact damage (enemy.gd); any
+# cancel of the hold reassembles them (called from Play.update_play)
+static func restart_dust_tick(dt: float) -> void:
+	var g := restart_glow()
+	for i in Run.enemies.size():
+		var e: Enemy = Run.enemies[i]
+		var on: bool = not g.is_empty() and not e.dead and U.dist(g.x, g.y, e.x, e.y) <= g.r
+		if on and not e.dusted:
+			_incinerate(e)
+		e.dusted = on
+		var rate: float = Consts.RESTART_DUST_T if on else Consts.RESTART_UNDUST_T
+		e.dust_t = move_toward(e.dust_t, 1.0 if on else 0.0, dt / rate)
+	if g.is_empty():
+		return
+	# Godot-only: the light ashes the enemy bullets already in flight too, so
+	# they cannot reach the rooted player (Bullets.update_enemy sweeps the dead)
+	for b in Run.ebullets:
+		if b.get("dead", false) or U.dist(g.x, g.y, b.x, b.y) > g.r:
+			continue
+		b.dead = true
+		Particles.burst(b.x, b.y, 3, ["#55505e", "#a59fb0", "#e8e4dc"], 40, 0.25)
+
+# the one-shot beat: the flash that lights the pile up, the sizzle and the
+# body scattering into ash from its own pixels
+static func _incinerate(e: Enemy) -> void:
+	e.flash = 0.12
+	Sfx.play("ash", 0.55)
+	var st := e.sprite_state()
+	if st.is_empty():
+		return
+	var px: Array = Spr.body_pixels(str(st.name), int(st.frame))
+	for off in px:
+		Particles.add({"x": e.x + off.x, "y": e.y - e.z + off.y,
+			"vx": U.rnd(-14.0, 14.0), "vy": U.rnd(-55.0, -18.0), "life": U.rnd(0.45, 0.9),
+			"color": U.pick(["#55505e", "#a59fb0", "#8a8294", "#e8e4dc"]),
+			"size": 1.0 if U.chance(0.3) else 2.0, "grav": -20.0, "drag": 1.5})
+
+static func restart_dust_clear() -> void:
+	for i in Run.enemies.size():
+		var e: Enemy = Run.enemies[i]
+		e.dusted = false
+		e.dust_t = 0.0
+
 static func new_floor() -> void:
 	var p := Run.player
 	Run.floor = FloorGen.gen_floor(Run.depth, Run.rng)
