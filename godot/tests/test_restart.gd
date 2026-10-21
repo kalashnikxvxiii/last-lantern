@@ -250,6 +250,21 @@ func test_restart_run_starts_over_on_a_new_seed() -> void:
 	eq(Save.data.stats.kills, k0 + 5, "the kills of the abandoned descent count")
 	eq(Run.kills, 0, "the new run starts clean")
 
+func test_the_world_ticks_before_the_victory_countdown() -> void:
+	TH.new_run(7)
+	_play()
+	var b := Boss.make_boss("devourer", 240, 100)
+	Run.add_enemy(b)
+	Run.boss_ref = b
+	Combat.hit_enemy(b, 999999)
+	for i in int(3.0 / Consts.DT):
+		_ticks(1)
+		if Run.victory_t > 0.0:
+			break
+	check(Run.won, "the devourer falls")
+	# updatePlay ticks the world, then the countdown: it starts on the same frame
+	check(Run.victory_t < 3.2, "the countdown starts on the frame the boss falls")
+
 func test_the_hold_does_not_root_outside_the_restart() -> void:
 	TH.new_run(7)
 	_play()
