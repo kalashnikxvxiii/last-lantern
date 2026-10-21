@@ -19,4 +19,4 @@ func test_hd_art_keeps_the_logical_size() -> void:
 	eq(e.k, 4)
 	eq(Spr.src_rect(e, 1), Rect2(56, 0, 56, 64))
 	Spr.ensure()
-	eq(Spr.db.player.k, 1)
+	eq(Spr.db.player.k, 4)   # the characters are HD art
