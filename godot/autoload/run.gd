@@ -50,6 +50,9 @@ var win_recorded := false
 var slot := -1   # save slot of the run (RunSave), -1 = not saved
 var cheated := false   # Godot-only: a cheat was used, the run records no stats
 var actors: Node2D = null   # game scene node that hosts the actors
+var restart_t := 0.0      # Godot-only: seconds of the R hold so far (Play)
+var restart_flare := -1.0 # Godot-only: >= 0 while the lantern floods the screen
+var restart_in := 0.0     # Godot-only: the new run fades in from the light
 
 # on quit: frees the actors the game scene let go and the rooms' circular references
 func _exit_tree() -> void:
@@ -113,6 +116,9 @@ func reset() -> void:
 	win_recorded = false
 	slot = -1
 	cheated = false
+	restart_t = 0.0
+	restart_flare = -1.0
+	restart_in = 0.0
 
 # notifications (toast and banner in js/ui.js)
 func toast(text: String, col: Variant = "#ece6d8", sub: String = "") -> void:

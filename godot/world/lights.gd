@@ -10,6 +10,12 @@ static func collect() -> Array:
 	var fl := 1 + sin(t * 13) * 0.015 + sin(t * 7.3) * 0.012
 	if not p.dead:
 		L.append({"x": p.x, "y": p.y - 2, "r": p.light() * fl, "a": 1.0, "col": "#f2a040", "ga": 0.10})
+		# Godot-only: the restart hold flares the lantern up, the light grows
+		# out of the glass until it floods the whole room (Flow.restart_glow)
+		var g := Flow.restart_glow()
+		if not g.is_empty():
+			L.append({"x": g.x, "y": g.y, "r": g.r, "a": 1.0,
+				"col": "#fff2a8" if g.f > 0.36 else "#f2a040", "ga": 0.15 + 0.25 * g.f})
 	for i in mini(Run.bullets.size(), 40):
 		var b: Dictionary = Run.bullets[i]
 		L.append({"x": b.x, "y": b.y, "r": 30.0 if b.kind == "comet" else 16.0, "a": 0.7, "col": null})

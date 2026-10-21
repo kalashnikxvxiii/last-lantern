@@ -184,6 +184,8 @@ func tick(dt: float) -> void:
 	inv = maxf(0.0, inv - dt)
 	flare_cd = maxf(0.0, flare_cd - dt)
 	overclock_t = maxf(0.0, overclock_t - dt)
+	# Godot-only: holding R roots the player (no running away from the restart)
+	var rooted := Controls.held("reroll")
 	# aim
 	aim = Controls.aim_angle(x, y, aim)
 	facing = 1 if cos(aim) >= 0 else -1
@@ -195,8 +197,10 @@ func tick(dt: float) -> void:
 			dash_cd = s.dashCd
 	else:
 		dash_cd = s.dashCd
-	var mv := Controls.move()
-	if Controls.dash() and dash_charges > 0 and dash_t <= 0:
+	if rooted:
+		dash_t = 0.0
+	var mv := Vector2.ZERO if rooted else Controls.move()
+	if not rooted and Controls.dash() and dash_charges > 0 and dash_t <= 0:
 		var dx := mv.x
 		var dy := mv.y
 		if dx == 0 and dy == 0:
@@ -235,7 +239,7 @@ func tick(dt: float) -> void:
 		mvy = mv.y * sp
 	moving = sqrt(mvx * mvx + mvy * mvy) > 5
 	# Devourer's suction
-	if Run.pull != null:
+	if Run.pull != null and not rooted:
 		mvx += Run.pull.x
 		mvy += Run.pull.y
 	if Cheats.noclip:
@@ -252,11 +256,11 @@ func tick(dt: float) -> void:
 
 	# fire
 	fire_cd -= dt
-	if Controls.firing() and fire_cd <= 0 and not Run.lock_fire:
+	if not rooted and Controls.firing() and fire_cd <= 0 and not Run.lock_fire:
 		fire()
 		fire_cd = 1 / fire_rate()
 	# flare
-	if Controls.flare():
+	if not rooted and Controls.flare():
 		use_ability()
 	# consumables
 	var sl := Controls.slot()

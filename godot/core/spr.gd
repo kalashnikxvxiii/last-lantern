@@ -57,6 +57,41 @@ static func frame_count(name: String) -> int:
 	ensure()
 	return db[name].frames
 
+static var _body_cache: Dictionary = {}   # "name:frame" -> opaque logical texels from the center
+
+# Godot-only: the opaque pixels of a frame as logical offsets from the
+# center; the restart light scatters them as ash (Flow._incinerate)
+static func body_pixels(name: String, frame: int) -> Array:
+	ensure()
+	var key := "%s:%d" % [name, frame]
+	if _body_cache.has(key):
+		return _body_cache[key]
+	var out: Array = []
+	if db.has(name):
+		var s: Dictionary = db[name]
+		var f := frame % int(s.frames)
+		var img: Image = s.tex.get_image()
+		if img != null:
+			img.decompress()
+			img.convert(Image.FORMAT_RGBA8)
+			var x0 := int(f * s.w * s.k)
+			for ty in s.h:
+				for tx in s.w:
+					var c := img.get_pixel(x0 + tx * s.k + s.k / 2, ty * s.k + s.k / 2)
+					if c.a > 0.1:
+						out.append(Vector2i(tx - s.w / 2, ty - s.h / 2))
+	if out.size() > 70:
+		var step := int(ceil(float(out.size()) / 70.0))
+		var thin: Array = []
+		var i := step
+		while i < out.size():
+			thin.append(out[i])
+			i += step
+		_body_cache[key] = thin
+		return thin
+	_body_cache[key] = out
+	return out
+
 static func _blit(ci: CanvasItem, tex: Texture2D, src: Rect2, dx: float, dy: float, w: float, h: float, flip: bool, c: Color) -> void:
 	if flip:
 		ci.draw_set_transform(Vector2(dx + w, dy) + UiDraw.origin, 0.0, Vector2(-1, 1))

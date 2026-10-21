@@ -247,6 +247,11 @@ func aim_angle(px: float, py: float, current: float) -> float:
 		return U.ang_to(px, py - 4, m.x, m.y)
 	return current
 
+# held state of an action, for the hold-to-confirm (sim.held in the tests);
+# unlike the presses it survives the extra ticks of the cheat fast forward
+func held(a: String) -> bool:
+	return a in sim.get("held", []) or Input.is_action_pressed(a)
+
 func mouse_left() -> bool:
 	return sim.get("fire", false) or Input.is_action_pressed("fire")
 

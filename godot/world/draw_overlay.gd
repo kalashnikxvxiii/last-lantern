@@ -72,6 +72,8 @@ func _telegraphs() -> void:
 		UiDraw.px_ring(self, f.x, f.y, f.r * k, "#ffffff")
 		UiDraw.alpha = ga
 	for e in Run.enemies:
+		if e._body_a() <= 0.003:   # Godot-only: ash keeps no telegraphs
+			continue
 		if e.charge_line != null:
 			UiDraw.alpha = 0.5 + 0.3 * sin(t * 30)
 			draw_dashed_line(Vector2(e.x, e.y), Vector2(e.x + cos(e.charge_line) * 300, e.y + sin(e.charge_line) * 300), UiDraw._a("#e0574a"), e.r, 6)
@@ -94,6 +96,8 @@ func _telegraphs() -> void:
 
 # attack warning: spark above the head (drawTelegraphs)
 static func warn_spark(ci: CanvasItem, e: Enemy) -> void:
+	if e._body_a() <= 0.003:   # Godot-only: ash has no head to warn over
+		return
 	if e.wind > 0 and not e.dead and e.alpha > 0.3:
 		if sin(Fx.time * 40) > 0:
 			UiDraw.px_rect(ci, e.x - 1, e.y - e.r - 9 - e.z, 2, 4, "#f6cf57")
@@ -124,6 +128,9 @@ static func eye(ci: CanvasItem, e: Enemy) -> void:
 	var lr := p.light()
 	if e.alpha < 0.5 or e.spawning or e.boss:
 		return
+	var ba := e._body_a()   # Godot-only: ash has no eyes; they fade back with the body
+	if ba <= 0.003:
+		return
 	var d := U.dist(e.x, e.y, p.x, p.y)
 	var a := clampf((d - lr * 0.55) / (lr * 0.4), 0, 1)
 	if a <= 0:
@@ -132,7 +139,7 @@ static func eye(ci: CanvasItem, e: Enemy) -> void:
 	var S := Spr.size(e.def.spr)
 	var ey := U.jround(e.y - e.z - S.y * 0.18)
 	var col: String = EliteMods.ALL[e.mod].col if e.elite else "#ff5a4a"
-	UiDraw.alpha = a * (0.7 + 0.3 * sin(Fx.time * 3 + e.x))
+	UiDraw.alpha = a * ba * (0.7 + 0.3 * sin(Fx.time * 3 + e.x))
 	UiDraw.px_rect(ci, e.x - 3, ey, 2, 1, col)
 	UiDraw.px_rect(ci, e.x + 1, ey, 2, 1, col)
 	UiDraw.alpha = ga

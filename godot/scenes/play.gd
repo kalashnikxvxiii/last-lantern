@@ -76,6 +76,9 @@ static func cursor_hidden(m: String) -> bool:
 	return m == "play"
 
 func tick(dt: float) -> void:
+	if mode != "play":
+		Run.restart_t = 0.0   # the R hold counts only while playing
+		Flow.restart_dust_clear()
 	match mode:
 		"play":
 			update_play(dt)
@@ -254,6 +257,22 @@ func update_level_up(dt: float) -> void:
 
 # updatePlay (js/game.js:335-357)
 func update_play(dt: float) -> void:
+	if Run.restart_in > 0.0:
+		Run.restart_in = maxf(0.0, Run.restart_in - dt / Consts.RESTART_FADE)
+	if Run.restart_flare >= 0.0:
+		# Godot-only: the lantern flares up and floods everything on the way to
+		# a new seed; the world still runs under the light
+		Run.restart_flare += dt
+		if Run.player.dead:
+			Run.restart_flare = -1.0
+			Run.restart_t = 0.0
+		elif Run.restart_flare >= Consts.RESTART_FADE:
+			_restart_run()
+			return
+		Flow.restart_dust_tick(dt)
+		Flow.update_common(dt)
+		Flow.update_game(dt)
+		return
 	if Controls.pause() and not Run.player.dead:
 		open_pause()
 		return
@@ -272,6 +291,8 @@ func update_play(dt: float) -> void:
 		Fx.hitstop_t -= dt
 		return
 	if Run.player.dead:
+		Run.restart_t = 0.0
+		Flow.restart_dust_clear()
 		Run.death_t += dt
 		Flow.update_game(dt * 0.25)
 		if Run.death_t > 2.4:
@@ -287,12 +308,28 @@ func update_play(dt: float) -> void:
 			Run.victory_t = 0.0
 			Game.set_scene("victory")
 			return
+	if Controls.held("reroll") and Run.victory_t <= 0:
+		Run.restart_t += dt
+		if Run.restart_t >= Consts.RESTART_HOLD:
+			Run.restart_t = Consts.RESTART_HOLD
+			Run.restart_flare = 0.0
+			Sfx.play("descend")
+			return
+	else:
+		Run.restart_t = 0.0
+	Flow.restart_dust_tick(dt)   # releasing R reassembles the dust back
 	if Run.pending_levels > 0 and not Run.room.combat and Run.trans == null:
 		Run.level_delay -= dt
 		if Run.level_delay <= 0:
 			open_level_up()
 	elif Run.room.combat:
 		Run.level_delay = 0.7
+
+# the hold completed: the same lantern starts over on a new seed (Flow.restart_run)
+func _restart_run() -> void:
+	Flow.restart_run()   # Run.reset clears the restart state
+	Run.restart_in = 1.0
+	Game.set_scene("play", "restart")
 
 # --sim=N [--fire]: N simulated ticks before the first draw (JS devStart)
 func _dev_sim() -> void:
@@ -313,3 +350,6 @@ func _dev_sim() -> void:
 		map_from = "play"
 	if Game.dev.has("cheat-panel") and Cheats.enabled:
 		open_cheats(str(Game.dev["cheat-panel"]) if Game.dev["cheat-panel"] is String else "main")
+	if Game.dev.has("restart"):
+		# Godot-only: hold R from the start, to check the bar and the fade
+		Controls.sim.held = ["reroll"]
