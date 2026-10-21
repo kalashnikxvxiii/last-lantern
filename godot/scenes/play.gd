@@ -300,14 +300,14 @@ func update_play(dt: float) -> void:
 		return
 	if Run.lock_fire and not Controls.mouse_left():
 		Run.lock_fire = false
-	Flow.update_game(dt)
-	Cheats.tick()
 	if Run.victory_t > 0:
 		Run.victory_t -= dt
 		if Run.victory_t <= 0:
 			Run.victory_t = 0.0
 			Game.set_scene("victory")
 			return
+	# the hold is ticked before the world, so the rooted player (player.gd) sees
+	# the restart state on the same frame (Play.update_play)
 	if Controls.held("reroll") and Run.victory_t <= 0:
 		Run.restart_t += dt
 		if Run.restart_t >= Consts.RESTART_HOLD:
@@ -317,6 +317,8 @@ func update_play(dt: float) -> void:
 			return
 	else:
 		Run.restart_t = 0.0
+	Flow.update_game(dt)
+	Cheats.tick()
 	Flow.restart_dust_tick(dt)   # releasing R reassembles the dust back
 	if Run.pending_levels > 0 and not Run.room.combat and Run.trans == null:
 		Run.level_delay -= dt

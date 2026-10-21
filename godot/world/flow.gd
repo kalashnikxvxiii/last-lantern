@@ -40,7 +40,7 @@ static func restart_run() -> void:
 		Save.write()
 	var slot := Run.slot
 	RunSave.erase(slot)
-	start_run(p.lantern, Run.ardor)
+	start_run(p.lantern, Run.ardor, -1, p.character)
 	Run.slot = slot if RunSave.save(slot) else -1
 
 # Godot-only: the lantern glow of the restart hold. Shared by the light it

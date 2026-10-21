@@ -250,6 +250,25 @@ func test_restart_run_starts_over_on_a_new_seed() -> void:
 	eq(Save.data.stats.kills, k0 + 5, "the kills of the abandoned descent count")
 	eq(Run.kills, 0, "the new run starts clean")
 
+func test_the_hold_does_not_root_outside_the_restart() -> void:
+	TH.new_run(7)
+	_play()
+	var p := Run.player
+	Run.victory_t = 5.0   # the restart timer is off: R means nothing here
+	Controls.sim = {"held": ["reroll"], "move": Vector2(1, 0), "fire": true, "device": "mouse", "mouse": Vector2(p.x + 40, p.y)}
+	var x0 := p.x
+	_ticks(5)
+	check(p.x != x0, "R outside the restart: the player still walks")
+	check(Run.bullets.size() > 0, "and still shoots")
+	near(Run.restart_t, 0.0, 1e-9)
+
+func test_restart_run_keeps_the_character() -> void:
+	U.seed_random(7)
+	Flow.start_run("warden", 0, 7, "goblin")
+	eq(Run.player.character, "goblin", "the run starts as the goblin")
+	Flow.restart_run()
+	eq(Run.player.character, "goblin", "the same character starts over")
+
 func test_a_cheated_run_counts_no_kills() -> void:
 	TH.new_run(7)
 	Run.cheated = true

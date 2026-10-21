@@ -184,8 +184,9 @@ func tick(dt: float) -> void:
 	inv = maxf(0.0, inv - dt)
 	flare_cd = maxf(0.0, flare_cd - dt)
 	overclock_t = maxf(0.0, overclock_t - dt)
-	# Godot-only: holding R roots the player (no running away from the restart)
-	var rooted := Controls.held("reroll")
+	# Godot-only: while the restart is armed (R held, Play.update_play) the
+	# player is rooted, so the hold cannot be used to run away
+	var rooted := Run.restart_t > 0.0 or Run.restart_flare >= 0.0
 	# aim
 	aim = Controls.aim_angle(x, y, aim)
 	facing = 1 if cos(aim) >= 0 else -1
