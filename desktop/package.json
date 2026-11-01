@@ -8,7 +8,7 @@
   "author": "Last Lantern",
   "license": "MIT",
   "devDependencies": {
-    "electron": "44.7.0",
+    "electron": "45.1.0",
     "@electron/packager": "20.3.0"
   }
 }
